@@ -252,6 +252,10 @@ void ABOOMCharacter::Fire(const FInputActionValue& Value)
 void ABOOMCharacter::Interact(const FInputActionValue& Value)
 {
 
+	//3/31/23 - WEAPON INTERACTION system looks great right now
+	//@TODO fix issue where overlapped weapon ui wont show up after weapon has been picked up.
+	//@TODO have nearest overlapped actor be the weapon which gets picked up. Linear scan.
+
 	IInteractableInterface* InteractableObject;
 	if (HighlightedActor)
 	{
@@ -261,6 +265,8 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 			InteractableObject->Interact(this);
 			InteractableObject->OnInteractionRangeExited(this);
 		}
+		return;
+
 	}
 
 	GetOverlappingActors(OverlappedActors);
