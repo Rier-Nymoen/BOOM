@@ -21,8 +21,10 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 		USkeletalMeshComponent* Weapon1P;
 
-	UPROPERTY(BlueprintReadWrite, Category = Component)
-		UBOOMPickUpComponent* BOOMPickUp;
+	//UPROPERTY(BlueprintReadWrite, Category = Component)
+	//	UBOOMPickUpComponent* BOOMPickUp;
+	UPROPERTY(EditAnywhere, Category = Component)
+	UBOOMPickUpComponent* BOOMPickUp;
 
 	UPROPERTY(EditAnywhere, Category = Name)
 		FName Name = FName(TEXT("W1"));
@@ -48,6 +50,10 @@ public:
 
 	UFUNCTION()
 		virtual void OnInteractionRangeEntered(class ABOOMCharacter* MyCharacter) override;
+
+	UFUNCTION()
+		virtual void OnInteractionRangeExited(class ABOOMCharacter* MyCharacter) override;
+
 	//Maybe use operator overloading for different interaction scenarios? i know the character will be needed for some things.
 
 };

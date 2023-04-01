@@ -31,4 +31,6 @@ public:
 	virtual void Interact(class ABOOMCharacter* MyCharacter) = 0;
 
 	virtual void OnInteractionRangeEntered(class ABOOMCharacter* MyCharacter) = 0;
+	virtual void OnInteractionRangeExited(class ABOOMCharacter* MyCharacter) = 0;
+
 };

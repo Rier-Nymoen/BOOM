@@ -39,9 +39,7 @@ class ABOOMCharacter : public ACharacter
 
 		/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-		USkeletalMeshComponent* Mesh1P;
-
-
+	USkeletalMeshComponent* Mesh1P;
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -75,9 +73,14 @@ public:
 
 protected:
 	virtual void BeginPlay();
-	UFUNCTION()
-		void OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	virtual void Tick(float DeltaSeconds);
+
+	UFUNCTION()
+	void OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 public:
 
 	/** Look Input Action */
@@ -142,9 +145,18 @@ public:
 	TSet< AActor* > OverlappedActors;
 
 	UFUNCTION()
+		class UBOOMPlayerHUD* GetPlayerHUD();
+
+	UFUNCTION()
 		void SetCurrentWeapon(class ABOOMWeapon* Weapon);
 	UFUNCTION()
 		class ABOOMWeapon* GetCurrentWeapon();
 
+	//Should change to lookinteraction range, I think the ranges of something you're looking at and standing on may need to be different logically.
+	UPROPERTY()
+	float InteractionRange;
 
+	//Item currently interacting with
+	UPROPERTY()
+	AActor* HighlightedActor;
 };
