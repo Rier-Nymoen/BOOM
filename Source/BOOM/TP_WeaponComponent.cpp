@@ -58,7 +58,7 @@ void UTP_WeaponComponent::Fire()
 		UAnimInstance* AnimInstance = Character->GetMesh1P()->GetAnimInstance();
 		if (AnimInstance != nullptr)
 		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
+			//AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
 	}
 }

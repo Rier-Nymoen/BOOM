@@ -235,16 +235,16 @@ void ABOOMCharacter::Fire(const FInputActionValue& Value)
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 15.0F, FColor::Cyan, "null");
-		FRotator CameraRotation;
-		FVector CameraLocation;
-		APlayerController* PlayerController = Cast<APlayerController>(this->GetController());
-		check(PlayerController)
-		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
-		CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-		FVector Start = CameraLocation;
-		FVector End = Start + (CameraRotation.Vector() * InteractionRange);
-		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, true, 4.0f);
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 15.0F, FColor::Cyan, "null");
+		//FRotator CameraRotation;
+		//FVector CameraLocation;
+		//APlayerController* PlayerController = Cast<APlayerController>(this->GetController());
+		//check(PlayerController)
+		//CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+		//CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+		//FVector Start = CameraLocation;
+		//FVector End = Start + (CameraRotation.Vector() * InteractionRange);
+		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, true, 4.0f);
 
 	}
 }
@@ -264,6 +264,7 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 		{
 			InteractableObject->Interact(this);
 			InteractableObject->OnInteractionRangeExited(this);
+			
 		}
 		return;
 

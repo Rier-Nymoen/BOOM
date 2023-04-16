@@ -10,6 +10,15 @@
 class UBOOMPickUpComponent;
 class ABOOMCharacter;
 
+enum EWeaponState
+{
+	Firing,
+	Reloading,
+	Idle,
+
+};
+
+
 UCLASS()
 class BOOM_API ABOOMWeapon : public AActor, public IInteractableInterface
 {
@@ -19,7 +28,7 @@ public:
 	// Sets default values for this actor's properties
 	ABOOMWeapon();
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-		USkeletalMeshComponent* Weapon1P;
+	USkeletalMeshComponent* Weapon1P;
 
 	//UPROPERTY(BlueprintReadWrite, Category = Component)
 	//	UBOOMPickUpComponent* BOOMPickUp;
