@@ -183,6 +183,8 @@ UBOOMPlayerHUD* ABOOMCharacter::GetPlayerHUD()
 	return PlayerHUD;
 }
 
+
+//getters and setters because I plan on using them to track information or update HUD images.
 void ABOOMCharacter::SetCurrentWeapon(ABOOMWeapon* Weapon)
 {
 	CurrentWeapon = Weapon;
@@ -191,6 +193,44 @@ void ABOOMCharacter::SetCurrentWeapon(ABOOMWeapon* Weapon)
 ABOOMWeapon* ABOOMCharacter::GetCurrentWeapon()
 {
 	return CurrentWeapon;
+}
+
+ABOOMWeapon* ABOOMCharacter::GetPrimaryWeapon()
+{
+	return PrimaryWeapon;
+}
+
+ABOOMWeapon* ABOOMCharacter::GetSecondaryWeapon()
+{
+	return SecondaryWeapon;
+}
+
+void ABOOMCharacter::SetPrimaryWeapon(ABOOMWeapon* Weapon)
+{
+	PrimaryWeapon = Weapon;
+	return;
+}
+
+void ABOOMCharacter::SetSecondaryWeapon(ABOOMWeapon* Weapon)
+{
+	SecondaryWeapon = Weapon;
+	return;
+}
+
+void ABOOMCharacter::EquipWeapon(ABOOMWeapon* Weapon)
+{
+		if(GetPrimaryWeapon() == nullptr)
+		{
+			SetPrimaryWeapon(Weapon);
+		}
+		else if (GetSecondaryWeapon() == nullptr)
+		{
+			SetSecondaryWeapon(Weapon);
+		}
+
+		
+		SetCurrentWeapon(Weapon);
+
 }
 
 
@@ -223,15 +263,33 @@ void ABOOMCharacter::Look(const FInputActionValue& Value)
 
 void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 {
+	if (GetCurrentWeapon() == nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Green, "No Weapon Equipped");
+		return;
+	}
+	//play Weaponswap Animation or replay pickup animation?
 
+
+	//assumes if you have a current weapon, you always have a primary weapon.
+
+
+	if (GetCurrentWeapon() == GetPrimaryWeapon())
+	{
+		SetCurrentWeapon(SecondaryWeapon);
+	}
+	else
+	{
+		SetCurrentWeapon(PrimaryWeapon);
+	}
 }
 
 void ABOOMCharacter::Fire(const FInputActionValue& Value)
 {
 
-	if (CurrentWeapon)
+	if (GetCurrentWeapon())
 	{
-		CurrentWeapon->Fire();
+		GetCurrentWeapon()->Fire();
 	}
 	else
 	{

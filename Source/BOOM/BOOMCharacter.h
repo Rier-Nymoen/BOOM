@@ -123,12 +123,17 @@ protected:
 
 	UPROPERTY()
 	class ABOOMWeapon* CurrentWeapon;
-
+	UPROPERTY()
+	class ABOOMWeapon* PrimaryWeapon;
+	UPROPERTY()
+	class ABOOMWeapon* SecondaryWeapon;
 
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
+	UFUNCTION()
+	void SetCurrentWeapon(class ABOOMWeapon* Weapon);
 
 public:
 	/** Returns Mesh1P subobject **/
@@ -147,10 +152,27 @@ public:
 	UFUNCTION()
 		class UBOOMPlayerHUD* GetPlayerHUD();
 
-	UFUNCTION()
-		void SetCurrentWeapon(class ABOOMWeapon* Weapon);
+
 	UFUNCTION()
 		class ABOOMWeapon* GetCurrentWeapon();
+
+	UFUNCTION()
+		class ABOOMWeapon* GetPrimaryWeapon();
+
+
+	UFUNCTION()
+		class ABOOMWeapon* GetSecondaryWeapon();
+
+	UFUNCTION()
+		void  SetPrimaryWeapon(class ABOOMWeapon* Weapon);
+
+
+	UFUNCTION()
+		void  SetSecondaryWeapon(class ABOOMWeapon* Weapon);
+
+
+	UFUNCTION()
+		void EquipWeapon(class ABOOMWeapon* Weapon);
 
 	//Should change to lookinteraction range, I think the ranges of something you're looking at and standing on may need to be different logically.
 	UPROPERTY()

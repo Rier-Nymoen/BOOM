@@ -47,13 +47,9 @@ void ABOOMWeapon::Interact(ABOOMCharacter* MyCharacter)
 	{
 		return;
 	}
-	MyCharacter->SetCurrentWeapon(this);
+	MyCharacter->EquipWeapon(this);
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	UAnimInstance* AnimInstance = MyCharacter->GetMesh1P()->GetAnimInstance();
-	if (AnimInstance)
-	{
-		//AnimInstance->Montage_Play(, 1000000);
-	}
+
 
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(MyCharacter->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
