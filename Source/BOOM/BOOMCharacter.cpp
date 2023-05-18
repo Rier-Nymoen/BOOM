@@ -48,10 +48,11 @@ void ABOOMCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//possibly rework
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
 
-	//Add Input Mapping Context
+	//For Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -62,15 +63,13 @@ void ABOOMCharacter::BeginPlay()
 		check(PlayerHUD);
 		PlayerHUD->AddToPlayerScreen();
 	}
-
-	
 }
 
 void ABOOMCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	//maybe i have a line and move it instead of redrawing it?
+	//Setup Playcontroller
 	APlayerController* PlayerController = Cast<APlayerController>(this->GetController());
 	if (PlayerController)
 	{
@@ -78,8 +77,7 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 		FVector CameraLocation;
 		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 		CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-		//Learn how this is actually derived
-		//outhit means its going to alter HitResult by reference, hence the Out naming  convention unreal uses
+
 		FVector Start = CameraLocation;
 		FVector End = Start + (CameraRotation.Vector() * InteractionRange);
 		FHitResult HitResult;
@@ -87,27 +85,21 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
 		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, true, 4.0f);
-		 nullptr;
 		IInteractableInterface* InteractableObject;
 
 		if (bHit)
 		{
-			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.0F, FColor::Blue, "Hit");
-			//AActor* OtherActor = HitResult.GetActor();
 			if(HighlightedActor == HitResult.GetActor())
 			{
 				return;
 			}
-
+			
 			HighlightedActor = HitResult.GetActor();
 
 
 			InteractableObject = Cast<IInteractableInterface>(HighlightedActor);
 			if (InteractableObject)
 			{
-
-				GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.0F, FColor::Purple, "Looked at an interactable Object");
-
 				InteractableObject->OnInteractionRangeEntered(this);
 				
 			}
@@ -118,8 +110,6 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 			HighlightedActor = nullptr;
 			if (InteractableObject)
 			{
-				GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.0F, FColor::Purple, "Stopped looking at object");
-
 				InteractableObject->OnInteractionRangeExited(this);
 			}
 		}
@@ -128,11 +118,13 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 	}
 }
 
-
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	IInteractableInterface* InteractableObject;
-
+	/*on detecting overlap, get all thats overlapping, and filter it to only include things with the interactable interface
+		i think this should be a set to have uniques. Or, it could be a separate array we perform those operations on.
+		
+	*/
 	InteractableObject = Cast<IInteractableInterface>(OtherActor);
 	if (InteractableObject)
 	{

@@ -59,7 +59,6 @@ void ABOOMWeapon::Interact(ABOOMCharacter* MyCharacter)
 void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* MyCharacter)
 {
 	const  FString cont(TEXT("cont"));
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 15.0F, FColor::Green, "1");
 
 	check(MyCharacter)
 		FItemInformation* MyStruct = MyCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, true);
@@ -83,7 +82,6 @@ void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* MyCharacter)
 	* @TODO - Need to implement fix for UI not showing up after picking up a weapon while overlapping multiple weapons. Also need to make sure that the
 	* Weapon overlapped that gets picked up.
 	*/
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 15.0F, FColor::Green, "3");
 
 
 

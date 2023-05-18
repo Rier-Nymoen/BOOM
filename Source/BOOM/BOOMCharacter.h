@@ -147,7 +147,7 @@ public:
 	UPROPERTY()
 		class UBOOMPlayerHUD* PlayerHUD;
 	UPROPERTY()
-	TSet< AActor* > OverlappedActors;
+	TArray< AActor* > OverlappedActors;
 
 	UFUNCTION()
 		class UBOOMPlayerHUD* GetPlayerHUD();
@@ -175,10 +175,13 @@ public:
 		void EquipWeapon(class ABOOMWeapon* Weapon);
 
 	//Should change to lookinteraction range, I think the ranges of something you're looking at and standing on may need to be different logically.
+
+	//The Look-Range the player can detect interactable objects.
 	UPROPERTY()
 	float InteractionRange;
 
-	//Item currently interacting with
+	//Prioritized item currently being interacted with
 	UPROPERTY()
 	AActor* HighlightedActor;
+
 };
