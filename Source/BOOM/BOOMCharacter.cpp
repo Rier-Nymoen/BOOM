@@ -43,7 +43,7 @@ ABOOMCharacter::ABOOMCharacter()
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 	
-	InteractionRange = 200.0F;
+	InteractionRange = 250.0F;
 }
 
 void ABOOMCharacter::BeginPlay()
@@ -91,7 +91,7 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 		FCollisionQueryParams TraceParams;
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, true, 4.0f);
+		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0.1f);
 
 		IInteractableInterface* InteractableObject;
 		if (bHit)
@@ -338,6 +338,7 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 			InteractableObject->OnInteractionRangeExited(this);
 			
 		}
+		this->GetNearestInteractable();
 		return;
 
 	}
