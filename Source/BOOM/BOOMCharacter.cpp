@@ -11,6 +11,8 @@
 #include "Blueprint/UserWidget.h"
 #include "Interfaces/InteractableInterface.h"
 #include "UI/BOOMPlayerHUD.h"
+#include "Containers/Array.h"
+#include "Math/NumericLimits.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,6 +72,11 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	//Setup Playcontroller
+
+
+	/*
+	* Player-look functionality for interacting with objects. Look interactivity is prioritized over proximity pickup.
+	*/
 	APlayerController* PlayerController = Cast<APlayerController>(this->GetController());
 	if (PlayerController)
 	{
@@ -85,8 +92,8 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
 		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, true, 4.0f);
-		IInteractableInterface* InteractableObject;
 
+		IInteractableInterface* InteractableObject;
 		if (bHit)
 		{
 			if(HighlightedActor == HitResult.GetActor())
@@ -96,12 +103,10 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 			
 			HighlightedActor = HitResult.GetActor();
 
-
 			InteractableObject = Cast<IInteractableInterface>(HighlightedActor);
 			if (InteractableObject)
 			{
 				InteractableObject->OnInteractionRangeEntered(this);
-				
 			}
 		}
 		else
@@ -112,35 +117,27 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 			{
 				InteractableObject->OnInteractionRangeExited(this);
 			}
+
+			if (OverlappedActors.Num() > 0)
+			{
+				this->GetNearestInteractable(); 
+			}
+
 		}
-
-
 	}
 }
 
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	IInteractableInterface* InteractableObject;
-	/*on detecting overlap, get all thats overlapping, and filter it to only include things with the interactable interface
-		i think this should be a set to have uniques. Or, it could be a separate array we perform those operations on.
-		
-	*/
-	InteractableObject = Cast<IInteractableInterface>(OtherActor);
-	if (InteractableObject)
-	{
-		InteractableObject->OnInteractionRangeEntered(this);
-	}
+	this->GetNearestInteractable();
 
-}
+}	
+
 
 void ABOOMCharacter::OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	IInteractableInterface* InteractableObject;
-	InteractableObject = Cast<IInteractableInterface>(OtherActor);
-	if (InteractableObject)
-	{
-		InteractableObject->OnInteractionRangeExited(this);
-	}
+	this->GetNearestInteractable();
+
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -223,6 +220,31 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* Weapon)
 		
 		SetCurrentWeapon(Weapon);
 
+}
+
+void ABOOMCharacter::GetNearestInteractable()
+{
+	float MinDistance = TNumericLimits<float>::Max();
+
+	GetOverlappingActors(OverlappedActors);
+	for (AActor* OverlappedActor : OverlappedActors)
+	{
+		IInteractableInterface* InteractableObject = Cast<IInteractableInterface>(OverlappedActor);
+
+		if (InteractableObject)
+		{
+			float DistanceToPlayer = FVector::Distance(this->GetActorLocation(), OverlappedActor->GetActorLocation());
+			if (DistanceToPlayer <= MinDistance)
+			{
+				MinDistance = DistanceToPlayer;
+				HighlightedActor = OverlappedActor;
+			}
+		}
+	}
+	if (IInteractableInterface* InteractableObject = Cast<IInteractableInterface>(HighlightedActor))
+	{
+		InteractableObject->OnInteractionRangeEntered(this);
+	}
 }
 
 

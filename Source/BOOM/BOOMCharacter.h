@@ -184,4 +184,8 @@ public:
 	UPROPERTY()
 	AActor* HighlightedActor;
 
+	UFUNCTION()
+	void GetNearestInteractable();
+
+
 };
