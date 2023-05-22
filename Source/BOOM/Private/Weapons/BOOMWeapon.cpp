@@ -26,13 +26,10 @@ void ABOOMWeapon::BeginPlay()
 	{
 
 	}
-
-
 }
 
 void ABOOMWeapon::Fire()
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 15.0F, FColor::Green, "PewPewPew");
 
 }
 
@@ -76,14 +73,6 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* MyCharacter)
 void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* MyCharacter)
 {
 	check(MyCharacter->GetPlayerHUD())
-		MyCharacter->GetPlayerHUD()->PickUpPrompt->SetVisibility(ESlateVisibility::Hidden);
-	/*
-	* 
-	* @TODO - Need to implement fix for UI not showing up after picking up a weapon while overlapping multiple weapons. Also need to make sure that the
-	* Weapon overlapped that gets picked up.
-	*/
+	MyCharacter->GetPlayerHUD()->PickUpPrompt->SetVisibility(ESlateVisibility::Hidden);
 
-
-
-	
 }

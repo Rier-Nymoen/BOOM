@@ -20,7 +20,7 @@
 
 ABOOMCharacter::ABOOMCharacter()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	// Character doesnt have a rifle at start
 	bHasRifle = false;
 	bIsOverlappingWeapon = false;
@@ -64,79 +64,25 @@ void ABOOMCharacter::BeginPlay()
 		PlayerHUD = CreateWidget<UBOOMPlayerHUD>(PlayerController, PlayerHUDClass);
 		check(PlayerHUD);
 		PlayerHUD->AddToPlayerScreen();
+
+		FTimerHandle InteractionHandle;
+		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.4F, true);
 	}
 }
 
 void ABOOMCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	//Setup Playcontroller
-
-
-	/*
-	* Player-look functionality for interacting with objects. Look interactivity is prioritized over proximity pickup.
-	*/
-	APlayerController* PlayerController = Cast<APlayerController>(this->GetController());
-	if (PlayerController)
-	{
-		FRotator CameraRotation;
-		FVector CameraLocation;
-		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
-		CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-
-		FVector Start = CameraLocation;
-		FVector End = Start + (CameraRotation.Vector() * InteractionRange);
-		FHitResult HitResult;
-		FCollisionQueryParams TraceParams;
-
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0.1f);
-
-		IInteractableInterface* InteractableObject;
-		if (bHit)
-		{
-			if(HighlightedActor == HitResult.GetActor())
-			{
-				return;
-			}
-			
-			HighlightedActor = HitResult.GetActor();
-
-			InteractableObject = Cast<IInteractableInterface>(HighlightedActor);
-			if (InteractableObject)
-			{
-				InteractableObject->OnInteractionRangeEntered(this);
-			}
-		}
-		else
-		{
-			InteractableObject = Cast<IInteractableInterface>(HighlightedActor);
-			HighlightedActor = nullptr;
-			if (InteractableObject)
-			{
-				InteractableObject->OnInteractionRangeExited(this);
-			}
-
-			if (OverlappedActors.Num() > 0)
-			{
-				this->GetNearestInteractable(); 
-			}
-
-		}
-	}
 }
 
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	this->GetNearestInteractable();
 
 }	
 
 
 void ABOOMCharacter::OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	this->GetNearestInteractable();
 
 }
 
@@ -216,16 +162,14 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* Weapon)
 		{
 			SetSecondaryWeapon(Weapon);
 		}
-
-		
 		SetCurrentWeapon(Weapon);
 
 }
 
-void ABOOMCharacter::GetNearestInteractable()
+AActor* ABOOMCharacter::GetNearestInteractable()
 {
 	float MinDistance = TNumericLimits<float>::Max();
-
+	AActor* NearestActor = nullptr;
 	GetOverlappingActors(OverlappedActors);
 	for (AActor* OverlappedActor : OverlappedActors)
 	{
@@ -237,14 +181,75 @@ void ABOOMCharacter::GetNearestInteractable()
 			if (DistanceToPlayer <= MinDistance)
 			{
 				MinDistance = DistanceToPlayer;
-				HighlightedActor = OverlappedActor;
+				NearestActor = OverlappedActor;
 			}
 		}
 	}
-	if (IInteractableInterface* InteractableObject = Cast<IInteractableInterface>(HighlightedActor))
+	return NearestActor;
+}
+
+void ABOOMCharacter::CheckPlayerLook()
+{
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, FString::FromInt(count));
+	count++;
+
+	//Setup Playcontroller
+	/*
+	* Player-look functionality for interacting with objects. Look interactivity is prioritized over proximity pickup.
+	*/
+	APlayerController* PlayerController = Cast<APlayerController>(this->GetController());
+	if (PlayerController)
 	{
-		InteractableObject->OnInteractionRangeEntered(this);
+		FRotator CameraRotation;
+		FVector CameraLocation;
+		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+		CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+
+		FVector Start = CameraLocation;
+		FVector End = Start + (CameraRotation.Vector() * InteractionRange);
+		FHitResult HitResult;
+		FCollisionQueryParams TraceParams;
+
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
+		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 1);
+
+		IInteractableInterface* InteractableObject;
+		if (bHit)
+		{
+			if (HighlightedActor == HitResult.GetActor())
+			{
+				return;
+			}
+
+			HighlightedActor = HitResult.GetActor();
+
+			InteractableObject = Cast<IInteractableInterface>(HighlightedActor);
+			if (InteractableObject)
+			{
+				InteractableObject->OnInteractionRangeEntered(this);
+			}
+		}
+		else
+		{
+			InteractableObject = Cast<IInteractableInterface>(HighlightedActor);
+			HighlightedActor = nullptr;
+			if (InteractableObject)
+			{
+				InteractableObject->OnInteractionRangeExited(this);
+				GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Magenta, "testcase2");
+			}
+
+			if(OverlappedActors.Num() > 0)
+			{
+				HighlightedActor = this->GetNearestInteractable();
+				check(HighlightedActor)
+				InteractableObject->OnInteractionRangeEntered(this);
+				
+			}
+
+		}
 	}
+
 }
 
 
@@ -301,33 +306,10 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 void ABOOMCharacter::Fire(const FInputActionValue& Value)
 {
 
-	if (GetCurrentWeapon())
-	{
-		GetCurrentWeapon()->Fire();
-	}
-	else
-	{
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 15.0F, FColor::Cyan, "null");
-		//FRotator CameraRotation;
-		//FVector CameraLocation;
-		//APlayerController* PlayerController = Cast<APlayerController>(this->GetController());
-		//check(PlayerController)
-		//CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
-		//CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-		//FVector Start = CameraLocation;
-		//FVector End = Start + (CameraRotation.Vector() * InteractionRange);
-		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, true, 4.0f);
-
-	}
 }
 
 void ABOOMCharacter::Interact(const FInputActionValue& Value)
 {
-
-	//3/31/23 - WEAPON INTERACTION system looks great right now
-	//@TODO fix issue where overlapped weapon ui wont show up after weapon has been picked up.
-	//@TODO have nearest overlapped actor be the weapon which gets picked up. Linear scan.
-
 	IInteractableInterface* InteractableObject;
 	if (HighlightedActor)
 	{

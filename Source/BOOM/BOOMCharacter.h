@@ -185,7 +185,11 @@ public:
 	AActor* HighlightedActor;
 
 	UFUNCTION()
-	void GetNearestInteractable();
+	AActor* GetNearestInteractable();
 
+	UFUNCTION()
+	void CheckPlayerLook();
 
+	UPROPERTY()
+	int count;
 };
