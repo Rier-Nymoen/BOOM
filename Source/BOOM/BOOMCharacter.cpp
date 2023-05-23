@@ -20,7 +20,7 @@
 
 ABOOMCharacter::ABOOMCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	// Character doesnt have a rifle at start
 	bHasRifle = false;
 	bIsOverlappingWeapon = false;
@@ -28,13 +28,13 @@ ABOOMCharacter::ABOOMCharacter()
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 
 	// Create a CameraComponent	
-	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
+	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>("FirstPersonCamera");
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
-	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
+	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>("CharacterMesh1P");
 	Mesh1P->SetOnlyOwnerSee(true);
 	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
 	Mesh1P->bCastDynamicShadow = false;
@@ -44,6 +44,8 @@ ABOOMCharacter::ABOOMCharacter()
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 	
 	InteractionRange = 250.0F;
+	Overlaps = 0;
+	bGenerateOverlapEventsDuringLevelStreaming = true;
 }
 
 void ABOOMCharacter::BeginPlay()
@@ -53,6 +55,19 @@ void ABOOMCharacter::BeginPlay()
 	//possibly rework
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
+
+
+
+	/*
+	@TODO Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
+	*/
+	GetOverlappingActors(OverlappedActors);
+	Overlaps = OverlappedActors.Num();
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "Overlapped actors: " + FString::FromInt(OverlappedActors.Num()));
+
+	
+	//possible race condition
+
 
 	//For Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
@@ -66,8 +81,9 @@ void ABOOMCharacter::BeginPlay()
 		PlayerHUD->AddToPlayerScreen();
 
 		FTimerHandle InteractionHandle;
-		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.4F, true);
+		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
 	}
+
 }
 
 void ABOOMCharacter::Tick(float DeltaSeconds)
@@ -77,13 +93,15 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "Testing functionality");
 
+	Overlaps++;
 }	
 
 
 void ABOOMCharacter::OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-
+	Overlaps--;
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -190,8 +208,7 @@ AActor* ABOOMCharacter::GetNearestInteractable()
 
 void ABOOMCharacter::CheckPlayerLook()
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, FString::FromInt(count));
-	count++;
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "Overlaps: " + FString::FromInt(Overlaps));
 
 	//Setup Playcontroller
 	/*
@@ -236,14 +253,24 @@ void ABOOMCharacter::CheckPlayerLook()
 			if (InteractableObject)
 			{
 				InteractableObject->OnInteractionRangeExited(this);
-				GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Magenta, "testcase2");
 			}
 
-			if(OverlappedActors.Num() > 0)
+			if(Overlaps > 0)
 			{
 				HighlightedActor = this->GetNearestInteractable();
-				check(HighlightedActor)
-				InteractableObject->OnInteractionRangeEntered(this);
+				if (HighlightedActor)
+				{
+					InteractableObject = Cast<IInteractableInterface>(HighlightedActor);
+
+					InteractableObject->OnInteractionRangeEntered(this);
+				}
+				else
+				{
+					GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Red, "ERROR");
+
+				}
+
+
 				
 			}
 
@@ -284,14 +311,8 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 {
 	if (GetCurrentWeapon() == nullptr)
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Green, "No Weapon Equipped");
 		return;
 	}
-	//play Weaponswap Animation or replay pickup animation?
-
-
-	//assumes if you have a current weapon, you always have a primary weapon.
-
 
 	if (GetCurrentWeapon() == GetPrimaryWeapon())
 	{
@@ -325,17 +346,17 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 
 	}
 
-	GetOverlappingActors(OverlappedActors);
-	for (AActor* OverlappedActor : OverlappedActors)
-	{
-		InteractableObject = Cast<IInteractableInterface>(OverlappedActor);
-		if (InteractableObject)
-		{
-			InteractableObject->Interact(this);
+	//GetOverlappingActors(OverlappedActors);
+	//for (AActor* OverlappedActor : OverlappedActors)
+	//{
+	//	InteractableObject = Cast<IInteractableInterface>(OverlappedActor);
+	//	if (InteractableObject)
+	//	{
+	//		InteractableObject->Interact(this);
 
-			break;
-		}
-	}
+	//		break;
+	//	}
+	//}
 
 }
 

@@ -22,6 +22,8 @@ ABOOMWeapon::ABOOMWeapon()
 void ABOOMWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+	bGenerateOverlapEventsDuringLevelStreaming = true;
+
 	if (BOOMPickUp != nullptr)
 	{
 

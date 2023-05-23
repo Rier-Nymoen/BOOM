@@ -192,4 +192,7 @@ public:
 
 	UPROPERTY()
 	int count;
+
+	UPROPERTY()
+		int Overlaps;
 };
