@@ -56,19 +56,13 @@ void ABOOMCharacter::BeginPlay()
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
 
-
-
 	/*
 	@TODO Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
 	*/
 	GetOverlappingActors(OverlappedActors);
 	Overlaps = OverlappedActors.Num();
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "Overlapped actors: " + FString::FromInt(OverlappedActors.Num()));
-
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "Overlapped actors: " + FString::FromInt(OverlappedActors.Num()));
 	
-	//possible race condition
-
-
 	//For Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
@@ -93,8 +87,6 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "Testing functionality");
-
 	Overlaps++;
 }	
 
@@ -126,7 +118,7 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		//Weapon Pickup
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ABOOMCharacter::Interact);
 		//Fire Weapon
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::Fire);
+		//EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::Fire);
 
 	}
 }
@@ -138,51 +130,7 @@ UBOOMPlayerHUD* ABOOMCharacter::GetPlayerHUD()
 
 
 //getters and setters because I plan on using them to track information or update HUD images.
-void ABOOMCharacter::SetCurrentWeapon(ABOOMWeapon* Weapon)
-{
-	CurrentWeapon = Weapon;
-}
 
-ABOOMWeapon* ABOOMCharacter::GetCurrentWeapon()
-{
-	return CurrentWeapon;
-}
-
-ABOOMWeapon* ABOOMCharacter::GetPrimaryWeapon()
-{
-	return PrimaryWeapon;
-}
-
-ABOOMWeapon* ABOOMCharacter::GetSecondaryWeapon()
-{
-	return SecondaryWeapon;
-}
-
-void ABOOMCharacter::SetPrimaryWeapon(ABOOMWeapon* Weapon)
-{
-	PrimaryWeapon = Weapon;
-	return;
-}
-
-void ABOOMCharacter::SetSecondaryWeapon(ABOOMWeapon* Weapon)
-{
-	SecondaryWeapon = Weapon;
-	return;
-}
-
-void ABOOMCharacter::EquipWeapon(ABOOMWeapon* Weapon)
-{
-		if(GetPrimaryWeapon() == nullptr)
-		{
-			SetPrimaryWeapon(Weapon);
-		}
-		else if (GetSecondaryWeapon() == nullptr)
-		{
-			SetSecondaryWeapon(Weapon);
-		}
-		SetCurrentWeapon(Weapon);
-
-}
 
 AActor* ABOOMCharacter::GetNearestInteractable()
 {
@@ -208,7 +156,7 @@ AActor* ABOOMCharacter::GetNearestInteractable()
 
 void ABOOMCharacter::CheckPlayerLook()
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "Overlaps: " + FString::FromInt(Overlaps));
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "Overlaps: " + FString::FromInt(Overlaps));
 
 	//Setup Playcontroller
 	/*
@@ -228,7 +176,7 @@ void ABOOMCharacter::CheckPlayerLook()
 		FCollisionQueryParams TraceParams;
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 1);
+		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 1);
 
 		IInteractableInterface* InteractableObject;
 		if (bHit)
@@ -254,7 +202,6 @@ void ABOOMCharacter::CheckPlayerLook()
 			{
 				InteractableObject->OnInteractionRangeExited(this);
 			}
-
 			if(Overlaps > 0)
 			{
 				HighlightedActor = this->GetNearestInteractable();
@@ -263,23 +210,13 @@ void ABOOMCharacter::CheckPlayerLook()
 					InteractableObject = Cast<IInteractableInterface>(HighlightedActor);
 
 					InteractableObject->OnInteractionRangeEntered(this);
-				}
-				else
-				{
-					GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Red, "ERROR");
-
-				}
-
-
-				
+				}			
 			}
 
 		}
 	}
 
 }
-
-
 
 void ABOOMCharacter::Move(const FInputActionValue& Value)
 {
@@ -309,19 +246,7 @@ void ABOOMCharacter::Look(const FInputActionValue& Value)
 
 void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 {
-	if (GetCurrentWeapon() == nullptr)
-	{
-		return;
-	}
 
-	if (GetCurrentWeapon() == GetPrimaryWeapon())
-	{
-		SetCurrentWeapon(SecondaryWeapon);
-	}
-	else
-	{
-		SetCurrentWeapon(PrimaryWeapon);
-	}
 }
 
 void ABOOMCharacter::Fire(const FInputActionValue& Value)
@@ -345,18 +270,6 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 		return;
 
 	}
-
-	//GetOverlappingActors(OverlappedActors);
-	//for (AActor* OverlappedActor : OverlappedActors)
-	//{
-	//	InteractableObject = Cast<IInteractableInterface>(OverlappedActor);
-	//	if (InteractableObject)
-	//	{
-	//		InteractableObject->Interact(this);
-
-	//		break;
-	//	}
-	//}
 
 }
 

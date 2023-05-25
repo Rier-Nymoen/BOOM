@@ -8,7 +8,7 @@ UBOOMWeaponReloadComponent::UBOOMWeaponReloadComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 	//Set max ammo reserves
 	MaxAmmoReserves = 12;
 	//Player will spawn in with the max ammo reserves at the start of the game

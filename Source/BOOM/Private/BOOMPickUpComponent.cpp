@@ -15,7 +15,6 @@ void UBOOMPickUpComponent::OnSphereEndOverlap(UPrimitiveComponent* OverlappedCom
 	if (ABOOMCharacter* TargetCharacter = Cast<ABOOMCharacter>(OtherActor))
 	{
 		TargetCharacter->bIsOverlappingWeapon = false;
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.0F, FColor::Orange, "character no longer overlapping weapon");
 	}
 
 
@@ -38,7 +37,6 @@ void UBOOMPickUpComponent::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedC
 	{
 		if (!TargetCharacter->bIsOverlappingWeapon)
 		{
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.0F, FColor::Green,"Player is overlapping weapon");
 			TargetCharacter->bIsOverlappingWeapon = true;
 			OnPickUp.Broadcast(TargetCharacter);
 		}

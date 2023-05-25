@@ -26,10 +26,6 @@ public:
 		class UTexture2D* ItemImage;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		FString Description;
-protected:
-
-private:
-	
 };
 
 UCLASS(config = Game)
@@ -37,13 +33,67 @@ class ABOOMCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-		/** Pawn mesh: 1st person view (arms; seen only by self) */
+	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* Mesh1P;
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		UCameraComponent* FirstPersonCameraComponent;
+	UCameraComponent* FirstPersonCameraComponent;
+
+public:
+	ABOOMCharacter();
+
+protected:
+	virtual void BeginPlay();
+
+	virtual void Tick(float DeltaSeconds);
+
+	void OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	void OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UPROPERTY()
+	TArray< AActor* > OverlappedActors;
+
+	UPROPERTY()
+	int Overlaps;
+
+public:
+
+	/** Bool for AnimBP to switch to another animation set */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
+	bool bHasRifle;
+
+	/** Setter to set the bool */
+	UFUNCTION(BlueprintCallable, Category = Weapon)
+	void SetHasRifle(bool bNewHasRifle);
+
+	/** Getter for the bool */
+	UFUNCTION(BlueprintCallable, Category = Weapon)
+	bool GetHasRifle();
+	 
+	UPROPERTY()
+	bool bIsOverlappingWeapon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DataTable)
+	class UDataTable* WeaponTable;
+protected:
+	// APawn interface
+	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+	// End of APawn interface
+
+	/** Called for movement input */
+	void Move(const FInputActionValue& Value);
+
+	/** Called for looking input */
+	void Look(const FInputActionValue& Value);
+
+	void SwapWeapon(const FInputActionValue& Value);
+
+	void Fire(const FInputActionValue& Value);
+	
+	void Interact(const FInputActionValue& Value);
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -64,76 +114,15 @@ class ABOOMCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* WeaponSwapAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* FireAction;
-
-
-public:
-	ABOOMCharacter();
-
-protected:
-	virtual void BeginPlay();
-
-	virtual void Tick(float DeltaSeconds);
-
-	UFUNCTION()
-	void OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	void OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-public:
+	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* FireAction;*/
 
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* LookAction;
 
-	/** Bool for AnimBP to switch to another animation set */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
-		bool bHasRifle;
-
-	/** Setter to set the bool */
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-		void SetHasRifle(bool bNewHasRifle);
-
-	/** Getter for the bool */
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-		bool GetHasRifle();
-
-	bool bIsOverlappingWeapon;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DataTable)
-		class UDataTable* WeaponTable;
-
-
-
 protected:
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
 
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
-
-	void SwapWeapon(const FInputActionValue& Value);
-
-	void Fire(const FInputActionValue& Value);
-	
-	void Interact(const FInputActionValue& Value);
-
-
-
-	UPROPERTY()
-	class ABOOMWeapon* CurrentWeapon;
-	UPROPERTY()
-	class ABOOMWeapon* PrimaryWeapon;
-	UPROPERTY()
-	class ABOOMWeapon* SecondaryWeapon;
-
-protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-	// End of APawn interface
-	UFUNCTION()
-	void SetCurrentWeapon(class ABOOMWeapon* Weapon);
 
 public:
 	/** Returns Mesh1P subobject **/
@@ -142,39 +131,13 @@ public:
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
-		TSubclassOf<class UBOOMPlayerHUD> PlayerHUDClass;
+	TSubclassOf<class UBOOMPlayerHUD> PlayerHUDClass;
 
 	UPROPERTY()
-		class UBOOMPlayerHUD* PlayerHUD;
-	UPROPERTY()
-	TArray< AActor* > OverlappedActors;
+	class UBOOMPlayerHUD* PlayerHUD;
 
 	UFUNCTION()
-		class UBOOMPlayerHUD* GetPlayerHUD();
-
-
-	UFUNCTION()
-		class ABOOMWeapon* GetCurrentWeapon();
-
-	UFUNCTION()
-		class ABOOMWeapon* GetPrimaryWeapon();
-
-
-	UFUNCTION()
-		class ABOOMWeapon* GetSecondaryWeapon();
-
-	UFUNCTION()
-		void  SetPrimaryWeapon(class ABOOMWeapon* Weapon);
-
-
-	UFUNCTION()
-		void  SetSecondaryWeapon(class ABOOMWeapon* Weapon);
-
-
-	UFUNCTION()
-		void EquipWeapon(class ABOOMWeapon* Weapon);
-
-	//Should change to lookinteraction range, I think the ranges of something you're looking at and standing on may need to be different logically.
+	class UBOOMPlayerHUD* GetPlayerHUD();
 
 	//The Look-Range the player can detect interactable objects.
 	UPROPERTY()
@@ -190,9 +153,4 @@ public:
 	UFUNCTION()
 	void CheckPlayerLook();
 
-	UPROPERTY()
-	int count;
-
-	UPROPERTY()
-		int Overlaps;
 };

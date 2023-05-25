@@ -9,6 +9,7 @@
 
 class UBOOMPickUpComponent;
 class ABOOMCharacter;
+class UBOOMWeaponReloadComponent;
 
 enum EWeaponState
 {
@@ -35,8 +36,15 @@ public:
 	UPROPERTY(EditAnywhere, Category = Component)
 	UBOOMPickUpComponent* BOOMPickUp;
 
+	UPROPERTY(EditAnywhere, Category = Component)
+	UBOOMWeaponReloadComponent* ReloadComponent;
+
 	UPROPERTY(EditAnywhere, Category = Name)
 		FName Name = FName(TEXT("W1"));
+
+private:
+	/*Character holding weapon*/
+	ABOOMCharacter* Character;
 
 
 	UFUNCTION()
@@ -62,6 +70,14 @@ public:
 
 	UFUNCTION()
 		virtual void OnInteractionRangeExited(class ABOOMCharacter* MyCharacter) override;
+
+	/** MappingContext */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputMappingContext* WeaponMappingContext;
+
+	/** Fire Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* FireAction;
 
 	//Maybe use operator overloading for different interaction scenarios? i know the character will be needed for some things.
 
