@@ -40,45 +40,86 @@ public:
 	UBOOMWeaponReloadComponent* ReloadComponent;
 
 	UPROPERTY(EditAnywhere, Category = Name)
-		FName Name = FName(TEXT("W1"));
+	FName Name = FName(TEXT("W1"));
 
 private:
 	/*Character holding weapon*/
 	ABOOMCharacter* Character;
 
+protected:
 
 	UFUNCTION()
-		virtual void Fire();
+	virtual void Fire();
 
+	UFUNCTION()
+	virtual void ReloadWeapon();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-
-
 public:
-	// Called every frame
-	// 
-	//Interface Implementations
+	/*Interface Implementations*/
 	virtual void Interact() override;
 
 	virtual void Interact(class ABOOMCharacter* MyCharacter) override;
 
 	UFUNCTION()
-		virtual void OnInteractionRangeEntered(class ABOOMCharacter* MyCharacter) override;
+	virtual void OnInteractionRangeEntered(class ABOOMCharacter* MyCharacter) override;
 
 	UFUNCTION()
-		virtual void OnInteractionRangeExited(class ABOOMCharacter* MyCharacter) override;
+	virtual void OnInteractionRangeExited(class ABOOMCharacter* MyCharacter) override;
+	/*End of Interface Implementations*/
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputMappingContext* WeaponMappingContext;
+	class UInputMappingContext* WeaponMappingContext;
 
 	/** Fire Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* FireAction;
+	class UInputAction* FireAction;
 
-	//Maybe use operator overloading for different interaction scenarios? i know the character will be needed for some things.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ReloadAction;
+	
+	/*experimental:*/ 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UDamageType> DamageType;
+
+	float WeaponDamage;
+	//
+
+protected:
+
+	float HitscanRange;
+
+	//Value should be a multiple of MagazineSize. Maximum Ammo Reserves.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int MaxAmmoReserves;
+
+	//Ammo reserves are the amount of bullets you have, that you can reload into the weapon. (Like Halo's system, not meant to be realistic)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int CurrentAmmoReserves;
+
+	//Rounds held by magazine
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int AmmoCost;
+
+	//Rounds held by magazine
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int MagazineSize;
+
+	//Rounds in the magazine
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int CurrentAmmo;
+
+	//The time it takes to reload
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float ReloadDurationSeconds;
+
+	//Paraphrased: Unique handle to distinguish timers with the same delegates.
+	FTimerHandle TimerHandle_ReloadWeapon; 
+
+
 
 };

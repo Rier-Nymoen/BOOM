@@ -153,4 +153,8 @@ public:
 	UFUNCTION()
 	void CheckPlayerLook();
 
+public:
+
+	TArray<class ABOOMWeapon*> Weapons;
+
 };
