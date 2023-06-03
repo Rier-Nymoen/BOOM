@@ -7,19 +7,28 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "Weapons/BOOMWeaponReloadComponent.h"
+
+
 
 /*
 @TODO decide if it is worth transferring Weapon class into component
+
+Weapon States are useful, all it is is having this set of classes handle a character's weapon interactions, rather than storing those states
+inside of the character class, we handle weapon states with the weapons! all the player is doing, is supplying inputs.
+
+If its character related things, handle it with the character states
+
 */
 
 // Sets default values
 ABOOMWeapon::ABOOMWeapon()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	Weapon1P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh1P");
 	BOOMPickUp = CreateDefaultSubobject<UBOOMPickUpComponent>("PickUpComponent");
 	BOOMPickUp->SetupAttachment(Weapon1P);
-
+	
 
 	MaxAmmoReserves = 12;
 	//Player will spawn in with the max ammo reserves at the start of the game
@@ -39,6 +48,8 @@ ABOOMWeapon::ABOOMWeapon()
 
 	HitscanRange = 2000.0F;
 	WeaponDamage = 100.0F;
+
+
 }
 
 // Called when the game starts or when spawned
@@ -53,6 +64,14 @@ void ABOOMWeapon::BeginPlay()
 	}
 }
 
+void ABOOMWeapon::Tick(float DeltaSeconds)
+{
+	if (bCancelTimer)
+	{
+		GetWorldTimerManager().ClearTimer(TimerHandle_TestStateCanceling);
+	}
+}
+
 void ABOOMWeapon::Fire()
 {
 	if (Character == nullptr || Character->GetController() == nullptr)
@@ -60,6 +79,8 @@ void ABOOMWeapon::Fire()
 		return;
 	}
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor::Cyan, "ABOOMWeapon::Fire()");
+
+	bCancelTimer = true;
 
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 
@@ -82,8 +103,7 @@ void ABOOMWeapon::Fire()
 		}
 
 	}
-
-
+	
 }
 
 void ABOOMWeapon::ReloadWeapon()
@@ -124,14 +144,14 @@ void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 		return;
 	}
 
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	Character->Weapons.Add(this);
-	
+
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
 	Character->SetHasRifle(true);
-	
+
 	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -142,10 +162,15 @@ void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
 			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMWeapon::Fire);
+			EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMWeapon::TimerStart);
 
 		}
 
 	}
+
+	
+
+
 
 
 }
@@ -172,4 +197,27 @@ void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* TargetCharacter)
 {
 	check(TargetCharacter->GetPlayerHUD())
 	TargetCharacter->GetPlayerHUD()->PickUpPrompt->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
+{
+	CurrentState = NewState;
+	/*Testing stuff in here while I figure out to handle weapon reference.*/
+
+	/*Must be careful to avoid weapon glitches when the characcter code does something and the player code does as well.*/
+
+}
+
+void ABOOMWeapon::TimerStart()
+{
+	bCancelTimer = false;
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.01F, FColor::Green, "TimerPressed");
+
+	GetWorldTimerManager().SetTimer(TimerHandle_TestStateCanceling,this,  &ABOOMWeapon::TimerCall, 2.0f, false);
+
+}
+
+void ABOOMWeapon::TimerCall()
+{
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "TimerCall()");
 }

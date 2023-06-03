@@ -57,11 +57,10 @@ void ABOOMCharacter::BeginPlay()
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
 
 	/*
-	@TODO Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
+	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
 	*/
 	GetOverlappingActors(OverlappedActors);
 	Overlaps = OverlappedActors.Num();
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "Overlapped actors: " + FString::FromInt(OverlappedActors.Num()));
 	
 	//For Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
@@ -118,7 +117,7 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		//Weapon Pickup
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ABOOMCharacter::Interact);
 		//Fire Weapon
-		//EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::Fire);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::Fire);
 
 	}
 }
@@ -156,8 +155,6 @@ AActor* ABOOMCharacter::GetNearestInteractable()
 
 void ABOOMCharacter::CheckPlayerLook()
 {
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "Overlaps: " + FString::FromInt(Overlaps));
-
 	//Setup Playcontroller
 	/*
 	* Player-look functionality for interacting with objects. Look interactivity is prioritized over proximity pickup.

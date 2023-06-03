@@ -58,6 +58,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaSeconds);
+
+
 public:
 	/*Interface Implementations*/
 	virtual void Interact() override;
@@ -120,6 +123,18 @@ protected:
 	//Paraphrased: Unique handle to distinguish timers with the same delegates.
 	FTimerHandle TimerHandle_ReloadWeapon; 
 
+	class UBOOMWeaponStateInactive* InactiveState;
+	class UBOOMWeaponStateActive* ActiveState;
+	class UBOOMWeaponState* CurrentState;
+	class UBOOMWeaponStateEquipping* EquippingState;
 
+	FTimerHandle TimerHandle_TestStateCanceling;
 
+	virtual void GotoState(class UBOOMWeaponState* NewState);
+
+	void TimerStart();
+
+	void TimerCall();
+
+	bool bCancelTimer;
 };
