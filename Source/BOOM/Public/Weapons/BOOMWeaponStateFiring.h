@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Weapons/BOOMWeaponState.h"
-#include "BOOMWeaponStateActive.generated.h"
+#include "BOOMWeaponStateFiring.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BOOM_API UBOOMWeaponStateActive : public UBOOMWeaponState
+class BOOM_API UBOOMWeaponStateFiring : public UBOOMWeaponState
 {
 	GENERATED_BODY()
 	virtual void EnterState() override;
@@ -18,5 +18,4 @@ class BOOM_API UBOOMWeaponStateActive : public UBOOMWeaponState
 	virtual void ExitState() override;
 
 	virtual void HandleFireInput() override;
-	
 };

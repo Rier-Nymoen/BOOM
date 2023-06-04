@@ -7,6 +7,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Weapons/BOOMWeaponStateActive.h"
+#include "Weapons/BOOMWeaponStateInactive.h"
+#include "Weapons/BOOMWeaponStateEquipping.h"
+#include "Weapons/BOOMWeaponStateFiring.h"
 
 
 
@@ -17,6 +21,9 @@ Weapon States are useful, all it is is having this set of classes handle a chara
 inside of the character class, we handle weapon states with the weapons! all the player is doing, is supplying inputs.
 
 If its character related things, handle it with the character states
+
+
+Can handle input with state functions, or have a separate handling input. I will just use HandleFireInput
 
 */
 
@@ -29,6 +36,9 @@ ABOOMWeapon::ABOOMWeapon()
 	BOOMPickUp = CreateDefaultSubobject<UBOOMPickUpComponent>("PickUpComponent");
 	BOOMPickUp->SetupAttachment(Weapon1P);
 	
+	ActiveState = CreateDefaultSubobject<UBOOMWeaponStateActive>("ActiveState");
+	InactiveState = CreateDefaultSubobject<UBOOMWeaponStateInactive>("InactiveState");
+	FiringState = CreateDefaultSubobject<UBOOMWeaponStateFiring>("FiringState");
 
 	MaxAmmoReserves = 12;
 	//Player will spawn in with the max ammo reserves at the start of the game
@@ -48,13 +58,17 @@ ABOOMWeapon::ABOOMWeapon()
 
 	HitscanRange = 2000.0F;
 	WeaponDamage = 100.0F;
-
-
+	UBOOMWeaponState* test = ActiveState;
 }
 
 // Called when the game starts or when spawned
 void ABOOMWeapon::BeginPlay()
 {
+	if (Character == nullptr)
+	{
+		CurrentState = InactiveState;
+	}
+
 	Super::BeginPlay();
 	bGenerateOverlapEventsDuringLevelStreaming = true;
 
@@ -139,36 +153,36 @@ void ABOOMWeapon::Interact()
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {
 	Character = TargetCharacter;
-	if (Character == nullptr || Character->Weapons.Num() >= 2)
+	if (Character == nullptr  || Character->Weapon != nullptr)
 	{
 		return;
 	}
 
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-	Character->Weapons.Add(this);
-
+	Character->Weapon = this;
+	CurrentState = ActiveState;
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
 	Character->SetHasRifle(true);
 
-	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(WeaponMappingContext, 1);
-		}
+	//if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
+	//{
+	//	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+	//	{
+	//		Subsystem->AddMappingContext(WeaponMappingContext, 1);
+	//	}
 
-		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
-		{
-			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMWeapon::Fire);
-			EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMWeapon::TimerStart);
+	//	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
+	//	{
+	//		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMWeapon::Fire);
+	//		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMWeapon::TimerStart);
 
-		}
+	//	}
 
-	}
+	//}
 
-	
+	//
 
 
 
@@ -199,13 +213,31 @@ void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* TargetCharacter)
 	TargetCharacter->GetPlayerHUD()->PickUpPrompt->SetVisibility(ESlateVisibility::Hidden);
 }
 
+void ABOOMWeapon::HandleFireInput()
+{
+	if (CurrentState != nullptr)
+	{
+		CurrentState->HandleFireInput();
+	}
+}
+
 void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 {
-	CurrentState = NewState;
+
+
+	
+	//CurrentState = NewState;
 	/*Testing stuff in here while I figure out to handle weapon reference.*/
 
 	/*Must be careful to avoid weapon glitches when the characcter code does something and the player code does as well.*/
 
+
+	if (CurrentState != nullptr)
+	{
+		CurrentState = NewState;
+
+		CurrentState->EnterState();
+	}
 }
 
 void ABOOMWeapon::TimerStart()

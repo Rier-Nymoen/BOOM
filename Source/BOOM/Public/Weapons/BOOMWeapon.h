@@ -48,8 +48,6 @@ private:
 
 protected:
 
-	UFUNCTION()
-	virtual void Fire();
 
 	UFUNCTION()
 	virtual void ReloadWeapon();
@@ -74,23 +72,37 @@ public:
 	virtual void OnInteractionRangeExited(class ABOOMCharacter* MyCharacter) override;
 	/*End of Interface Implementations*/
 
-	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputMappingContext* WeaponMappingContext;
+	///** MappingContext */
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	//class UInputMappingContext* WeaponMappingContext;
 
-	/** Fire Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* FireAction;
+	///** Fire Input Action */
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	//class UInputAction* FireAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* ReloadAction;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	//class UInputAction* ReloadAction;
+
+	virtual void HandleFireInput();
 	
 	/*experimental:*/ 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UDamageType> DamageType;
 
+	UFUNCTION()
+		virtual void Fire();
+
+
 	float WeaponDamage;
 	//
+	virtual void GotoState(class UBOOMWeaponState* NewState);
+
+
+	class UBOOMWeaponState* InactiveState;
+	class UBOOMWeaponState* ActiveState;
+	class UBOOMWeaponState* CurrentState;
+	class UBOOMWeaponState* EquippingState;
+	class UBOOMWeaponState* FiringState;
 
 protected:
 
@@ -123,14 +135,9 @@ protected:
 	//Paraphrased: Unique handle to distinguish timers with the same delegates.
 	FTimerHandle TimerHandle_ReloadWeapon; 
 
-	class UBOOMWeaponStateInactive* InactiveState;
-	class UBOOMWeaponStateActive* ActiveState;
-	class UBOOMWeaponState* CurrentState;
-	class UBOOMWeaponStateEquipping* EquippingState;
 
 	FTimerHandle TimerHandle_TestStateCanceling;
 
-	virtual void GotoState(class UBOOMWeaponState* NewState);
 
 	void TimerStart();
 

@@ -3,3 +3,15 @@
 
 #include "Weapons/BOOMWeaponState.h"
 
+
+void UBOOMWeaponState::EnterState()
+{
+}
+
+void UBOOMWeaponState::ExitState()
+{
+}
+
+void UBOOMWeaponState::HandleFireInput()
+{
+}

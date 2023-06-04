@@ -157,4 +157,6 @@ public:
 
 	TArray<class ABOOMWeapon*> Weapons;
 
+	class ABOOMWeapon* Weapon;
+
 };

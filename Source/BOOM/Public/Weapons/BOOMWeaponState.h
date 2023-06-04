@@ -13,5 +13,14 @@ UCLASS()
 class BOOM_API UBOOMWeaponState : public UBOOMStateBase
 {
 	GENERATED_BODY()
+
+public:
+
+	virtual void EnterState() override;
+
+	virtual void ExitState() override;
+
+	virtual void HandleFireInput();
+	
 	
 };
