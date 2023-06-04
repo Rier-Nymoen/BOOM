@@ -49,8 +49,7 @@ private:
 protected:
 
 
-	UFUNCTION()
-	virtual void ReloadWeapon();
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -83,6 +82,11 @@ public:
 	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	//class UInputAction* ReloadAction;
 
+	UFUNCTION()
+	virtual void ReloadWeapon();
+
+	virtual void HandleReloadInput();
+
 	virtual void HandleFireInput();
 	
 	/*experimental:*/ 
@@ -103,6 +107,8 @@ public:
 	class UBOOMWeaponState* CurrentState;
 	class UBOOMWeaponState* EquippingState;
 	class UBOOMWeaponState* FiringState;
+	class UBOOMWeaponState* ReloadingState;
+
 
 protected:
 

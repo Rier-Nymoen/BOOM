@@ -115,10 +115,22 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		EnhancedInputComponent->BindAction(WeaponSwapAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::SwapWeapon);
 
 		//Weapon Pickup
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ABOOMCharacter::Interact);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ABOOMCharacter::Interact);
 		//Fire Weapon
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ABOOMCharacter::Fire);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMCharacter::Fire);
 
+		//Reload Weapon
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMCharacter::Reload);
+
+
+	}
+}
+
+void ABOOMCharacter::Reload()
+{
+	if (Weapon != nullptr)
+	{
+		Weapon->HandleReloadInput();
 	}
 }
 

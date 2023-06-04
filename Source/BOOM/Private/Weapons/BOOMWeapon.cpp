@@ -11,6 +11,7 @@
 #include "Weapons/BOOMWeaponStateInactive.h"
 #include "Weapons/BOOMWeaponStateEquipping.h"
 #include "Weapons/BOOMWeaponStateFiring.h"
+#include "Weapons/BOOMWeaponStateReloading.h"
 
 
 
@@ -39,6 +40,7 @@ ABOOMWeapon::ABOOMWeapon()
 	ActiveState = CreateDefaultSubobject<UBOOMWeaponStateActive>("ActiveState");
 	InactiveState = CreateDefaultSubobject<UBOOMWeaponStateInactive>("InactiveState");
 	FiringState = CreateDefaultSubobject<UBOOMWeaponStateFiring>("FiringState");
+	ReloadingState = CreateDefaultSubobject<UBOOMWeaponStateReloading>("ReloadingState");
 
 	MaxAmmoReserves = 12;
 	//Player will spawn in with the max ammo reserves at the start of the game
@@ -120,9 +122,17 @@ void ABOOMWeapon::Fire()
 	
 }
 
+void ABOOMWeapon::HandleReloadInput()
+{
+	if (CurrentState != nullptr)
+	{
+		CurrentState->HandleReloadInput();
+	}
+}
+
 void ABOOMWeapon::ReloadWeapon()
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor::Cyan, "ABOOMWeapon::Reload()");
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.0F, FColor::Cyan, "ABOOMWeapon::Reload() occurred");
 
 	//if we have Reserve Ammo to reload the weapon, then we can do this
 	if (CurrentAmmoReserves > 0)
@@ -140,9 +150,8 @@ void ABOOMWeapon::ReloadWeapon()
 			CurrentAmmo += CurrentAmmoReserves;
 			CurrentAmmoReserves = 0;
 		}
-		//bCanFire = true;
 	}
-	//bIsReloading = false;
+	GotoState(ActiveState);
 }
 
 void ABOOMWeapon::Interact()
@@ -223,14 +232,9 @@ void ABOOMWeapon::HandleFireInput()
 
 void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 {
-
-
-	
 	//CurrentState = NewState;
 	/*Testing stuff in here while I figure out to handle weapon reference.*/
-
 	/*Must be careful to avoid weapon glitches when the characcter code does something and the player code does as well.*/
-
 
 	if (CurrentState != nullptr)
 	{

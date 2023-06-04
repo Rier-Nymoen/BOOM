@@ -24,3 +24,12 @@ void UBOOMWeaponStateActive::HandleFireInput()
 		Weapon->GotoState(Weapon->FiringState);
 	}
 }
+
+void UBOOMWeaponStateActive::HandleReloadInput()
+{
+	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
+	if (Weapon)
+	{
+		Weapon->GotoState(Weapon->ReloadingState);
+	}
+}

@@ -22,5 +22,6 @@ public:
 
 	virtual void HandleFireInput();
 	
+	virtual void HandleReloadInput();
 	
 };
