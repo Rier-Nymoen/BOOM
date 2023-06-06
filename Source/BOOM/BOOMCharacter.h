@@ -124,6 +124,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* ReloadAction;
 
+
+
 protected:
 	UFUNCTION()
 		void Reload();
@@ -158,9 +160,13 @@ public:
 	void CheckPlayerLook();
 
 public:
+	UPROPERTY()
+	int MaxWeaponsEquipped;
 
+	UPROPERTY()
+	int CurrentWeaponSlot;
+	//TArray<class ABOOMWeapon*> Weapons;
 	TArray<class ABOOMWeapon*> Weapons;
-
 	class ABOOMWeapon* Weapon;
 
 };

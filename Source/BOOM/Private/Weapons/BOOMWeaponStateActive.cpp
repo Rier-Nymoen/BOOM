@@ -33,3 +33,18 @@ void UBOOMWeaponStateActive::HandleReloadInput()
 		Weapon->GotoState(Weapon->ReloadingState);
 	}
 }
+
+void UBOOMWeaponStateActive::HandleEquipping()
+{
+}
+
+
+void UBOOMWeaponStateActive::HandleUnequipping()
+{
+
+	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
+	if (Weapon)
+	{
+		Weapon->GotoState(Weapon->UnequippingState);
+	}
+}

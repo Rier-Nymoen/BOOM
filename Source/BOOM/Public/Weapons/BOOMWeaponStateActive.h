@@ -19,5 +19,7 @@ class BOOM_API UBOOMWeaponStateActive : public UBOOMWeaponState
 
 	virtual void HandleFireInput() override;
 	virtual void HandleReloadInput() override;
+	virtual void HandleEquipping() override;
 
+	virtual void HandleUnequipping() override;
 };

@@ -15,7 +15,7 @@ class BOOM_API UBOOMWeaponState : public UBOOMStateBase
 	GENERATED_BODY()
 
 public:
-
+	
 	virtual void EnterState() override;
 
 	virtual void ExitState() override;
@@ -23,5 +23,15 @@ public:
 	virtual void HandleFireInput();
 	
 	virtual void HandleReloadInput();
+
+	virtual void HandleEquipping();
+
+	virtual void HandleUnequipping();
+
+protected:
+	virtual void InitializeStateComponent();
+
+	//@TODO debating using this.
+	class ABOOMWeapon* OwningWeapon;
 	
 };

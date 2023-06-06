@@ -26,7 +26,7 @@ ABOOMCharacter::ABOOMCharacter()
 	bIsOverlappingWeapon = false;
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
-
+	
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>("FirstPersonCamera");
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
@@ -46,6 +46,9 @@ ABOOMCharacter::ABOOMCharacter()
 	InteractionRange = 250.0F;
 	Overlaps = 0;
 	bGenerateOverlapEventsDuringLevelStreaming = true;
+	CurrentWeaponSlot = 0;
+	MaxWeaponsEquipped = 2;
+
 }
 
 void ABOOMCharacter::BeginPlay()
@@ -112,7 +115,7 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::Look);
 
 		//Cyclical Weapon Swapping
-		EnhancedInputComponent->BindAction(WeaponSwapAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::SwapWeapon);
+		EnhancedInputComponent->BindAction(WeaponSwapAction, ETriggerEvent::Started, this, &ABOOMCharacter::SwapWeapon);
 
 		//Weapon Pickup
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ABOOMCharacter::Interact);
@@ -128,6 +131,11 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 void ABOOMCharacter::Reload()
 {
+	if (Weapons.Num() == 0)
+	{
+		return;
+	}
+	Weapon = Weapons[CurrentWeaponSlot];
 	if (Weapon != nullptr)
 	{
 		Weapon->HandleReloadInput();
@@ -255,14 +263,43 @@ void ABOOMCharacter::Look(const FInputActionValue& Value)
 
 void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 {
+	if (Weapons.Num() <= 1)
+	{
+		return;
+	}
 
+	if (Weapons[CurrentWeaponSlot] != nullptr)
+	{
+		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
+		Weapons[CurrentWeaponSlot]->HandleUnequipping();
+
+		//@TODO: Force weapon being holstered to inactive state
+		if (CurrentWeaponSlot == (Weapons.Num() - 1))
+		{
+			CurrentWeaponSlot = 0;
+		}
+		else
+		{
+			CurrentWeaponSlot++;
+		}
+		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+		Weapons[CurrentWeaponSlot]->HandleEquipping();
+
+		//@TODO: force weapon being swapped to, to be in an active state.
+	}
 }
 
 void ABOOMCharacter::Fire(const FInputActionValue& Value)
 {
-	if (Weapon != nullptr)
+	if (Weapons.Num() == 0)
 	{
-		Weapon->HandleFireInput();
+		return;
+	}
+
+	if (Weapons[CurrentWeaponSlot] != nullptr)
+	{
+		Weapons[CurrentWeaponSlot]->HandleFireInput();
 	}
 }
 

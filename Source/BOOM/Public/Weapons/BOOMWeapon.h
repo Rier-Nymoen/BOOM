@@ -71,24 +71,21 @@ public:
 	virtual void OnInteractionRangeExited(class ABOOMCharacter* MyCharacter) override;
 	/*End of Interface Implementations*/
 
-	///** MappingContext */
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	//class UInputMappingContext* WeaponMappingContext;
-
-	///** Fire Input Action */
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	//class UInputAction* FireAction;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	//class UInputAction* ReloadAction;
-
 	UFUNCTION()
 	virtual void ReloadWeapon();
 
 	virtual void HandleReloadInput();
 
 	virtual void HandleFireInput();
+
+
+	/*@TODO - add params that say whether we are equipping or unequipping the weapon. I Don't think it'd make much sense to 
+	* Differentiate equipping and unequipping classes. Not significant enough. Logic would be identical, only thing that would change is animations.  pickup and putdown times.
+	*/
+	virtual void HandleEquipping();
 	
+	virtual void HandleUnequipping();
+
 	/*experimental:*/ 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UDamageType> DamageType;
@@ -108,8 +105,12 @@ public:
 	class UBOOMWeaponState* EquippingState;
 	class UBOOMWeaponState* FiringState;
 	class UBOOMWeaponState* ReloadingState;
+	class UBOOMWeaponState* UnequippingState;
 
 
+	//The time it takes to reload
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float ReloadDurationSeconds;
 protected:
 
 	float HitscanRange;
@@ -134,9 +135,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int CurrentAmmo;
 
-	//The time it takes to reload
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	float ReloadDurationSeconds;
 
 	//Paraphrased: Unique handle to distinguish timers with the same delegates.
 	FTimerHandle TimerHandle_ReloadWeapon; 
@@ -144,10 +142,4 @@ protected:
 
 	FTimerHandle TimerHandle_TestStateCanceling;
 
-
-	void TimerStart();
-
-	void TimerCall();
-
-	bool bCancelTimer;
 };

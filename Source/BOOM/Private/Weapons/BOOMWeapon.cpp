@@ -4,6 +4,7 @@
 #include "BOOMPickUpComponent.h"
 #include "BOOM/BOOMCharacter.h"
 #include "UI/BOOMPlayerHUD.h"
+#include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -12,7 +13,7 @@
 #include "Weapons/BOOMWeaponStateEquipping.h"
 #include "Weapons/BOOMWeaponStateFiring.h"
 #include "Weapons/BOOMWeaponStateReloading.h"
-
+#include "Weapons/BOOMWeaponStateUnequipping.h"
 
 
 /*
@@ -41,6 +42,8 @@ ABOOMWeapon::ABOOMWeapon()
 	InactiveState = CreateDefaultSubobject<UBOOMWeaponStateInactive>("InactiveState");
 	FiringState = CreateDefaultSubobject<UBOOMWeaponStateFiring>("FiringState");
 	ReloadingState = CreateDefaultSubobject<UBOOMWeaponStateReloading>("ReloadingState");
+	EquippingState = CreateDefaultSubobject<UBOOMWeaponStateEquipping>("EquippingState");
+	UnequippingState = CreateDefaultSubobject<UBOOMWeaponStateUnequipping>("UnequippingState");
 
 	MaxAmmoReserves = 12;
 	//Player will spawn in with the max ammo reserves at the start of the game
@@ -60,7 +63,6 @@ ABOOMWeapon::ABOOMWeapon()
 
 	HitscanRange = 2000.0F;
 	WeaponDamage = 100.0F;
-	UBOOMWeaponState* test = ActiveState;
 }
 
 // Called when the game starts or when spawned
@@ -82,10 +84,7 @@ void ABOOMWeapon::BeginPlay()
 
 void ABOOMWeapon::Tick(float DeltaSeconds)
 {
-	if (bCancelTimer)
-	{
-		GetWorldTimerManager().ClearTimer(TimerHandle_TestStateCanceling);
-	}
+
 }
 
 void ABOOMWeapon::Fire()
@@ -96,7 +95,6 @@ void ABOOMWeapon::Fire()
 	}
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor::Cyan, "ABOOMWeapon::Fire()");
 
-	bCancelTimer = true;
 
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 
@@ -162,39 +160,34 @@ void ABOOMWeapon::Interact()
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {
 	Character = TargetCharacter;
-	if (Character == nullptr  || Character->Weapon != nullptr)
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, FString::FromInt(Character->Weapons.Num()));
+	if (Character == nullptr  || Character->Weapons.Num() >= Character->MaxWeaponsEquipped)
 	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "idk why");
+
 		return;
 	}
-
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-	Character->Weapon = this;
-	CurrentState = ActiveState;
+
+	Character->Weapons.Add(this);
+
+	if ( Character->Weapons.Num() == 1)
+	{
+		//GotoState(ActiveState);
+		GotoState(EquippingState);
+		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+
+	}
+	else
+	{
+		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
+
+		GotoState(InactiveState);
+	}
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
 	Character->SetHasRifle(true);
-
-	//if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
-	//{
-	//	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-	//	{
-	//		Subsystem->AddMappingContext(WeaponMappingContext, 1);
-	//	}
-
-	//	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
-	//	{
-	//		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMWeapon::Fire);
-	//		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMWeapon::TimerStart);
-
-	//	}
-
-	//}
-
-	//
-
-
-
+ 
 
 }
 
@@ -203,13 +196,14 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 	const  FString cont(TEXT("cont"));
 
 	check(TargetCharacter)
-	FItemInformation* MyStruct = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, true);
+	FItemInformation* WeaponData = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, true);
 
-	if (MyStruct)
+	if (WeaponData)
 	{
 
 		check(TargetCharacter->PlayerHUD)
-		TargetCharacter->GetPlayerHUD()->PickUpPrompt->SetPromptImage(MyStruct->ItemImage);
+		//@todo put all into one function
+		TargetCharacter->GetPlayerHUD()->PickUpPrompt->SetPromptImage(WeaponData->ItemImage);
 		TargetCharacter->GetPlayerHUD()->PickUpPrompt->SetPromptText(Name);
 		TargetCharacter->GetPlayerHUD()->PickUpPrompt->SetVisibility(ESlateVisibility::Visible);
 
@@ -230,6 +224,16 @@ void ABOOMWeapon::HandleFireInput()
 	}
 }
 
+void ABOOMWeapon::HandleEquipping()
+{
+	CurrentState->HandleEquipping();
+}
+
+void ABOOMWeapon::HandleUnequipping()
+{
+	CurrentState->HandleUnequipping();
+}
+
 void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 {
 	//CurrentState = NewState;
@@ -242,18 +246,4 @@ void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 
 		CurrentState->EnterState();
 	}
-}
-
-void ABOOMWeapon::TimerStart()
-{
-	bCancelTimer = false;
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.01F, FColor::Green, "TimerPressed");
-
-	GetWorldTimerManager().SetTimer(TimerHandle_TestStateCanceling,this,  &ABOOMWeapon::TimerCall, 2.0f, false);
-
-}
-
-void ABOOMWeapon::TimerCall()
-{
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "TimerCall()");
 }
