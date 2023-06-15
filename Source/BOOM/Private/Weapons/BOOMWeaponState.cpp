@@ -4,6 +4,10 @@
 #include "Weapons/BOOMWeaponState.h"
 
 
+void UBOOMWeaponState::BeginPlay()
+{
+}
+
 void UBOOMWeaponState::EnterState()
 {
 
@@ -26,6 +30,10 @@ void UBOOMWeaponState::HandleEquipping()
 }
 
 void UBOOMWeaponState::HandleUnequipping()
+{
+}
+
+void UBOOMWeaponState::HandleStopFiringInput()
 {
 }
 

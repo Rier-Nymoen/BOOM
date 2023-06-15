@@ -14,20 +14,3 @@ void UBOOMWeaponStateEquipping::EnterState()
 	}
 }
 
-void UBOOMWeaponStateEquipping::ExitState()
-{
-}
-
-void UBOOMWeaponStateEquipping::HandleFireInput()
-{
-}
-
-void UBOOMWeaponStateEquipping::HandleReloadInput()
-{
-}
-
-void UBOOMWeaponStateEquipping::HandleEquipping()
-{
-
-
-}

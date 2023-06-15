@@ -42,9 +42,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Name)
 	FName Name = FName(TEXT("W1"));
 
-private:
 	/*Character holding weapon*/
 	ABOOMCharacter* Character;
+
 
 protected:
 
@@ -73,15 +73,40 @@ public:
 
 	UFUNCTION()
 	virtual void ReloadWeapon();
-
+	
+	UFUNCTION()
 	virtual void HandleReloadInput();
 
+
+	UFUNCTION()
 	virtual void HandleFireInput();
 
 
-	/*@TODO - add params that say whether we are equipping or unequipping the weapon. I Don't think it'd make much sense to 
-	* Differentiate equipping and unequipping classes. Not significant enough. Logic would be identical, only thing that would change is animations.  pickup and putdown times.
-	*/
+	UFUNCTION()
+	virtual void HandleStopFireInput();
+
+	//Value should be a multiple of MagazineSize. Maximum Ammo Reserves.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+		int MaxAmmoReserves;
+	
+	//Ammo reserves are the amount of bullets you have, that you can reload into the weapon. (Like Halo's system, not meant to be realistic)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+		int CurrentAmmoReserves;
+
+	//Cost of firing a shot
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+		int AmmoCost;
+
+	//Max rounds held by a magazine
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+		int MagazineSize;
+
+	//Rounds in the magazine
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+		int CurrentAmmo;
+
+	virtual void AddAmmo(int Amount);
+
 	virtual void HandleEquipping();
 	
 	virtual void HandleUnequipping();
@@ -91,7 +116,11 @@ public:
 	TSubclassOf<UDamageType> DamageType;
 
 	UFUNCTION()
-		virtual void Fire();
+	virtual void Fire();
+
+	//virtual void FireHitscan();
+
+	//virtual void FireProjectile();
 
 
 	float WeaponDamage;
@@ -111,35 +140,10 @@ public:
 	//The time it takes to reload
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float ReloadDurationSeconds;
+
 protected:
-
 	float HitscanRange;
-
-	//Value should be a multiple of MagazineSize. Maximum Ammo Reserves.
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	int MaxAmmoReserves;
-
-	//Ammo reserves are the amount of bullets you have, that you can reload into the weapon. (Like Halo's system, not meant to be realistic)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	int CurrentAmmoReserves;
-
-	//Rounds held by magazine
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	int AmmoCost;
-
-	//Rounds held by magazine
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	int MagazineSize;
-
-	//Rounds in the magazine
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	int CurrentAmmo;
-
 
 	//Paraphrased: Unique handle to distinguish timers with the same delegates.
 	FTimerHandle TimerHandle_ReloadWeapon; 
-
-
-	FTimerHandle TimerHandle_TestStateCanceling;
-
 };

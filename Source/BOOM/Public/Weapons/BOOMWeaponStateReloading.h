@@ -20,6 +20,9 @@ class BOOM_API UBOOMWeaponStateReloading : public UBOOMWeaponState
 	virtual void HandleFireInput() override;
 
 	virtual void HandleEquipping() override;
+
+	virtual void HandleUnequipping() override;
+
 public:
 
 	FTimerHandle TimerHandle_ReloadWeapon;

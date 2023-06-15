@@ -18,12 +18,11 @@ void UBOOMWeaponStateReloading::EnterState()
 
 void UBOOMWeaponStateReloading::ExitState()
 {
+	CancelReload();
 }
 
 void UBOOMWeaponStateReloading::HandleFireInput()
 {
-	CancelReload();
-
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
@@ -33,12 +32,20 @@ void UBOOMWeaponStateReloading::HandleFireInput()
 
 void UBOOMWeaponStateReloading::HandleEquipping()
 {
-	CancelReload();
 
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
 		Weapon->GotoState(Weapon->EquippingState);
+	}
+}
+
+void UBOOMWeaponStateReloading::HandleUnequipping()
+{
+	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
+	if (Weapon)
+	{
+		Weapon->GotoState(Weapon->InactiveState);
 	}
 }
 

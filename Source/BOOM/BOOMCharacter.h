@@ -117,6 +117,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* FireAction;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* StopFireAction;
+
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* LookAction;
@@ -129,6 +133,9 @@ protected:
 protected:
 	UFUNCTION()
 		void Reload();
+
+	UFUNCTION()
+		void StopFire();
 
 public:
 	/** Returns Mesh1P subobject **/

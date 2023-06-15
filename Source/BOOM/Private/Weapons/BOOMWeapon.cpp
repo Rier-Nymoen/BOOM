@@ -14,20 +14,9 @@
 #include "Weapons/BOOMWeaponStateFiring.h"
 #include "Weapons/BOOMWeaponStateReloading.h"
 #include "Weapons/BOOMWeaponStateUnequipping.h"
+#include "Math/UnrealMathUtility.h"
 
 
-/*
-@TODO decide if it is worth transferring Weapon class into component
-
-Weapon States are useful, all it is is having this set of classes handle a character's weapon interactions, rather than storing those states
-inside of the character class, we handle weapon states with the weapons! all the player is doing, is supplying inputs.
-
-If its character related things, handle it with the character states
-
-
-Can handle input with state functions, or have a separate handling input. I will just use HandleFireInput
-
-*/
 
 // Sets default values
 ABOOMWeapon::ABOOMWeapon()
@@ -46,19 +35,16 @@ ABOOMWeapon::ABOOMWeapon()
 	UnequippingState = CreateDefaultSubobject<UBOOMWeaponStateUnequipping>("UnequippingState");
 
 	MaxAmmoReserves = 12;
-	//Player will spawn in with the max ammo reserves at the start of the game
+	//Player should spawn in with the max ammo reserves at the start of the game
 	CurrentAmmoReserves = MaxAmmoReserves;
+
 	AmmoCost = 1;
 
-	//Should be able to fire initially
-
-	//Set size of magazine
 	MagazineSize = 10;
 
-	//Player will spawn with a full magazine
+	//Player should spawn with a full magazine
 	CurrentAmmo = MagazineSize;
 
-	//Time it takes for a magazine to be reloaded into the weapon
 	ReloadDurationSeconds = 2.2f;
 
 	HitscanRange = 2000.0F;
@@ -74,12 +60,7 @@ void ABOOMWeapon::BeginPlay()
 	}
 
 	Super::BeginPlay();
-	bGenerateOverlapEventsDuringLevelStreaming = true;
-
-	if (BOOMPickUp != nullptr)
-	{
-
-	}
+	//bGenerateOverlapEventsDuringLevelStreaming = true;
 }
 
 void ABOOMWeapon::Tick(float DeltaSeconds)
@@ -93,7 +74,6 @@ void ABOOMWeapon::Fire()
 	{
 		return;
 	}
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor::Cyan, "ABOOMWeapon::Fire()");
 
 
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
@@ -102,6 +82,10 @@ void ABOOMWeapon::Fire()
 	{
 		FRotator CameraRotation;
 		FVector CameraLocation;
+
+		//Eventually must change these to adjust for aim based on weapon spread. 
+
+
 		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 		CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
 
@@ -110,7 +94,15 @@ void ABOOMWeapon::Fire()
 		FHitResult HitResult;
 		FCollisionQueryParams TraceParams;
 
+		//@TODO - think about a way to have modifiable ammo costs i.e. higher costs on a charged shot. Need charged shot,effects, etc to take place.
+		AddAmmo(-AmmoCost);
+
+		
+
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
+
+		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+
 		if (bHit)
 		{
 			UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
@@ -130,7 +122,6 @@ void ABOOMWeapon::HandleReloadInput()
 
 void ABOOMWeapon::ReloadWeapon()
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.0F, FColor::Cyan, "ABOOMWeapon::Reload() occurred");
 
 	//if we have Reserve Ammo to reload the weapon, then we can do this
 	if (CurrentAmmoReserves > 0)
@@ -149,6 +140,12 @@ void ABOOMWeapon::ReloadWeapon()
 			CurrentAmmoReserves = 0;
 		}
 	}
+
+	//@TODO possible to fail if we have a person throws weapon, state doesnt cancel. but handle that in state.
+	check(Character)
+	Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
+	Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+
 	GotoState(ActiveState);
 }
 
@@ -169,20 +166,27 @@ void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 	}
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 
-	Character->Weapons.Add(this);
+	//FAttachmentTransformRules Att(EAttachmentRule::SnapToTarget, EDetachmentRule::KeepRelative, true);
 
+
+	Character->Weapons.Add(this);
+	//seems wonky that the weapon is handling logic for what the character is doing. Maybe find a way to move some of this onto the character.
 	if ( Character->Weapons.Num() == 1)
 	{
-		//GotoState(ActiveState);
 		GotoState(EquippingState);
 		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Name);
+		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
 
 	}
 	else
 	{
+		GotoState(InactiveState);
 		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
 
-		GotoState(InactiveState);
+	
+
 	}
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -202,10 +206,9 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 	{
 
 		check(TargetCharacter->PlayerHUD)
-		//@todo put all into one function
-		TargetCharacter->GetPlayerHUD()->PickUpPrompt->SetPromptImage(WeaponData->ItemImage);
-		TargetCharacter->GetPlayerHUD()->PickUpPrompt->SetPromptText(Name);
-		TargetCharacter->GetPlayerHUD()->PickUpPrompt->SetVisibility(ESlateVisibility::Visible);
+		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptImage(WeaponData->ItemImage);
+		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptText(Name);
+		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Visible);
 
 	}
 }
@@ -213,15 +216,25 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* TargetCharacter)
 {
 	check(TargetCharacter->GetPlayerHUD())
-	TargetCharacter->GetPlayerHUD()->PickUpPrompt->SetVisibility(ESlateVisibility::Hidden);
+	TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void ABOOMWeapon::HandleFireInput()
 {
-	if (CurrentState != nullptr)
-	{
-		CurrentState->HandleFireInput();
-	}
+	//probably want to crash if this is null.
+	CurrentState->HandleFireInput();
+	
+}
+
+void ABOOMWeapon::HandleStopFireInput()
+{
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Red, "erw");
+	CurrentState->HandleStopFiringInput();
+}
+
+void ABOOMWeapon::AddAmmo(int Amount)
+{
+	CurrentAmmo = FMath::Clamp(CurrentAmmo + Amount, 0, MaxAmmoReserves);
 }
 
 void ABOOMWeapon::HandleEquipping()
@@ -236,14 +249,21 @@ void ABOOMWeapon::HandleUnequipping()
 
 void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 {
-	//CurrentState = NewState;
-	/*Testing stuff in here while I figure out to handle weapon reference.*/
-	/*Must be careful to avoid weapon glitches when the characcter code does something and the player code does as well.*/
+
+	if (NewState == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Attempted to assign an invalid or null state."));
+		return;
+	}
+	UBOOMWeaponState* PreviousState = CurrentState;
 
 	if (CurrentState != nullptr)
 	{
-		CurrentState = NewState;
-
-		CurrentState->EnterState();
+		PreviousState->ExitState();
 	}
+	CurrentState = NewState;
+	CurrentState->EnterState();
+	 
+
 }
+

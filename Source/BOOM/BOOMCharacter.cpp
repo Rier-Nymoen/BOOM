@@ -119,8 +119,11 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 		//Weapon Pickup
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ABOOMCharacter::Interact);
+
 		//Fire Weapon
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMCharacter::Fire);
+
+		EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMCharacter::StopFire);
 
 		//Reload Weapon
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMCharacter::Reload);
@@ -140,6 +143,23 @@ void ABOOMCharacter::Reload()
 	{
 		Weapon->HandleReloadInput();
 	}
+}
+
+void ABOOMCharacter::StopFire()
+{
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.3F, FColor::Blue, "Stop fire ATTEMPT");
+
+	if (Weapons.IsValidIndex(CurrentWeaponSlot))
+	{
+		if (Weapons[CurrentWeaponSlot] != nullptr)
+		{
+			Weapons[CurrentWeaponSlot]->HandleStopFireInput();
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.3F, FColor::Blue, "Stop fire");
+
+		}
+	
+	}
+
 }
 
 UBOOMPlayerHUD* ABOOMCharacter::GetPlayerHUD()
@@ -267,7 +287,7 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 	{
 		return;
 	}
-
+	//@TODO - switch to isValidIndex checks
 	if (Weapons[CurrentWeaponSlot] != nullptr)
 	{
 		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
@@ -283,8 +303,17 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 		{
 			CurrentWeaponSlot++;
 		}
-		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-		Weapons[CurrentWeaponSlot]->HandleEquipping();
+
+		if (Weapons[CurrentWeaponSlot] != nullptr) //maybe use isValidIndex instead
+		{
+			Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+			Weapons[CurrentWeaponSlot]->HandleEquipping();
+			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+
+		}
+
 
 		//@TODO: force weapon being swapped to, to be in an active state.
 	}
