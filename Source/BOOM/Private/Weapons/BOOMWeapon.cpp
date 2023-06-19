@@ -128,6 +128,18 @@ void ABOOMWeapon::Fire()
 	
 }
 
+bool ABOOMWeapon::IsIntendingToRefire()
+{
+	if (GetCharacter()->bIsPendingFiring && CurrentAmmo > 0)
+	{
+
+		return true;
+	}
+
+	GotoState(ActiveState);
+	return false;
+}
+
 ABOOMCharacter* ABOOMWeapon::GetCharacter()
 {
 

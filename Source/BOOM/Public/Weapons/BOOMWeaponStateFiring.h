@@ -47,5 +47,8 @@ protected:
 
 	FTimerHandle TimerHandle_RefireTimer;
 
+	FTimerHandle TimerHandle_FirstShotDelayTimer;
+
+	virtual void SetFirstShot();
 
 };

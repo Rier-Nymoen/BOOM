@@ -134,6 +134,9 @@ public:
 	UFUNCTION()
 	virtual void Fire();
 
+	UFUNCTION()
+	virtual bool IsIntendingToRefire();
+
 
 	class ABOOMCharacter* GetCharacter();
 
