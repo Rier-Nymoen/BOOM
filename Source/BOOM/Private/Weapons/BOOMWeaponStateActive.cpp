@@ -3,15 +3,30 @@
 
 #include "Weapons/BOOMWeaponStateActive.h"
 #include "Weapons/BOOMWeaponStateFiring.h"
-
 #include "Weapons/BOOMWeapon.h"
+#include "BOOM/BOOMCharacter.h"
+
 void UBOOMWeaponStateActive::EnterState()
 {
+	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
+	if (Weapon)
+	{
 
+		if (Weapon->GetCharacter()->bIsPendingFiring)
+		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "Active State Held Input on State Entrance");
+
+
+			Weapon->GotoState(Weapon->FiringState);
+		}
+
+	}
 }
+
 
 void UBOOMWeaponStateActive::ExitState()
 {
+
 }
 
 void UBOOMWeaponStateActive::HandleFireInput()
@@ -19,6 +34,8 @@ void UBOOMWeaponStateActive::HandleFireInput()
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "Active State Handle Fire Input");
+
 		Weapon->GotoState(Weapon->FiringState);
 	}
 }

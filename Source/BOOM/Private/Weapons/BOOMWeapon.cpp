@@ -17,6 +17,7 @@
 #include "Math/UnrealMathUtility.h"
 
 
+//@TODO decide if I am changing variable names
 
 // Sets default values
 ABOOMWeapon::ABOOMWeapon()
@@ -38,6 +39,7 @@ ABOOMWeapon::ABOOMWeapon()
 	//Player should spawn in with the max ammo reserves at the start of the game
 	CurrentAmmoReserves = MaxAmmoReserves;
 
+
 	AmmoCost = 1;
 
 	MagazineSize = 10;
@@ -48,7 +50,20 @@ ABOOMWeapon::ABOOMWeapon()
 	ReloadDurationSeconds = 2.2f;
 
 	HitscanRange = 2000.0F;
+	//@TODO change to hitscan damage, projectiles have their own damage stat.
 	WeaponDamage = 100.0F;
+}
+
+bool ABOOMWeapon::CanFire()
+{
+	if (CurrentAmmo > 0)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -100,6 +115,7 @@ void ABOOMWeapon::Fire()
 		
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
+		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0.4);
 
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
 
@@ -110,6 +126,13 @@ void ABOOMWeapon::Fire()
 
 	}
 	
+}
+
+ABOOMCharacter* ABOOMWeapon::GetCharacter()
+{
+
+	checkSlow(Character)
+	return Character;
 }
 
 void ABOOMWeapon::HandleReloadInput()
@@ -223,12 +246,11 @@ void ABOOMWeapon::HandleFireInput()
 {
 	//probably want to crash if this is null.
 	CurrentState->HandleFireInput();
-	
+
 }
 
 void ABOOMWeapon::HandleStopFireInput()
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Red, "erw");
 	CurrentState->HandleStopFiringInput();
 }
 
@@ -245,6 +267,11 @@ void ABOOMWeapon::HandleEquipping()
 void ABOOMWeapon::HandleUnequipping()
 {
 	CurrentState->HandleUnequipping();
+}
+
+void ABOOMWeapon::CalculateSpread()
+{
+
 }
 
 void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)

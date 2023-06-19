@@ -27,7 +27,6 @@ public:
 
 	virtual void ExitState() override;
 
-	virtual void HandleFireInput() override;
 
 	virtual void HandleStopFiringInput() override;
 
@@ -53,8 +52,6 @@ protected:
 	float ChargedShotCost;
 
 	float UnchargedShotCost;
-
-	bool bHasUnchargedShot;
 
 	FTimerHandle TimerHandle_IncrementCharge;
 

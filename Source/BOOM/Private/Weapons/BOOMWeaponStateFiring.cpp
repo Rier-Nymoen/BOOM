@@ -4,11 +4,16 @@
 #include "Weapons/BOOMWeaponStateActive.h"
 #include "Kismet/GameplayStatics.h"
 #include "Weapons/BOOMWeapon.h"
+#include "CoreMinimal.h"
 
+/*
+I believe refire functionality should reside in the Firing state. Otherwise during state transition, it would be difficult.
+*/
 UBOOMWeaponStateFiring::UBOOMWeaponStateFiring()
 {
-	FireCooldownSeconds = 0.5F;
+	FireRateSeconds = 0.2F;
 	bIsOnFireCooldown = false;
+	bIsFirstShotOnCooldown = false;
 }
 
 void UBOOMWeaponStateFiring::BeginPlay()
@@ -17,32 +22,45 @@ void UBOOMWeaponStateFiring::BeginPlay()
 
 void UBOOMWeaponStateFiring::EnterState()
 {
+	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 
-	if (!bIsOnFireCooldown)
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "Timer added");
+
+	//Upon entering the state, fire	and have refire timer
+
+
+	if (Weapon != nullptr)
 	{
-		ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
-		if (Weapon != nullptr)
+		
+		if (!bIsFirstShotOnCooldown)
 		{
-			Weapon->GetWorldTimerManager().SetTimer(TimerHandle_FireCooldown, this, &UBOOMWeaponStateFiring::EndFireCooldown, FireCooldownSeconds, false);
-			Weapon->Fire(); 
-			Weapon->GotoState(Weapon->ActiveState);
-
+			Weapon->Fire();
+			Weapon->GetWorldTimerManager().SetTimer(TimerHandle_RefireTimer, this, &UBOOMWeaponStateFiring::CheckRefireTimer, FireRateSeconds, true);
 		}
 		
-		
 	}
-	
-
 }
 
 void UBOOMWeaponStateFiring::ExitState()
 {
+	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
+
+
+	//Upon entering the state, fire	and have refire timer
+
+
+	if (Weapon != nullptr)
+	{
+		float DelayTimeLeft = Weapon->GetWorldTimerManager().GetTimerRemaining(TimerHandle_RefireTimer);
+
+		Weapon->GetWorldTimerManager().ClearTimer(TimerHandle_RefireTimer);
+
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "Timer cleared");
+	}
 
 }
 
-void UBOOMWeaponStateFiring::HandleFireInput()
-{
-}
+
 
 void UBOOMWeaponStateFiring::HandleUnequipping()
 {
@@ -50,6 +68,8 @@ void UBOOMWeaponStateFiring::HandleUnequipping()
 
 	if (Weapon != nullptr)
 	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "stateended");
+
 		Weapon->GotoState(Weapon->InactiveState);
 	}
 
@@ -61,8 +81,31 @@ void UBOOMWeaponStateFiring::HandleStopFiringInput()
 
 	if (Weapon != nullptr)
 	{
+
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "stopfireinputadded");
+
 		Weapon->GotoState(Weapon->ActiveState);
 	}
+}
+
+
+
+//if we dont check refiring from the timer, then if we cant refire and when holding m1, it wont refire when it should! Therefore we need to have a refire check timer.
+
+void UBOOMWeaponStateFiring::CheckRefireTimer()
+{
+
+	//@todo add weapon says its okay to keep firing
+	//if weapon and if weapon says its okay to keep firing.. fire.
+
+	
+	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
+	if (Weapon != nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "checkrefiretimer()");
+		Weapon->Fire();
+	}
+
 }
 
 

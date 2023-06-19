@@ -52,9 +52,6 @@ void UBOOMWeaponStateCharging::ExitState()
 	}
 }
 
-void UBOOMWeaponStateCharging::HandleFireInput()
-{
-}
 
 void UBOOMWeaponStateCharging::HandleStopFiringInput()
 {
@@ -83,7 +80,7 @@ void UBOOMWeaponStateCharging::AddCharge(float Amount)
 {
 	CurrentCharge = FMath::Clamp(CurrentCharge + Amount, 0, ChargeThreshold);
 
-	
+
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, ChargeIncrementTimeSeconds, FColor::Cyan, "Current Charge is: " + FString::SanitizeFloat(CurrentCharge));
 
 

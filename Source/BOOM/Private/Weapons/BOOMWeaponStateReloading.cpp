@@ -23,11 +23,13 @@ void UBOOMWeaponStateReloading::ExitState()
 
 void UBOOMWeaponStateReloading::HandleFireInput()
 {
-	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
-	if (Weapon)
-	{
-		Weapon->GotoState(Weapon->FiringState);
-	}
+
+	//disabled reload canceling for now
+	//ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
+	//if (Weapon)
+	//{
+	//	Weapon->GotoState(Weapon->FiringState);
+	//}
 }
 
 void UBOOMWeaponStateReloading::HandleEquipping()

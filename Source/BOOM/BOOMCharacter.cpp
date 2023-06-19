@@ -48,7 +48,7 @@ ABOOMCharacter::ABOOMCharacter()
 	bGenerateOverlapEventsDuringLevelStreaming = true;
 	CurrentWeaponSlot = 0;
 	MaxWeaponsEquipped = 2;
-
+	bIsPendingFiring = false;
 }
 
 void ABOOMCharacter::BeginPlay()
@@ -147,14 +147,13 @@ void ABOOMCharacter::Reload()
 
 void ABOOMCharacter::StopFire()
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.3F, FColor::Blue, "Stop fire ATTEMPT");
 
+	bIsPendingFiring = false;
 	if (Weapons.IsValidIndex(CurrentWeaponSlot))
 	{
 		if (Weapons[CurrentWeaponSlot] != nullptr)
 		{
 			Weapons[CurrentWeaponSlot]->HandleStopFireInput();
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.3F, FColor::Blue, "Stop fire");
 
 		}
 	
@@ -321,6 +320,8 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 
 void ABOOMCharacter::Fire(const FInputActionValue& Value)
 {
+
+	bIsPendingFiring = true;
 	if (Weapons.Num() == 0)
 	{
 		return;

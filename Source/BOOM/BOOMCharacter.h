@@ -138,6 +138,9 @@ protected:
 		void StopFire();
 
 public:
+
+	bool bIsPendingFiring;
+
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
@@ -172,7 +175,6 @@ public:
 
 	UPROPERTY()
 	int CurrentWeaponSlot;
-	//TArray<class ABOOMWeapon*> Weapons;
 	TArray<class ABOOMWeapon*> Weapons;
 	class ABOOMWeapon* Weapon;
 

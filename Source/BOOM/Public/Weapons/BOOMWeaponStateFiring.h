@@ -18,6 +18,8 @@ public:
 
 	UBOOMWeaponStateFiring();
 
+
+	//Interface implementations
 	virtual void BeginPlay() override;
 
 
@@ -25,18 +27,25 @@ public:
 
 	virtual void ExitState() override;
 
-	virtual void HandleFireInput() override;
-
 	virtual void HandleUnequipping() override;
 
 	virtual void HandleStopFiringInput() override;
-
+	//End of interface implementations
 
 protected:
-	//Time before fire input can be processed after firing the weapon.
-	float FireCooldownSeconds; 
+
+	virtual void CheckRefireTimer();
+
+	//Rate of Fire and Time before fire input can be processed after firing the weapon.
+	float FireRateSeconds;
+
+	bool bIsFirstShotOnCooldown;
+
 	bool bIsOnFireCooldown;
+
 	virtual void EndFireCooldown();
 
-	FTimerHandle TimerHandle_FireCooldown;
+	FTimerHandle TimerHandle_RefireTimer;
+
+
 };

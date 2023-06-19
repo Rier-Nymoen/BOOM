@@ -11,13 +11,22 @@ class UBOOMPickUpComponent;
 class ABOOMCharacter;
 class UBOOMWeaponReloadComponent;
 
-enum EWeaponState
-{
-	Firing,
-	Reloading,
-	Idle,
+//enum EWeaponState
+//{
+//	Firing,
+//	Reloading,
+//	Idle,
+//
+//};
 
+USTRUCT()
+struct FFireInput
+{
+	GENERATED_BODY()
+	bool bIsPendingFiring;
+	//possibly additional information
 };
+
 
 
 UCLASS()
@@ -45,6 +54,11 @@ public:
 	/*Character holding weapon*/
 	ABOOMCharacter* Character;
 
+	FFireInput* FireInput;
+
+
+	virtual bool CanFire();
+
 
 protected:
 
@@ -62,13 +76,13 @@ public:
 	/*Interface Implementations*/
 	virtual void Interact() override;
 
-	virtual void Interact(class ABOOMCharacter* MyCharacter) override;
+	virtual void Interact(class ABOOMCharacter* TargetCharacter) override;
 
 	UFUNCTION()
-	virtual void OnInteractionRangeEntered(class ABOOMCharacter* MyCharacter) override;
+	virtual void OnInteractionRangeEntered(class ABOOMCharacter* TargetCharacter) override;
 
 	UFUNCTION()
-	virtual void OnInteractionRangeExited(class ABOOMCharacter* MyCharacter) override;
+	virtual void OnInteractionRangeExited(class ABOOMCharacter* TargetCharacter) override;
 	/*End of Interface Implementations*/
 
 	UFUNCTION()
@@ -111,12 +125,17 @@ public:
 	
 	virtual void HandleUnequipping();
 
+	virtual void CalculateSpread();
+
 	/*experimental:*/ 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UDamageType> DamageType;
 
 	UFUNCTION()
 	virtual void Fire();
+
+
+	class ABOOMCharacter* GetCharacter();
 
 	//virtual void FireHitscan();
 
@@ -143,6 +162,8 @@ public:
 
 protected:
 	float HitscanRange;
+
+	
 
 	//Paraphrased: Unique handle to distinguish timers with the same delegates.
 	FTimerHandle TimerHandle_ReloadWeapon; 
