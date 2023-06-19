@@ -125,7 +125,7 @@ public:
 	
 	virtual void HandleUnequipping();
 
-	virtual void CalculateSpread();
+	virtual FRotator CalculateSpread(FRotator PlayerLookRotation);
 
 	/*experimental:*/ 
 	UPROPERTY(EditAnywhere)

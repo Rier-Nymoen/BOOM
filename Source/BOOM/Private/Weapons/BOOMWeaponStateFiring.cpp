@@ -12,7 +12,7 @@ I believe refire functionality should reside in the Firing state. Otherwise duri
 */
 UBOOMWeaponStateFiring::UBOOMWeaponStateFiring()
 {
-	FireRateSeconds = 0.2F;
+	FireRateSeconds = 0.066F;
 	bIsOnFireCooldown = false;
 	bIsFirstShotOnCooldown = false;
 }
@@ -25,7 +25,7 @@ void UBOOMWeaponStateFiring::EnterState()
 {
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "Timer added");
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "Timer added");
 
 	//Upon entering the state, fire	and have refire timer
 
@@ -59,7 +59,7 @@ void UBOOMWeaponStateFiring::ExitState()
 		//Weapon->GetWorldTimerManager().SetTimer(TimerHandle_FirstShotDelayTimer, this, &UBOOMWeaponStateFiring::SetFirstShot, DelayTimeLeft, false);
 
 
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "Timer cleared");
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "Timer cleared");
 	}
 
 }
@@ -107,10 +107,10 @@ void UBOOMWeaponStateFiring::CheckRefireTimer()
 		if (Weapon->IsIntendingToRefire()) //If true, function causes weapon state to change
 		{
 			Weapon->Fire();
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Green, "Intended to refire");
+			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Green, "Intended to refire");
 			return;
 		}
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Green, "Did not intend to  refire");
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Green, "Did not intend to  refire");
 
 	}
 

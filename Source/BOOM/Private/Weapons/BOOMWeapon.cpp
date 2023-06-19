@@ -103,9 +103,18 @@ void ABOOMWeapon::Fire()
 
 		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 		CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Magenta, FString(CameraLocation.ToString()));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, FString(CameraRotation.ToString()));
 
 		FVector Start = CameraLocation;
-		FVector End = Start + (CameraRotation.Vector() * HitscanRange);
+
+		//Good rotator
+		//FVector End = Start + (CameraRotation.Vector() * HitscanRange);
+
+		FVector End = Start + (CalculateSpread(CameraRotation).Vector() * HitscanRange);
+
+
+
 		FHitResult HitResult;
 		FCollisionQueryParams TraceParams;
 
@@ -115,7 +124,8 @@ void ABOOMWeapon::Fire()
 		
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0.4);
+		//DrawDebugLine(GetWorld(), Start, End, FColor(101,101,101), true, 0.4);
+		DrawDebugLine(GetWorld(), Start, End, FColor(252, 238, 111), true, 0.4);
 
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
 
@@ -132,11 +142,20 @@ bool ABOOMWeapon::IsIntendingToRefire()
 {
 	if (GetCharacter()->bIsPendingFiring && CurrentAmmo > 0)
 	{
+		
 
 		return true;
 	}
+	if (CurrentAmmo <= 0 && CurrentAmmoReserves > 0)
+	{
+		
+		GotoState(ReloadingState);
+	}
+	else
+	{
+		GotoState(ActiveState);
+	}
 
-	GotoState(ActiveState);
 	return false;
 }
 
@@ -281,9 +300,29 @@ void ABOOMWeapon::HandleUnequipping()
 	CurrentState->HandleUnequipping();
 }
 
-void ABOOMWeapon::CalculateSpread()
+FRotator ABOOMWeapon::CalculateSpread(FRotator PlayerLookRotation)
 {
+	float MaxSpreadX = 5.0F;
+	float MaxSpreadZ = 5.0F;
 
+	float MinSpreadX = 0.3F;
+	float MinSpreadZ = 0.3F;
+
+	float AdjustedSpreadX = FMath::RandRange(MinSpreadX, MaxSpreadX);
+	float AdjustedSpreadZ = FMath::RandRange(MinSpreadZ, MaxSpreadZ);
+
+	AdjustedSpreadX = FMath::RandRange(-AdjustedSpreadX, AdjustedSpreadX);
+	AdjustedSpreadZ = FMath::RandRange(-AdjustedSpreadZ, AdjustedSpreadZ);
+
+	FRotator Offset(AdjustedSpreadX, AdjustedSpreadZ, 0);
+
+	return (PlayerLookRotation + Offset);
+
+
+
+
+
+	//account for normal rotation and position, offset rounds somewhat based on ymin ymax
 }
 
 void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)

@@ -12,7 +12,7 @@ void UBOOMWeaponStateActive::EnterState()
 	if (Weapon)
 	{
 
-		if (Weapon->GetCharacter()->bIsPendingFiring)
+		if (Weapon->GetCharacter()->bIsPendingFiring && Weapon->CurrentAmmo > 0)
 		{
 			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "Active State Held Input on State Entrance");
 
@@ -32,7 +32,7 @@ void UBOOMWeaponStateActive::ExitState()
 void UBOOMWeaponStateActive::HandleFireInput()
 {
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
-	if (Weapon)
+	if (Weapon->CurrentAmmo > 0)
 	{
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "Active State Handle Fire Input");
 
