@@ -103,8 +103,8 @@ void ABOOMWeapon::Fire()
 
 		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 		CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Magenta, FString(CameraLocation.ToString()));
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, FString(CameraRotation.ToString()));
+	/*	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Magenta, FString(CameraLocation.ToString()));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, FString(CameraRotation.ToString()));*/
 
 		FVector Start = CameraLocation;
 
@@ -179,28 +179,20 @@ void ABOOMWeapon::ReloadWeapon()
 
 	//if we have Reserve Ammo to reload the weapon, then we can do this
 	if (CurrentAmmoReserves > 0)
-	{
+	{								// will need to check bullet difference != 0 maybe
 		//How much ammo is missing from the mags ammo capacity
 		int BulletDifference = (MagazineSize - CurrentAmmo);
 
-		if (CurrentAmmoReserves >= MagazineSize)
-		{
-			CurrentAmmo += BulletDifference;
-			CurrentAmmoReserves -= BulletDifference;
-		}
-		else
-		{
-			CurrentAmmo += CurrentAmmoReserves;
-			CurrentAmmoReserves = 0;
-		}
+		CurrentAmmo += FMath::Min(BulletDifference, CurrentAmmoReserves);
+		CurrentAmmoReserves -= FMath::Min(BulletDifference, CurrentAmmoReserves);
+
+		check(Character)
+			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
+		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+
+		GotoState(ActiveState);
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1000.0F, FColor::Red, "reload");
 	}
-
-	//@TODO possible to fail if we have a person throws weapon, state doesnt cancel. but handle that in state.
-	check(Character)
-	Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
-	Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-
-	GotoState(ActiveState);
 }
 
 void ABOOMWeapon::Interact()
