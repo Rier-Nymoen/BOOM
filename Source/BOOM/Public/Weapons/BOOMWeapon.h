@@ -11,14 +11,6 @@ class UBOOMPickUpComponent;
 class ABOOMCharacter;
 class UBOOMWeaponReloadComponent;
 
-//enum EWeaponState
-//{
-//	Firing,
-//	Reloading,
-//	Idle,
-//
-//};
-
 USTRUCT()
 struct FFireInput
 {
@@ -26,8 +18,6 @@ struct FFireInput
 	bool bIsPendingFiring;
 	//possibly additional information
 };
-
-
 
 UCLASS()
 class BOOM_API ABOOMWeapon : public AActor, public IInteractableInterface
@@ -56,25 +46,16 @@ public:
 
 	FFireInput* FireInput;
 
-
-	virtual bool CanFire();
-
-
-protected:
-
-
-
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaSeconds);
 
+	float LastTimeFiredSeconds;
 
 public:
 	/*Interface Implementations*/
-	virtual void Interact() override;
 
 	virtual void Interact(class ABOOMCharacter* TargetCharacter) override;
 
@@ -121,13 +102,14 @@ public:
 
 	virtual void AddAmmo(int Amount);
 
+	virtual bool HasAmmo();
+
 	virtual void HandleEquipping();
 	
 	virtual void HandleUnequipping();
 
 	virtual FRotator CalculateSpread(FRotator PlayerLookRotation);
 
-	/*experimental:*/ 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UDamageType> DamageType;
 
@@ -137,15 +119,14 @@ public:
 	UFUNCTION()
 	virtual bool IsIntendingToRefire();
 
-
 	class ABOOMCharacter* GetCharacter();
 
 	//virtual void FireHitscan();
 
 	//virtual void FireProjectile();
 
-
 	float WeaponDamage;
+	
 	//
 	virtual void GotoState(class UBOOMWeaponState* NewState);
 
@@ -158,7 +139,6 @@ public:
 	class UBOOMWeaponState* ReloadingState;
 	class UBOOMWeaponState* UnequippingState;
 
-
 	//The time it takes to reload
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float ReloadDurationSeconds;
@@ -166,8 +146,16 @@ public:
 protected:
 	float HitscanRange;
 
+	float FireRateSeconds;
+public:
 	
 
-	//Paraphrased: Unique handle to distinguish timers with the same delegates.
-	FTimerHandle TimerHandle_ReloadWeapon; 
+	float GetFireRateSeconds();
+
+	
+	////consider moving to the "firing state" class
+	float GetLastTimeFiredSeconds();
+
+	bool IsReadyToFire();
+	
 };

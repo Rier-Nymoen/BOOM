@@ -12,9 +12,8 @@ I believe refire functionality should reside in the Firing state. Otherwise duri
 */
 UBOOMWeaponStateFiring::UBOOMWeaponStateFiring()
 {
-	FireRateSeconds = 0.066F;
-	bIsOnFireCooldown = false;
-	bIsFirstShotOnCooldown = false;
+	//FireRateSeconds = 2.0F;
+	//FireRateSeconds = 0.066F;
 }
 
 void UBOOMWeaponStateFiring::BeginPlay()
@@ -25,20 +24,13 @@ void UBOOMWeaponStateFiring::EnterState()
 {
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "Timer added");
-
 	//Upon entering the state, fire	and have refire timer
 
-
-	if (Weapon != nullptr)
+	if (Weapon != nullptr && Weapon->IsReadyToFire())
 	{
-	/*	
-		if (!bIsFirstShotOnCooldown)
-		{*/
+			
 			Weapon->Fire();
-			bIsFirstShotOnCooldown = true;
-			Weapon->GetWorldTimerManager().SetTimer(TimerHandle_RefireTimer, this, &UBOOMWeaponStateFiring::CheckRefireTimer, FireRateSeconds, true);
-		//}
+			Weapon->GetWorldTimerManager().SetTimer(TimerHandle_RefireTimer, this, &UBOOMWeaponStateFiring::CheckRefireTimer, Weapon->GetFireRateSeconds(), true);
 		
 	}
 }
@@ -48,18 +40,14 @@ void UBOOMWeaponStateFiring::ExitState()
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 
 
-	//Upon entering the state, fire	and have refire timer
 
 
 	if (Weapon != nullptr)
 	{
-		//float DelayTimeLeft = Weapon->GetWorldTimerManager().GetTimerRemaining(TimerHandle_RefireTimer);
 
 		Weapon->GetWorldTimerManager().ClearTimer(TimerHandle_RefireTimer);
-		//Weapon->GetWorldTimerManager().SetTimer(TimerHandle_FirstShotDelayTimer, this, &UBOOMWeaponStateFiring::SetFirstShot, DelayTimeLeft, false);
 
 
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "Timer cleared");
 	}
 
 }
@@ -79,17 +67,16 @@ void UBOOMWeaponStateFiring::HandleUnequipping()
 
 }
 
-void UBOOMWeaponStateFiring::HandleStopFiringInput()
+void UBOOMWeaponStateFiring::HandleReloadInput()
 {
-	//ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 
-	//if (Weapon != nullptr)
-	//{
 
-	//	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "stopfireinputadded");
+	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 
-	//	Weapon->GotoState(Weapon->ActiveState);
-	//}
+	if (Weapon != nullptr)
+	{
+		Weapon->GotoState(Weapon->ReloadingState);
+	}
 }
 
 
@@ -107,25 +94,10 @@ void UBOOMWeaponStateFiring::CheckRefireTimer()
 		if (Weapon->IsIntendingToRefire()) //If true, function causes weapon state to change
 		{
 			Weapon->Fire();
-			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Green, "Intended to refire");
 			return;
 		}
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Green, "Did not intend to  refire");
 
 	}
 
-}
-
-
-
-void UBOOMWeaponStateFiring::EndFireCooldown()
-{
-	bIsOnFireCooldown = false;
-}
-
-void UBOOMWeaponStateFiring::SetFirstShot()
-{
-
-	//bIsFirstShotOnCooldown = false;
 }
 

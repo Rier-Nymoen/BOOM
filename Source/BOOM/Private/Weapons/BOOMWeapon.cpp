@@ -22,6 +22,7 @@
 // Sets default values
 ABOOMWeapon::ABOOMWeapon()
 {
+	//dont forget to turn off
 	PrimaryActorTick.bCanEverTick = true;
 
 	Weapon1P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh1P");
@@ -35,14 +36,14 @@ ABOOMWeapon::ABOOMWeapon()
 	EquippingState = CreateDefaultSubobject<UBOOMWeaponStateEquipping>("EquippingState");
 	UnequippingState = CreateDefaultSubobject<UBOOMWeaponStateUnequipping>("UnequippingState");
 
-	MaxAmmoReserves = 12;
+	MaxAmmoReserves = 210;
 	//Player should spawn in with the max ammo reserves at the start of the game
 	CurrentAmmoReserves = MaxAmmoReserves;
 
 
 	AmmoCost = 1;
 
-	MagazineSize = 10;
+	MagazineSize = 30;
 
 	//Player should spawn with a full magazine
 	CurrentAmmo = MagazineSize;
@@ -50,21 +51,17 @@ ABOOMWeapon::ABOOMWeapon()
 	ReloadDurationSeconds = 2.2f;
 
 	HitscanRange = 2000.0F;
+
+	LastTimeFiredSeconds = -1.0F;
+
+	//FireRateSeconds = 0.066F;
+	FireRateSeconds = 0.18F;
+
 	//@TODO change to hitscan damage, projectiles have their own damage stat.
 	WeaponDamage = 100.0F;
 }
 
-bool ABOOMWeapon::CanFire()
-{
-	if (CurrentAmmo > 0)
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
-}
+
 
 // Called when the game starts or when spawned
 void ABOOMWeapon::BeginPlay()
@@ -80,8 +77,10 @@ void ABOOMWeapon::BeginPlay()
 
 void ABOOMWeapon::Tick(float DeltaSeconds)
 {
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1000.0F, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
 
 }
+
 
 void ABOOMWeapon::Fire()
 {
@@ -89,7 +88,6 @@ void ABOOMWeapon::Fire()
 	{
 		return;
 	}
-
 
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 
@@ -100,7 +98,6 @@ void ABOOMWeapon::Fire()
 
 		//Eventually must change these to adjust for aim based on weapon spread. 
 
-
 		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 		CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
 	/*	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Magenta, FString(CameraLocation.ToString()));
@@ -108,7 +105,7 @@ void ABOOMWeapon::Fire()
 
 		FVector Start = CameraLocation;
 
-		//Good rotator
+		//NoSpreadCalculator
 		//FVector End = Start + (CameraRotation.Vector() * HitscanRange);
 
 		FVector End = Start + (CalculateSpread(CameraRotation).Vector() * HitscanRange);
@@ -120,12 +117,12 @@ void ABOOMWeapon::Fire()
 
 		//@TODO - think about a way to have modifiable ammo costs i.e. higher costs on a charged shot. Need charged shot,effects, etc to take place.
 		AddAmmo(-AmmoCost);
-
 		
+		//Update the time weapon was fired.
+		LastTimeFiredSeconds = GetWorld()->GetTimeSeconds();
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		//DrawDebugLine(GetWorld(), Start, End, FColor(101,101,101), true, 0.4);
-		DrawDebugLine(GetWorld(), Start, End, FColor(252, 238, 111), true, 0.4);
+		DrawDebugLine(GetWorld(), Start, End, FColor(FMath::FRandRange(0.0F,255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
 
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
 
@@ -140,10 +137,8 @@ void ABOOMWeapon::Fire()
 
 bool ABOOMWeapon::IsIntendingToRefire()
 {
-	if (GetCharacter()->bIsPendingFiring && CurrentAmmo > 0)
+	if (GetCharacter()->bIsPendingFiring && HasAmmo())
 	{
-		
-
 		return true;
 	}
 	if (CurrentAmmo <= 0 && CurrentAmmoReserves > 0)
@@ -155,7 +150,6 @@ bool ABOOMWeapon::IsIntendingToRefire()
 	{
 		GotoState(ActiveState);
 	}
-
 	return false;
 }
 
@@ -191,14 +185,9 @@ void ABOOMWeapon::ReloadWeapon()
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
 
 		GotoState(ActiveState);
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1000.0F, FColor::Red, "reload");
 	}
 }
 
-void ABOOMWeapon::Interact()
-{
-
-}
 
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {
@@ -206,8 +195,6 @@ void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, FString::FromInt(Character->Weapons.Num()));
 	if (Character == nullptr  || Character->Weapons.Num() >= Character->MaxWeaponsEquipped)
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "idk why");
-
 		return;
 	}
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
@@ -267,9 +254,7 @@ void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* TargetCharacter)
 
 void ABOOMWeapon::HandleFireInput()
 {
-	//probably want to crash if this is null.
 	CurrentState->HandleFireInput();
-
 }
 
 void ABOOMWeapon::HandleStopFireInput()
@@ -280,6 +265,18 @@ void ABOOMWeapon::HandleStopFireInput()
 void ABOOMWeapon::AddAmmo(int Amount)
 {
 	CurrentAmmo = FMath::Clamp(CurrentAmmo + Amount, 0, MaxAmmoReserves);
+}
+
+bool ABOOMWeapon::HasAmmo()
+{
+	if (CurrentAmmo >= AmmoCost)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void ABOOMWeapon::HandleEquipping()
@@ -337,3 +334,27 @@ void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 
 }
 
+float ABOOMWeapon::GetFireRateSeconds()
+{
+	return FireRateSeconds;
+}
+
+
+//move functionality
+float ABOOMWeapon::GetLastTimeFiredSeconds()
+{
+	return LastTimeFiredSeconds;
+}
+
+bool ABOOMWeapon::IsReadyToFire()
+{
+	if ((GetWorld()->GetTimeSeconds() - LastTimeFiredSeconds  ) >= ( FireRateSeconds ))
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1000.0F, FColor(69,2,180), "Ready to fire");
+
+		return true;
+	}
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1000.0F, FColor(180, 2, 69), "Not ready to fire");
+
+	return false;
+}

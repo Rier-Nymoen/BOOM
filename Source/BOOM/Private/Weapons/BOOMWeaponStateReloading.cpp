@@ -11,6 +11,8 @@ void UBOOMWeaponStateReloading::EnterState()
 
 	if (Weapon)
 	{	
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.0F, FColor(202,30, 106), "Reload::EnterState");
+
 		Weapon->GetWorldTimerManager().SetTimer(TimerHandle_ReloadWeapon, Weapon, &ABOOMWeapon::ReloadWeapon, Weapon->ReloadDurationSeconds, false);
 	}
 	

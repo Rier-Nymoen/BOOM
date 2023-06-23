@@ -8,11 +8,16 @@
 
 void UBOOMWeaponStateActive::EnterState()
 {
+
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "Entered active state");
+
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "We have a weapon");
 
-		if (Weapon->GetCharacter()->bIsPendingFiring && Weapon->CurrentAmmo > 0)
+
+		if (Weapon->GetCharacter()->bIsPendingFiring && Weapon->HasAmmo() && Weapon->IsReadyToFire())
 		{
 			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "Active State Held Input on State Entrance");
 
@@ -32,7 +37,7 @@ void UBOOMWeaponStateActive::ExitState()
 void UBOOMWeaponStateActive::HandleFireInput()
 {
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
-	if (Weapon->CurrentAmmo > 0)
+	if (Weapon->HasAmmo() && Weapon->IsReadyToFire())
 	{
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "Active State Handle Fire Input");
 
@@ -47,6 +52,7 @@ void UBOOMWeaponStateActive::HandleReloadInput()
 	{
 		Weapon->GotoState(Weapon->ReloadingState);
 	}
+
 }
 
 void UBOOMWeaponStateActive::HandleEquipping()
