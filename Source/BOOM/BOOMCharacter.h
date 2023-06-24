@@ -139,6 +139,11 @@ protected:
 
 public:
 
+
+	UFUNCTION()
+	void DropCurrentWeapon();
+
+
 	bool bIsPendingFiring;
 
 	/** Returns Mesh1P subobject **/

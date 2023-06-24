@@ -161,6 +161,19 @@ void ABOOMCharacter::StopFire()
 
 }
 
+void ABOOMCharacter::DropCurrentWeapon()
+{
+	if (Weapons.IsValidIndex(CurrentWeaponSlot))
+	{
+		if (Weapons[CurrentWeaponSlot] != nullptr)
+		{
+			Weapons[CurrentWeaponSlot]->HandleBeingDropped();
+		}
+
+	}
+
+}
+
 UBOOMPlayerHUD* ABOOMCharacter::GetPlayerHUD()
 {
 	return PlayerHUD;

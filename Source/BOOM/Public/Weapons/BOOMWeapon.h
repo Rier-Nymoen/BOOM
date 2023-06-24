@@ -157,5 +157,7 @@ public:
 	float GetLastTimeFiredSeconds();
 
 	bool IsReadyToFire();
+
+	virtual void HandleBeingDropped();
 	
 };

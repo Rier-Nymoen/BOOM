@@ -59,8 +59,6 @@ void UBOOMWeaponStateCharging::HandleStopFiringInput()
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, ChargeIncrementTimeSeconds, FColor::Cyan, "workl pls");
-
 		if (CurrentCharge < ChargeThreshold)
 		{
 			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Green, "Low charge shot");

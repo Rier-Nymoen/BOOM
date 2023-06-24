@@ -192,39 +192,72 @@ void ABOOMWeapon::ReloadWeapon()
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {
 	Character = TargetCharacter;
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, FString::FromInt(Character->Weapons.Num()));
-	if (Character == nullptr  || Character->Weapons.Num() >= Character->MaxWeaponsEquipped)
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, FString::FromInt(Character->Weapons.Num()));
+	
+	if (Character == nullptr)
 	{
 		return;
 	}
+
+
+	//if (Character == nullptr  || Character->Weapons.Num() >= Character->MaxWeaponsEquipped)
+	//{
+	//	return;
+	//}
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor(20, 69, 103), FString::FromInt(Character->Weapons.Num()));
 
-	//FAttachmentTransformRules Att(EAttachmentRule::SnapToTarget, EDetachmentRule::KeepRelative, true);
-
-
-	Character->Weapons.Add(this);
 	//seems wonky that the weapon is handling logic for what the character is doing. Maybe find a way to move some of this onto the character.
-	if ( Character->Weapons.Num() == 1)
+	if ( Character->Weapons.Num() == 0)
 	{
 		GotoState(EquippingState);
 		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Name);
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
+		Character->Weapons.Add(this); //using add will not work here.
+
+	}
+	else if(Character->Weapons.Num() != Character->MaxWeaponsEquipped)
+	{
+		GotoState(InactiveState);
+		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
+		Character->Weapons.Add(this); //using add will not work here.
 
 	}
 	else
 	{
-		GotoState(InactiveState);
-		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
+		Character->DropCurrentWeapon();
+		Character->Weapons[Character->CurrentWeaponSlot] = this;
+		GotoState(EquippingState);
+		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Name);
+		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
+	}
 
+	/*@TODO: *need to make sure code is right, also find a good way to get the current weapon slot and
 	
 
-	}
+	*/
+	
+	
+	
+
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	Character->SetHasRifle(true);
  
+	/*
+	If the player has no weapons, the interacted weapon gets equipped.
+
+	If the player has at least one weapon, weapons will be put into empty slots until all slots are full.
+
+	When all slots are full, weapons swap directly.
+	
+	
+	*/
+
 
 }
 
@@ -357,4 +390,16 @@ bool ABOOMWeapon::IsReadyToFire()
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1000.0F, FColor(180, 2, 69), "Not ready to fire");
 
 	return false;
+}
+
+void ABOOMWeapon::HandleBeingDropped()
+{
+	FDetachmentTransformRules DetRules(EDetachmentRule::KeepWorld, true);
+
+	this->GotoState(InactiveState);
+	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Character = nullptr;
+	DetachFromActor(DetRules);
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor(20, 69, 103), "handlebeingdropped");
+
 }
