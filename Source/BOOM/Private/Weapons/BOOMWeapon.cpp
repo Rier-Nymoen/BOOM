@@ -72,7 +72,7 @@ void ABOOMWeapon::BeginPlay()
 	}
 
 	Super::BeginPlay();
-	//bGenerateOverlapEventsDuringLevelStreaming = true;
+	bGenerateOverlapEventsDuringLevelStreaming = true;
 }
 
 void ABOOMWeapon::Tick(float DeltaSeconds)
@@ -191,23 +191,14 @@ void ABOOMWeapon::ReloadWeapon()
 
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {
-	Character = TargetCharacter;
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, FString::FromInt(Character->Weapons.Num()));
-	
+	Character = TargetCharacter;	
 	if (Character == nullptr)
 	{
 		return;
 	}
-
-
-	//if (Character == nullptr  || Character->Weapons.Num() >= Character->MaxWeaponsEquipped)
-	//{
-	//	return;
-	//}
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor(20, 69, 103), FString::FromInt(Character->Weapons.Num()));
 
-	//seems wonky that the weapon is handling logic for what the character is doing. Maybe find a way to move some of this onto the character.
+	//seems wonky that the weapon is handling logic for what the character is doing. Could have this function call the character's equip function. However, unsure.
 	if ( Character->Weapons.Num() == 0)
 	{
 		GotoState(EquippingState);
@@ -220,6 +211,7 @@ void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 	}
 	else if(Character->Weapons.Num() != Character->MaxWeaponsEquipped)
 	{
+
 		GotoState(InactiveState);
 		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
 		Character->Weapons.Add(this); //using add will not work here.
@@ -236,29 +228,10 @@ void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
 	}
 
-	/*@TODO: *need to make sure code is right, also find a good way to get the current weapon slot and
-	
-
-	*/
-	
-	
-	
-
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	Character->SetHasRifle(true);
  
-	/*
-	If the player has no weapons, the interacted weapon gets equipped.
-
-	If the player has at least one weapon, weapons will be put into empty slots until all slots are full.
-
-	When all slots are full, weapons swap directly.
-	
-	
-	*/
-
-
 }
 
 void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)

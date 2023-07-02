@@ -23,7 +23,6 @@ ABOOMCharacter::ABOOMCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	// Character doesnt have a rifle at start
 	bHasRifle = false;
-	bIsOverlappingWeapon = false;
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 	
@@ -55,10 +54,8 @@ void ABOOMCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//possibly rework
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
-
 	/*
 	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
 	*/
@@ -79,23 +76,26 @@ void ABOOMCharacter::BeginPlay()
 		FTimerHandle InteractionHandle;
 		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
 	}
-
 }
 
 void ABOOMCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
 }
 
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Overlaps++;
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(100, 100, 200), "Overlaps Increased to: " + FString::FromInt(Overlaps));
 }	
 
 
 void ABOOMCharacter::OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	Overlaps--;
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(200, 100, 100), "Overlaps Decreased to: " +  FString::FromInt(Overlaps));
+
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -128,7 +128,6 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		//Reload Weapon
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMCharacter::Reload);
 
-
 	}
 }
 
@@ -138,6 +137,7 @@ void ABOOMCharacter::Reload()
 	{
 		return;
 	}
+
 	Weapon = Weapons[CurrentWeaponSlot];
 	if (Weapon != nullptr)
 	{
@@ -169,9 +169,7 @@ void ABOOMCharacter::DropCurrentWeapon()
 		{
 			Weapons[CurrentWeaponSlot]->HandleBeingDropped();
 		}
-
 	}
-
 }
 
 UBOOMPlayerHUD* ABOOMCharacter::GetPlayerHUD()
@@ -207,9 +205,8 @@ AActor* ABOOMCharacter::GetNearestInteractable()
 
 void ABOOMCharacter::CheckPlayerLook()
 {
-	//Setup Playcontroller
 	/*
-	* Player-look functionality for interacting with objects. Look interactivity is prioritized over proximity pickup.
+	Player-look functionality for interacting with objects. Look interactivity is prioritized over proximity pickup.
 	*/
 	APlayerController* PlayerController = Cast<APlayerController>(this->GetController());
 	if (PlayerController)
@@ -225,7 +222,7 @@ void ABOOMCharacter::CheckPlayerLook()
 		FCollisionQueryParams TraceParams;
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 1);
+		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 1);
 
 		IInteractableInterface* InteractableObject;
 		if (bHit)
@@ -354,6 +351,7 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 		InteractableObject = Cast<IInteractableInterface>(HighlightedActor);
 		if(InteractableObject)
 		{
+			HighlightedActor = nullptr;
 			InteractableObject->Interact(this);
 			InteractableObject->OnInteractionRangeExited(this);
 			

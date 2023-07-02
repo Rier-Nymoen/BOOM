@@ -12,11 +12,6 @@ UBOOMPickUpComponent::UBOOMPickUpComponent()
 
 void UBOOMPickUpComponent::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (ABOOMCharacter* TargetCharacter = Cast<ABOOMCharacter>(OtherActor))
-	{
-		TargetCharacter->bIsOverlappingWeapon = false;
-	}
-
 
 }
 
@@ -32,15 +27,6 @@ void UBOOMPickUpComponent::BeginPlay()
 
 void UBOOMPickUpComponent::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-
-	if (ABOOMCharacter* TargetCharacter = Cast<ABOOMCharacter>(OtherActor))
-	{
-		if (!TargetCharacter->bIsOverlappingWeapon)
-		{
-			TargetCharacter->bIsOverlappingWeapon = true;
-			OnPickUp.Broadcast(TargetCharacter);
-		}
-	}
 
 }
 

@@ -30,8 +30,6 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* Weapon1P;
 
-	//UPROPERTY(BlueprintReadWrite, Category = Component)
-	//	UBOOMPickUpComponent* BOOMPickUp;
 	UPROPERTY(EditAnywhere, Category = Component)
 	UBOOMPickUpComponent* BOOMPickUp;
 
@@ -82,30 +80,32 @@ public:
 
 	//Value should be a multiple of MagazineSize. Maximum Ammo Reserves.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-		int MaxAmmoReserves;
+	int MaxAmmoReserves;
 	
 	//Ammo reserves are the amount of bullets you have, that you can reload into the weapon. (Like Halo's system, not meant to be realistic)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-		int CurrentAmmoReserves;
+	int CurrentAmmoReserves;
 
 	//Cost of firing a shot
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-		int AmmoCost;
+	int AmmoCost;
 
 	//Max rounds held by a magazine
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-		int MagazineSize;
+	int MagazineSize;
 
 	//Rounds in the magazine
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-		int CurrentAmmo;
+	int CurrentAmmo;
 
+	UFUNCTION()
 	virtual void AddAmmo(int Amount);
 
+	UFUNCTION()
 	virtual bool HasAmmo();
 
 	virtual void HandleEquipping();
-	
+
 	virtual void HandleUnequipping();
 
 	virtual FRotator CalculateSpread(FRotator PlayerLookRotation);
@@ -149,11 +149,12 @@ protected:
 	float FireRateSeconds;
 public:
 	
-
+	UFUNCTION()
 	float GetFireRateSeconds();
 
 	
 	////consider moving to the "firing state" class
+	UFUNCTION()
 	float GetLastTimeFiredSeconds();
 
 	bool IsReadyToFire();
