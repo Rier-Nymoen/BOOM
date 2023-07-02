@@ -25,7 +25,6 @@ public:
 	//UFUNCTIONS cannot be overloaded, if I want to do this with blueprints, I may need to change my function signatures.
 	//be careful about if it gets garbage collected? ufunc needed for delegates and timelines
 	//https ://forums.unrealengine.com/t/what-does-ufunction-and-uproperty-without-any-arguments-do/42469/2
-	virtual void Interact() = 0;
 
 
 	virtual void Interact(class ABOOMCharacter* MyCharacter) = 0;

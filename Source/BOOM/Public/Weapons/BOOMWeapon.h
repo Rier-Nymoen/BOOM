@@ -11,14 +11,13 @@ class UBOOMPickUpComponent;
 class ABOOMCharacter;
 class UBOOMWeaponReloadComponent;
 
-enum EWeaponState
+USTRUCT()
+struct FFireInput
 {
-	Firing,
-	Reloading,
-	Idle,
-
+	GENERATED_BODY()
+	bool bIsPendingFiring;
+	//possibly additional information
 };
-
 
 UCLASS()
 class BOOM_API ABOOMWeapon : public AActor, public IInteractableInterface
@@ -31,8 +30,6 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* Weapon1P;
 
-	//UPROPERTY(BlueprintReadWrite, Category = Component)
-	//	UBOOMPickUpComponent* BOOMPickUp;
 	UPROPERTY(EditAnywhere, Category = Component)
 	UBOOMPickUpComponent* BOOMPickUp;
 
@@ -42,70 +39,58 @@ public:
 	UPROPERTY(EditAnywhere, Category = Name)
 	FName Name = FName(TEXT("W1"));
 
-private:
 	/*Character holding weapon*/
 	ABOOMCharacter* Character;
 
-protected:
-
-	UFUNCTION()
-	virtual void Fire();
-
-	UFUNCTION()
-	virtual void ReloadWeapon();
+	FFireInput* FireInput;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaSeconds);
+
+	float LastTimeFiredSeconds;
+
 public:
 	/*Interface Implementations*/
-	virtual void Interact() override;
 
-	virtual void Interact(class ABOOMCharacter* MyCharacter) override;
-
-	UFUNCTION()
-	virtual void OnInteractionRangeEntered(class ABOOMCharacter* MyCharacter) override;
+	virtual void Interact(class ABOOMCharacter* TargetCharacter) override;
 
 	UFUNCTION()
-	virtual void OnInteractionRangeExited(class ABOOMCharacter* MyCharacter) override;
+	virtual void OnInteractionRangeEntered(class ABOOMCharacter* TargetCharacter) override;
+
+	UFUNCTION()
+	virtual void OnInteractionRangeExited(class ABOOMCharacter* TargetCharacter) override;
 	/*End of Interface Implementations*/
 
-	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputMappingContext* WeaponMappingContext;
-
-	/** Fire Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* FireAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* ReloadAction;
+	UFUNCTION()
+	virtual void ReloadWeapon();
 	
-	/*experimental:*/ 
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UDamageType> DamageType;
+	UFUNCTION()
+	virtual void HandleReloadInput();
 
-	float WeaponDamage;
-	//
 
-protected:
+	UFUNCTION()
+	virtual void HandleFireInput();
 
-	float HitscanRange;
+
+	UFUNCTION()
+	virtual void HandleStopFireInput();
 
 	//Value should be a multiple of MagazineSize. Maximum Ammo Reserves.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int MaxAmmoReserves;
-
+	
 	//Ammo reserves are the amount of bullets you have, that you can reload into the weapon. (Like Halo's system, not meant to be realistic)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int CurrentAmmoReserves;
 
-	//Rounds held by magazine
+	//Cost of firing a shot
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int AmmoCost;
 
-	//Rounds held by magazine
+	//Max rounds held by a magazine
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int MagazineSize;
 
@@ -113,13 +98,67 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int CurrentAmmo;
 
+	UFUNCTION()
+	virtual void AddAmmo(int Amount);
+
+	UFUNCTION()
+	virtual bool HasAmmo();
+
+	virtual void HandleEquipping();
+
+	virtual void HandleUnequipping();
+
+	virtual FRotator CalculateSpread(FRotator PlayerLookRotation);
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UDamageType> DamageType;
+
+	UFUNCTION()
+	virtual void Fire();
+
+	UFUNCTION()
+	virtual bool IsIntendingToRefire();
+
+	class ABOOMCharacter* GetCharacter();
+
+	//virtual void FireHitscan();
+
+	//virtual void FireProjectile();
+
+	float WeaponDamage;
+	
+	//
+	virtual void GotoState(class UBOOMWeaponState* NewState);
+
+
+	class UBOOMWeaponState* InactiveState;
+	class UBOOMWeaponState* ActiveState;
+	class UBOOMWeaponState* CurrentState;
+	class UBOOMWeaponState* EquippingState;
+	class UBOOMWeaponState* FiringState;
+	class UBOOMWeaponState* ReloadingState;
+	class UBOOMWeaponState* UnequippingState;
+
 	//The time it takes to reload
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float ReloadDurationSeconds;
 
-	//Paraphrased: Unique handle to distinguish timers with the same delegates.
-	FTimerHandle TimerHandle_ReloadWeapon; 
+protected:
+	float HitscanRange;
 
+	float FireRateSeconds;
+public:
+	
+	UFUNCTION()
+	float GetFireRateSeconds();
 
+	
+	////consider moving to the "firing state" class
+	UFUNCTION()
+	float GetLastTimeFiredSeconds();
 
+	bool IsReadyToFire();
+
+	virtual void HandleBeingDropped();
+	
 };

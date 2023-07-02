@@ -23,10 +23,9 @@ ABOOMCharacter::ABOOMCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	// Character doesnt have a rifle at start
 	bHasRifle = false;
-	bIsOverlappingWeapon = false;
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
-
+	
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>("FirstPersonCamera");
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
@@ -46,22 +45,22 @@ ABOOMCharacter::ABOOMCharacter()
 	InteractionRange = 250.0F;
 	Overlaps = 0;
 	bGenerateOverlapEventsDuringLevelStreaming = true;
+	CurrentWeaponSlot = 0;
+	MaxWeaponsEquipped = 2;
+	bIsPendingFiring = false;
 }
 
 void ABOOMCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//possibly rework
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
-
 	/*
-	@TODO Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
+	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
 	*/
 	GetOverlappingActors(OverlappedActors);
 	Overlaps = OverlappedActors.Num();
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "Overlapped actors: " + FString::FromInt(OverlappedActors.Num()));
 	
 	//For Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
@@ -77,23 +76,26 @@ void ABOOMCharacter::BeginPlay()
 		FTimerHandle InteractionHandle;
 		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
 	}
-
 }
 
 void ABOOMCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
 }
 
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Overlaps++;
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(100, 100, 200), "Overlaps Increased to: " + FString::FromInt(Overlaps));
 }	
 
 
 void ABOOMCharacter::OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	Overlaps--;
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(200, 100, 100), "Overlaps Decreased to: " +  FString::FromInt(Overlaps));
+
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -113,13 +115,60 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::Look);
 
 		//Cyclical Weapon Swapping
-		EnhancedInputComponent->BindAction(WeaponSwapAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::SwapWeapon);
+		EnhancedInputComponent->BindAction(WeaponSwapAction, ETriggerEvent::Started, this, &ABOOMCharacter::SwapWeapon);
 
 		//Weapon Pickup
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ABOOMCharacter::Interact);
-		//Fire Weapon
-		//EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::Fire);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ABOOMCharacter::Interact);
 
+		//Fire Weapon
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMCharacter::Fire);
+
+		EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMCharacter::StopFire);
+
+		//Reload Weapon
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMCharacter::Reload);
+
+	}
+}
+
+void ABOOMCharacter::Reload()
+{
+	if (Weapons.Num() == 0)
+	{
+		return;
+	}
+
+	Weapon = Weapons[CurrentWeaponSlot];
+	if (Weapon != nullptr)
+	{
+		Weapon->HandleReloadInput();
+	}
+}
+
+void ABOOMCharacter::StopFire()
+{
+
+	bIsPendingFiring = false;
+	if (Weapons.IsValidIndex(CurrentWeaponSlot))
+	{
+		if (Weapons[CurrentWeaponSlot] != nullptr)
+		{
+			Weapons[CurrentWeaponSlot]->HandleStopFireInput();
+
+		}
+	
+	}
+
+}
+
+void ABOOMCharacter::DropCurrentWeapon()
+{
+	if (Weapons.IsValidIndex(CurrentWeaponSlot))
+	{
+		if (Weapons[CurrentWeaponSlot] != nullptr)
+		{
+			Weapons[CurrentWeaponSlot]->HandleBeingDropped();
+		}
 	}
 }
 
@@ -156,11 +205,8 @@ AActor* ABOOMCharacter::GetNearestInteractable()
 
 void ABOOMCharacter::CheckPlayerLook()
 {
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 20.0f, FColor::Green, "Overlaps: " + FString::FromInt(Overlaps));
-
-	//Setup Playcontroller
 	/*
-	* Player-look functionality for interacting with objects. Look interactivity is prioritized over proximity pickup.
+	Player-look functionality for interacting with objects. Look interactivity is prioritized over proximity pickup.
 	*/
 	APlayerController* PlayerController = Cast<APlayerController>(this->GetController());
 	if (PlayerController)
@@ -176,7 +222,7 @@ void ABOOMCharacter::CheckPlayerLook()
 		FCollisionQueryParams TraceParams;
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 1);
+		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 1);
 
 		IInteractableInterface* InteractableObject;
 		if (bHit)
@@ -246,12 +292,55 @@ void ABOOMCharacter::Look(const FInputActionValue& Value)
 
 void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 {
+	if (Weapons.Num() <= 1)
+	{
+		return;
+	}
+	//@TODO - switch to isValidIndex checks
+	if (Weapons[CurrentWeaponSlot] != nullptr)
+	{
+		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
+		Weapons[CurrentWeaponSlot]->HandleUnequipping();
 
+		//@TODO: Force weapon being holstered to inactive state
+		if (CurrentWeaponSlot == (Weapons.Num() - 1))
+		{
+			CurrentWeaponSlot = 0;
+		}
+		else
+		{
+			CurrentWeaponSlot++;
+		}
+
+		if (Weapons[CurrentWeaponSlot] != nullptr) //maybe use isValidIndex instead
+		{
+			Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+			Weapons[CurrentWeaponSlot]->HandleEquipping();
+			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+
+		}
+
+
+		//@TODO: force weapon being swapped to, to be in an active state.
+	}
 }
 
 void ABOOMCharacter::Fire(const FInputActionValue& Value)
 {
 
+	bIsPendingFiring = true;
+	if (Weapons.Num() == 0)
+	{
+		return;
+	}
+
+	if (Weapons[CurrentWeaponSlot] != nullptr)
+	{
+		Weapons[CurrentWeaponSlot]->HandleFireInput();
+	}
 }
 
 void ABOOMCharacter::Interact(const FInputActionValue& Value)
@@ -262,6 +351,7 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 		InteractableObject = Cast<IInteractableInterface>(HighlightedActor);
 		if(InteractableObject)
 		{
+			HighlightedActor = nullptr;
 			InteractableObject->Interact(this);
 			InteractableObject->OnInteractionRangeExited(this);
 			

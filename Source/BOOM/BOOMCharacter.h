@@ -48,9 +48,10 @@ protected:
 	virtual void BeginPlay();
 
 	virtual void Tick(float DeltaSeconds);
-
+	UFUNCTION()
 	void OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
+	
+	UFUNCTION()
 	void OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UPROPERTY()
@@ -71,7 +72,7 @@ public:
 
 	/** Getter for the bool */
 	UFUNCTION(BlueprintCallable, Category = Weapon)
-	bool GetHasRifle();
+	bool GetHasRifle() ;
 	 
 	UPROPERTY()
 	bool bIsOverlappingWeapon;
@@ -114,17 +115,38 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* WeaponSwapAction;
 
-	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* FireAction;*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* FireAction;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* StopFireAction;
 
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* LookAction;
 
-protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* ReloadAction;
 
+
+
+protected:
+	UFUNCTION()
+		void Reload();
+
+	UFUNCTION()
+		void StopFire();
 
 public:
+
+
+	UFUNCTION()
+	void DropCurrentWeapon();
+
+
+	bool bIsPendingFiring;
+
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
@@ -143,9 +165,6 @@ public:
 	UPROPERTY()
 	float InteractionRange;
 
-	//Prioritized item currently being interacted with
-	UPROPERTY()
-	AActor* HighlightedActor;
 
 	UFUNCTION()
 	AActor* GetNearestInteractable();
@@ -153,8 +172,17 @@ public:
 	UFUNCTION()
 	void CheckPlayerLook();
 
-public:
+	//Prioritized item currently being interacted with
+	UPROPERTY()
+		AActor* HighlightedActor;
 
+public:
+	UPROPERTY()
+	int MaxWeaponsEquipped;
+
+	UPROPERTY()
+	int CurrentWeaponSlot;
 	TArray<class ABOOMWeapon*> Weapons;
+	class ABOOMWeapon* Weapon;
 
 };

@@ -26,7 +26,7 @@ public:
 private:
 
 	UPROPERTY()
-		float HeatRate;
+	float HeatRate;
 
 	UPROPERTY()
 	float CooldownRate;
