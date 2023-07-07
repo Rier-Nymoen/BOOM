@@ -59,6 +59,8 @@ ABOOMWeapon::ABOOMWeapon()
 
 	//@TODO change to hitscan damage, projectiles have their own damage stat.
 	WeaponDamage = 100.0F;
+
+	CurrentState = InactiveState; //@todo: note
 }
 
 
@@ -77,7 +79,7 @@ void ABOOMWeapon::BeginPlay()
 
 void ABOOMWeapon::Tick(float DeltaSeconds)
 {
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1000.0F, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
+
 
 }
 
@@ -196,41 +198,43 @@ void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 	{
 		return;
 	}
-	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	Character->EquipWeapon(this);
 
-	//seems wonky that the weapon is handling logic for what the character is doing. Could have this function call the character's equip function. However, unsure.
-	if ( Character->Weapons.Num() == 0)
-	{
-		GotoState(EquippingState);
-		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Name);
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
-		Character->Weapons.Add(this); //using add will not work here.
+	//FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 
-	}
-	else if(Character->Weapons.Num() != Character->MaxWeaponsEquipped)
-	{
+	////seems wonky that the weapon is handling logic for what the character is doing. Could have this function call the character's equip function. However, unsure.
+	//if ( Character->HasNoWeapons())
+	//{
+	//	GotoState(EquippingState);
+	//	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+	//	Character->GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Name);
+	//	Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+	//	Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
+	//	Character->Weapons.Add(this); //using add will not work here.
 
-		GotoState(InactiveState);
-		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
-		Character->Weapons.Add(this); //using add will not work here.
+	//}
+	//else if(Character->HasEmptyWeaponSlots())
+	//{
 
-	}
-	else
-	{
-		Character->DropCurrentWeapon();
-		Character->Weapons[Character->CurrentWeaponSlot] = this;
-		GotoState(EquippingState);
-		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Name);
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
-	}
+	//	GotoState(InactiveState);
+	//	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
+	//	Character->Weapons.Add(this); //using add will not work here.
 
-	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//}
+	//else
+	//{
+	//	Character->DropCurrentWeapon();
+	//	Character->Weapons[Character->CurrentWeaponSlot] = this;
+	//	GotoState(EquippingState);
+	//	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+	//	Character->GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Name);
+	//	Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+	//	Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
+	//}
 
-	Character->SetHasRifle(true);
+	//BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	//Character->SetHasRifle(true);
  
 }
 
@@ -340,6 +344,22 @@ void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 
 }
 
+
+void ABOOMWeapon::GotoStateEquipping()
+{
+	GotoState(EquippingState);
+}
+
+void ABOOMWeapon::GotoStateActive()
+{
+	GotoState(ActiveState);
+}
+
+void ABOOMWeapon::GotoStateInactive()
+{
+	GotoState(InactiveState);
+}
+
 float ABOOMWeapon::GetFireRateSeconds()
 {
 	return FireRateSeconds;
@@ -369,10 +389,16 @@ void ABOOMWeapon::HandleBeingDropped()
 {
 	FDetachmentTransformRules DetRules(EDetachmentRule::KeepWorld, true);
 
-	this->GotoState(InactiveState);
+	GotoState(InactiveState);
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Character = nullptr;
 	DetachFromActor(DetRules);
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor(20, 69, 103), "handlebeingdropped");
+
+}
+
+void ABOOMWeapon::DisableCollision()
+{
+	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 }

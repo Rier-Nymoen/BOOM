@@ -9,6 +9,11 @@ void UBOOMWeaponStateInactive::EnterState()
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Red, "InactiveState");
 }
 
+void UBOOMWeaponStateInactive::ExitState()
+{
+
+}
+
 void UBOOMWeaponStateInactive::HandleEquipping()
 {
 

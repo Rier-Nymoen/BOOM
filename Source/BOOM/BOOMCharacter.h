@@ -133,10 +133,13 @@ protected:
 
 protected:
 	UFUNCTION()
-		void Reload();
+	void Reload();
 
 	UFUNCTION()
-		void StopFire();
+	void StopFire();
+
+
+
 
 public:
 
@@ -177,12 +180,28 @@ public:
 		AActor* HighlightedActor;
 
 public:
-	UPROPERTY()
 	int MaxWeaponsEquipped;
 
 	UPROPERTY()
 	int CurrentWeaponSlot;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory", meta=(ArrayClamp="2"))
+	TArray<TSubclassOf<ABOOMWeapon>> WeaponsToSpawn;
+
+
+	void SpawnWeapons();
+
 	TArray<class ABOOMWeapon*> Weapons;
+
 	class ABOOMWeapon* Weapon;
+
+	UFUNCTION()
+	virtual void EquipWeapon(ABOOMWeapon* TargetWeapon);
+
+	UFUNCTION()
+	bool HasNoWeapons();
+
+	UFUNCTION()
+	bool HasEmptyWeaponSlots();
 
 };

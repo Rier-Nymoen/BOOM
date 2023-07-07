@@ -53,9 +53,10 @@ ABOOMCharacter::ABOOMCharacter()
 void ABOOMCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
+
+
 	/*
 	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
 	*/
@@ -76,6 +77,13 @@ void ABOOMCharacter::BeginPlay()
 		FTimerHandle InteractionHandle;
 		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
 	}
+
+
+	//Must happen after HUD is created
+
+	//@TODO Can cause game to crash when a PlayerHUD is expected and we have non-player characters
+	SpawnWeapons();
+
 }
 
 void ABOOMCharacter::Tick(float DeltaSeconds)
@@ -87,14 +95,14 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Overlaps++;
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(100, 100, 200), "Overlaps Increased to: " + FString::FromInt(Overlaps));
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(100, 100, 200), "Overlaps Increased to: " + FString::FromInt(Overlaps));
 }	
 
 
 void ABOOMCharacter::OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	Overlaps--;
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(200, 100, 100), "Overlaps Decreased to: " +  FString::FromInt(Overlaps));
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(200, 100, 100), "Overlaps Decreased to: " +  FString::FromInt(Overlaps));
 
 }
 
@@ -178,9 +186,6 @@ UBOOMPlayerHUD* ABOOMCharacter::GetPlayerHUD()
 }
 
 
-//getters and setters because I plan on using them to track information or update HUD images.
-
-
 AActor* ABOOMCharacter::GetNearestInteractable()
 {
 	float MinDistance = TNumericLimits<float>::Max();
@@ -203,6 +208,9 @@ AActor* ABOOMCharacter::GetNearestInteractable()
 	return NearestActor;
 }
 
+//@TODO - Consider using Dot Product as an alternative for pickup intent
+/*
+* It could be better than having to look exactly at the collision point for the weapon*/
 void ABOOMCharacter::CheckPlayerLook()
 {
 	/*
@@ -262,6 +270,90 @@ void ABOOMCharacter::CheckPlayerLook()
 		}
 	}
 
+}
+
+
+void ABOOMCharacter::SpawnWeapons()
+{
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Magenta, FString::FromInt(WeaponsToSpawn.Num()));
+	if (WeaponsToSpawn.Num() > MaxWeaponsEquipped)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "Too many weapons added to character");
+	}
+	
+	//temporary code
+
+	for (TSubclassOf<ABOOMWeapon> WeaponClass : WeaponsToSpawn)
+	{
+		if(!WeaponClass)
+		{
+			continue;
+		}
+
+		ABOOMWeapon* SpawnedWeapon = GetWorld()->SpawnActor<ABOOMWeapon>(WeaponClass, GetActorLocation(), GetActorRotation());
+		check(SpawnedWeapon)
+		if (Weapons.Num() > MaxWeaponsEquipped)
+		{
+			break;
+		}
+		EquipWeapon(SpawnedWeapon);
+		
+	}
+
+
+
+}
+
+void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
+{
+
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	TargetWeapon->Character = this;
+
+	//target weapon checks
+	//change weapons[currentweaponslot] to targetweapon here.
+
+
+	if (HasNoWeapons())
+	{
+		Weapons.Add(TargetWeapon);
+
+		TargetWeapon->GotoStateEquipping();
+		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+		GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
+		GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
+		GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+	}
+	else if (HasEmptyWeaponSlots())
+	{
+		Weapons.Add(TargetWeapon);
+
+		TargetWeapon->GotoStateInactive();
+		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
+
+	}
+	else
+	{
+		DropCurrentWeapon();
+		TargetWeapon->GotoStateEquipping();
+		Weapons[CurrentWeaponSlot] = TargetWeapon;
+		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+		GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(TargetWeapon->Name);
+		GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(TargetWeapon->CurrentAmmo);
+		GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(TargetWeapon->CurrentAmmoReserves);
+	}
+	TargetWeapon->DisableCollision();
+	SetHasRifle(true);
+}
+
+bool ABOOMCharacter::HasNoWeapons()
+{
+	return Weapons.Num() == 0;
+}
+
+bool ABOOMCharacter::HasEmptyWeaponSlots()
+{
+	return Weapons.Num() != MaxWeaponsEquipped;
 }
 
 void ABOOMCharacter::Move(const FInputActionValue& Value)
@@ -332,7 +424,7 @@ void ABOOMCharacter::Fire(const FInputActionValue& Value)
 {
 
 	bIsPendingFiring = true;
-	if (Weapons.Num() == 0)
+	if (HasNoWeapons())
 	{
 		return;
 	}

@@ -148,10 +148,18 @@ protected:
 
 	float FireRateSeconds;
 public:
+	UFUNCTION()
+	void GotoStateEquipping();
+
+	UFUNCTION()
+	void GotoStateActive();
+
+	UFUNCTION()
+	void GotoStateInactive();
+
 	
 	UFUNCTION()
 	float GetFireRateSeconds();
-
 	
 	////consider moving to the "firing state" class
 	UFUNCTION()
@@ -160,5 +168,8 @@ public:
 	bool IsReadyToFire();
 
 	virtual void HandleBeingDropped();
-	
+
+	virtual void DisableCollision();
+
+
 };
