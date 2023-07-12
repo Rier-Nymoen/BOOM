@@ -156,6 +156,11 @@ void ABOOMCharacter::Reload()
 	}
 }
 
+void ABOOMCharacter::Fire()
+{
+
+}
+
 void ABOOMCharacter::StopFire()
 {
 
@@ -433,11 +438,11 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 	}
 }
 
-void ABOOMCharacter::StartFire(const FInputActionValue& Value)
+//void ABOOMCharacter::StartFire(const FInputActionValue& Value)
+void ABOOMCharacter::StartFire()
 {
-
 	bIsPendingFiring = true;
-	if (HasNoWeapons())
+	if (Weapons.Num() == 0)
 	{
 		return;
 	}

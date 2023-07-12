@@ -95,7 +95,16 @@ protected:
 
 	void SwapWeapon(const FInputActionValue& Value);
 
-	void StartFire(const FInputActionValue& Value);
+	//void StartFire(const FInputActionValue& Value);
+	void StartFire();
+	UFUNCTION()
+	void StopFire();
+
+	UFUNCTION()
+	void Reload();
+
+	UFUNCTION()
+	virtual void Fire();
 	
 	void Interact(const FInputActionValue& Value);
 
@@ -135,21 +144,13 @@ protected:
 
 
 protected:
-	UFUNCTION()
-	void Reload();
-
-	UFUNCTION()
-	void StopFire();
-
 
 
 
 public:
 
-
 	UFUNCTION()
 	void DropCurrentWeapon();
-
 
 	bool bIsPendingFiring;
 
