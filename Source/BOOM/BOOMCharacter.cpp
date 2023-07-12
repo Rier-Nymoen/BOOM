@@ -41,6 +41,9 @@ ABOOMCharacter::ABOOMCharacter()
 
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+
+	SocketNameGripPoint = "GripPoint";
+	SocketNameHolsterPoint = "spine_01";
 	
 	InteractionRange = 250.0F;
 	Overlaps = 0;
@@ -319,17 +322,21 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 		Weapons.Add(TargetWeapon);
 
 		TargetWeapon->GotoStateEquipping();
-		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-		GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
-		GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
-		GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+		if (PlayerHUD)
+		{
+			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+		}
+
 	}
 	else if (HasEmptyWeaponSlots())
 	{
 		Weapons.Add(TargetWeapon);
 
 		TargetWeapon->GotoStateInactive();
-		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
+		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameHolsterPoint);
 
 	}
 	else
@@ -337,10 +344,13 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 		DropCurrentWeapon();
 		TargetWeapon->GotoStateEquipping();
 		Weapons[CurrentWeaponSlot] = TargetWeapon;
-		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-		GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(TargetWeapon->Name);
-		GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(TargetWeapon->CurrentAmmo);
-		GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(TargetWeapon->CurrentAmmoReserves);
+		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+		if (PlayerHUD)
+		{
+			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+		}
 	}
 	TargetWeapon->DisableCollision();
 	SetHasRifle(true);
@@ -392,7 +402,7 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 	if (Weapons[CurrentWeaponSlot] != nullptr)
 	{
 		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
+		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameHolsterPoint);
 		Weapons[CurrentWeaponSlot]->HandleUnequipping();
 
 		//@TODO: Force weapon being holstered to inactive state
@@ -407,11 +417,14 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 
 		if (Weapons[CurrentWeaponSlot] != nullptr) //maybe use isValidIndex instead
 		{
-			Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+			Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameGripPoint);
 			Weapons[CurrentWeaponSlot]->HandleEquipping();
-			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+			if (PlayerHUD)
+			{
+				GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
+				GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
+				GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+			}
 
 		}
 

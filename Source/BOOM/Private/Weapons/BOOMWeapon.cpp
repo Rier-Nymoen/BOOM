@@ -126,7 +126,11 @@ void ABOOMWeapon::Fire()
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
 		DrawDebugLine(GetWorld(), Start, End, FColor(FMath::FRandRange(0.0F,255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
 
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+		if (Character->GetPlayerHUD())
+		{
+			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+
+		}
 
 		if (bHit)
 		{
@@ -183,8 +187,12 @@ void ABOOMWeapon::ReloadWeapon()
 		CurrentAmmoReserves -= FMath::Min(BulletDifference, CurrentAmmoReserves);
 
 		check(Character)
-			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+		if (Character->GetPlayerHUD())
+		{
+				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
+				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+		}
+
 
 		GotoState(ActiveState);
 	}
@@ -248,18 +256,24 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 	if (WeaponData)
 	{
 
-		check(TargetCharacter->PlayerHUD)
-		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptImage(WeaponData->ItemImage);
-		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptText(Name);
-		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Visible);
+		if (TargetCharacter->GetPlayerHUD())
+		{
+			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptImage(WeaponData->ItemImage);
+			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptText(Name);
+			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Visible);
+		}
+
 
 	}
 }
 
 void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* TargetCharacter)
 {
-	check(TargetCharacter->GetPlayerHUD())
-	TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Hidden);
+	if (TargetCharacter->GetPlayerHUD())
+	{
+		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Hidden);
+
+	}
 }
 
 void ABOOMWeapon::HandleFireInput()

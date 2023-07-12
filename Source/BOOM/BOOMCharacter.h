@@ -44,6 +44,9 @@ class ABOOMCharacter : public ACharacter
 public:
 	ABOOMCharacter();
 
+	FName SocketNameGripPoint;
+	FName SocketNameHolsterPoint;
+
 protected:
 	virtual void BeginPlay();
 
