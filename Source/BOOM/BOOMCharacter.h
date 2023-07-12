@@ -95,7 +95,7 @@ protected:
 
 	void SwapWeapon(const FInputActionValue& Value);
 
-	void Fire(const FInputActionValue& Value);
+	void StartFire(const FInputActionValue& Value);
 	
 	void Interact(const FInputActionValue& Value);
 

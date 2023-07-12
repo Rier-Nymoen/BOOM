@@ -132,7 +132,7 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ABOOMCharacter::Interact);
 
 		//Fire Weapon
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMCharacter::Fire);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMCharacter::StartFire);
 
 		EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMCharacter::StopFire);
 
@@ -433,7 +433,7 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 	}
 }
 
-void ABOOMCharacter::Fire(const FInputActionValue& Value)
+void ABOOMCharacter::StartFire(const FInputActionValue& Value)
 {
 
 	bIsPendingFiring = true;
