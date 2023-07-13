@@ -7,29 +7,31 @@
 
 UBOOMBTTask_ShootWeapon::UBOOMBTTask_ShootWeapon()
 {
+	NodeName = "ShootWeapon";
 }
 
 EBTNodeResult::Type UBOOMBTTask_ShootWeapon::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	const ABOOMAICharacter* AICharacter = Cast<ABOOMAICharacter>(AIController->GetCharacter());
+	ABOOMAICharacter* AICharacter = Cast<ABOOMAICharacter>(AIController->GetCharacter());
 
 
 	if (AICharacter)
 	{
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Emerald, "SUCCESSFUL AI CHARACTER READ");
-	
-	}
-	else
-	{		
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "Unsuccessful");
-	}
+		const UWorld* World = AICharacter->GetWorld();
+		if (World)
+		{
+		}
 
-	return EBTNodeResult::Type();
+		AICharacter->StartFire();
+		AICharacter->StopFire();
+	}
+	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+	return EBTNodeResult::Succeeded;
 }
 
 FString UBOOMBTTask_ShootWeapon::GetStaticDescription() const
 {
-	return FString();
+	return FString("Fires weapon lol");
 }

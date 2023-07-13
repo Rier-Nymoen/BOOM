@@ -39,6 +39,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Name)
 	FName Name = FName(TEXT("W1"));
 
+	//@todo add when improving weapon system.
+	UPROPERTY(EditAnywhere, Category = Component)
+		class USceneComponent* MuzzleLocation;
 	/*Character holding weapon*/
 	ABOOMCharacter* Character;
 

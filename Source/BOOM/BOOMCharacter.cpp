@@ -13,6 +13,7 @@
 #include "UI/BOOMPlayerHUD.h"
 #include "Containers/Array.h"
 #include "Math/NumericLimits.h"
+#include "AI/BOOMAIController.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -238,7 +239,7 @@ void ABOOMCharacter::CheckPlayerLook()
 		FCollisionQueryParams TraceParams;
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 1);
+		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 1);
 
 		IInteractableInterface* InteractableObject;
 		if (bHit)

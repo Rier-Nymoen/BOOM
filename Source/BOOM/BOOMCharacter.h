@@ -82,6 +82,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DataTable)
 	class UDataTable* WeaponTable;
+
+	void StartFire();
+	UFUNCTION()
+		void StopFire();
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -96,9 +100,7 @@ protected:
 	void SwapWeapon(const FInputActionValue& Value);
 
 	//void StartFire(const FInputActionValue& Value);
-	void StartFire();
-	UFUNCTION()
-	void StopFire();
+
 
 	UFUNCTION()
 	void Reload();

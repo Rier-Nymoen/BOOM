@@ -3,7 +3,7 @@
 
 #include "Weapons/BOOMWeaponDMR.h"
 #include "Weapons/BOOMWeaponStateBurstFiring.h"
-
+#include "Weapons/BOOMWeaponStateSingleShotFiring.h"
 ABOOMWeaponDMR::ABOOMWeaponDMR()
 {
 
@@ -13,4 +13,5 @@ ABOOMWeaponDMR::ABOOMWeaponDMR()
 	CurrentAmmoReserves = 114;
 	CurrentAmmo = MagazineSize;
 	FiringState = CreateDefaultSubobject<UBOOMWeaponStateBurstFiring>("BurstFiringState");
+	//FiringState = CreateDefaultSubobject<UBOOMWeaponStateSingleShotFiring>("SingleShotFiringState");
 }

@@ -15,6 +15,7 @@
 #include "Weapons/BOOMWeaponStateReloading.h"
 #include "Weapons/BOOMWeaponStateUnequipping.h"
 #include "Math/UnrealMathUtility.h"
+#include "AI/BOOMAIController.h"
 
 
 //@TODO decide if I am changing variable names
@@ -91,8 +92,10 @@ void ABOOMWeapon::Fire()
 		return;
 	}
 
+
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 
+	//@TODO: revamp
 	if (PlayerController)
 	{
 		FRotator CameraRotation;
@@ -102,8 +105,8 @@ void ABOOMWeapon::Fire()
 
 		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 		CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-	/*	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Magenta, FString(CameraLocation.ToString()));
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, FString(CameraRotation.ToString()));*/
+		/*	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Magenta, FString(CameraLocation.ToString()));
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, FString(CameraRotation.ToString()));*/
 
 		FVector Start = CameraLocation;
 
@@ -136,8 +139,35 @@ void ABOOMWeapon::Fire()
 		{
 			UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
 		}
+		//return to avoid overnesting?
 
 	}
+	else
+	{
+		ABOOMAIController* AIController = Cast<ABOOMAIController>(Character->GetController());
+		if (AIController)
+		{
+			//Placeholder code, just to test things.
+			FVector Start  = GetActorLocation();
+			FVector End = Start + (CalculateSpread(GetActorRotation()).Vector() * HitscanRange);
+			LastTimeFiredSeconds = GetWorld()->GetTimeSeconds();
+
+
+			FHitResult HitResult;
+			FCollisionQueryParams TraceParams;
+			bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
+			DrawDebugLine(GetWorld(), Start, End, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
+			if (bHit)
+			{
+				UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
+			}
+			//end of placeholder code
+		}
+	}
+	
+
+	
+	
 	
 }
 

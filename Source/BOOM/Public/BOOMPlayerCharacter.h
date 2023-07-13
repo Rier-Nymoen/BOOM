@@ -25,4 +25,8 @@ protected:
 
 	//virtual void Tick(float DeltaSeconds) override;
 
+	/* 
+	* Will wait as long as possible to exhaust baseclass before moving things to this class.
+	* 
+	*/
 };
