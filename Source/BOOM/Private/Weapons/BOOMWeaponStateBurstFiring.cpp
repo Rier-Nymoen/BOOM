@@ -24,6 +24,7 @@ void UBOOMWeaponStateBurstFiring::BeginPlay()
 void UBOOMWeaponStateBurstFiring::EnterState()
 {
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "Bursting::EnterState");
 
 	if (Weapon != nullptr)
 	{

@@ -31,8 +31,9 @@ void UBOOMHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	// ...
 }
 
-void UBOOMHealthComponent::RegenerateHealth()
+void UBOOMHealthComponent::AddHealth(int Amount)
 {
-
 }
+
+
 

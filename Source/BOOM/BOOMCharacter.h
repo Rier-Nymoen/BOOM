@@ -210,4 +210,6 @@ public:
 	UFUNCTION()
 	bool HasEmptyWeaponSlots();
 
+	
+
 };

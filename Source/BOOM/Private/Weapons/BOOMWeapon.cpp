@@ -208,7 +208,8 @@ void ABOOMWeapon::ReloadWeapon()
 {
 
 	//if we have Reserve Ammo to reload the weapon, then we can do this
-	if (CurrentAmmoReserves > 0)
+	if (CanReload()) //May be unnecessary but keeping here for now in case of unexpected issues.
+
 	{								// will need to check bullet difference != 0 maybe
 		//How much ammo is missing from the mags ammo capacity
 		int BulletDifference = (MagazineSize - CurrentAmmo);
@@ -224,8 +225,10 @@ void ABOOMWeapon::ReloadWeapon()
 		}
 
 
-		GotoState(ActiveState);
 	}
+
+	GotoState(ActiveState);
+
 }
 
 
@@ -445,4 +448,9 @@ void ABOOMWeapon::DisableCollision()
 {
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+}
+
+bool ABOOMWeapon::CanReload()
+{
+	return CurrentAmmoReserves > 0 && CurrentAmmo < MagazineSize;
 }

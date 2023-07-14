@@ -149,6 +149,7 @@ public:
 protected:
 	float HitscanRange;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float FireRateSeconds;
 public:
 	UFUNCTION()
@@ -173,6 +174,8 @@ public:
 	virtual void HandleBeingDropped();
 
 	virtual void DisableCollision();
+
+	virtual bool CanReload();
 
 
 };
