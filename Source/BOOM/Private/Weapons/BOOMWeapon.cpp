@@ -321,7 +321,7 @@ void ABOOMWeapon::HandleStopFireInput()
 
 void ABOOMWeapon::AddAmmo(int Amount)
 {
-	CurrentAmmo = FMath::Clamp(CurrentAmmo + Amount, 0, MaxAmmoReserves);
+	CurrentAmmo = FMath::Clamp(CurrentAmmo + Amount, 0, MagazineSize);
 }
 
 bool ABOOMWeapon::HasAmmo()

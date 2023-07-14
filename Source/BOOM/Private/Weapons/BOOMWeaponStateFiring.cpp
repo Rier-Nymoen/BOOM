@@ -73,7 +73,8 @@ void UBOOMWeaponStateFiring::HandleReloadInput()
 
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 
-	if (Weapon != nullptr)
+	if (Weapon != nullptr && Weapon->CanReload()) /*The CanReload() check is to stop the refire timer from being canceled while holding the input, which messes up the shots.
+													With the Hierarchical State Machine, I think this only applies to firing states for now. Note: Could be bugs when weapon melee is added.*/
 	{
 		Weapon->GotoState(Weapon->ReloadingState);
 	}
