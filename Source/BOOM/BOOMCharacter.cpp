@@ -241,7 +241,7 @@ void ABOOMCharacter::CheckPlayerLook()
 		FCollisionQueryParams TraceParams;
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 1);
+		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0.3);
 
 		IInteractableInterface* InteractableObject;
 		if (bHit)

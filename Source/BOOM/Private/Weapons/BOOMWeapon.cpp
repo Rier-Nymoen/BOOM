@@ -444,11 +444,19 @@ void ABOOMWeapon::HandleBeingDropped()
 	FDetachmentTransformRules DetRules(EDetachmentRule::KeepWorld, true);
 
 	GotoState(InactiveState);
-	Weapon1P->SetSimulatePhysics(true);
-	Weapon1P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	if (Character)
+	{
+		//@TODO weapon could spawn or past objects - may solve issue a different way
+		SetActorLocation(Character->GetActorLocation() + Character->GetActorForwardVector() * 50);
+
+		Weapon1P->SetSimulatePhysics(true);
+		Weapon1P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Weapon1P->AddImpulse(Character->GetActorForwardVector() * 1000);
+
+	}
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Character = nullptr;
-	DetachFromActor(DetRules);
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor(20, 69, 103), "handlebeingdropped");
 
 }
