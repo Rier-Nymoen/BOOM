@@ -18,6 +18,11 @@ void UBOOMHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AActor* Owner = GetOwner();
+	//minimum set of reusuable functionality.
+	if (Owner)
+	{
+	}
 	// ...
 	
 }
@@ -33,6 +38,7 @@ void UBOOMHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 
 void UBOOMHealthComponent::AddHealth(int Amount)
 {
+	Health += Amount;
 }
 
 

@@ -14,6 +14,7 @@
 #include "Containers/Array.h"
 #include "Math/NumericLimits.h"
 #include "AI/BOOMAIController.h"
+#include "BOOMHealthComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -26,7 +27,6 @@ ABOOMCharacter::ABOOMCharacter()
 	bHasRifle = false;
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
-	
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>("FirstPersonCamera");
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
@@ -52,6 +52,8 @@ ABOOMCharacter::ABOOMCharacter()
 	CurrentWeaponSlot = 0;
 	MaxWeaponsEquipped = 2;
 	bIsPendingFiring = false;
+
+	HealthComponent = CreateDefaultSubobject<UBOOMHealthComponent>("HealthComponent");
 }
 
 void ABOOMCharacter::BeginPlay()
@@ -59,7 +61,7 @@ void ABOOMCharacter::BeginPlay()
 	Super::BeginPlay();
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
-
+	OnTakeAnyDamage.AddDynamic(this, &ABOOMCharacter::OnTakeDamage);
 
 	/*
 	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
@@ -218,7 +220,7 @@ AActor* ABOOMCharacter::GetNearestInteractable()
 }
 
 //@TODO - Consider using Dot Product as an alternative for pickup intent
-/*
+/* Potential optimization not requiring timer, but overlap event behavior makes it odd.
 * It could be better than having to look exactly at the collision point for the weapon*/
 void ABOOMCharacter::CheckPlayerLook()
 {
@@ -318,11 +320,9 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	TargetWeapon->Character = this;
-
-	//target weapon checks
-	//change weapons[currentweaponslot] to targetweapon here.
-
-
+	TargetWeapon->Weapon1P->SetSimulatePhysics(false);
+	TargetWeapon->Weapon1P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	TargetWeapon->DisableCollision();
 	if (HasNoWeapons())
 	{
 		Weapons.Add(TargetWeapon);
@@ -358,7 +358,14 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
 		}
 	}
-	TargetWeapon->DisableCollision();
+
+	/*
+	@TODO: Fix and prevent - If collision is enabled, the character can pick up a weapon that is in their hand and also attempt to drop it, which causes the
+	weapon's character reference to be assigned to the same character, and then nullified, causing seg faults.
+	*/
+	//TargetWeapon->Weapon1P->SetSimulatePhysics(false);
+	//TargetWeapon->DisableCollision();
+	
 	SetHasRifle(true);
 }
 
@@ -370,6 +377,53 @@ bool ABOOMCharacter::HasNoWeapons()
 bool ABOOMCharacter::HasEmptyWeaponSlots()
 {
 	return Weapons.Num() != MaxWeaponsEquipped;
+}
+
+void ABOOMCharacter::OnDeath()
+{
+	//Play death animations, lose control, throw inventory, stop active states.
+	//AController* Controller = GetController();
+	if (Controller)
+	{
+		Controller->UnPossess();
+	}
+	
+	ThrowInventory();
+	if (PlayerHUD)
+	{
+		PlayerHUD->RemoveFromViewport();
+	}
+}
+
+void ABOOMCharacter::ThrowInventory()
+{
+	for (ABOOMWeapon* TWeapon : Weapons)
+	{
+		
+		TWeapon->HandleUnequipping();
+		TWeapon->HandleBeingDropped();
+		TWeapon->Weapon1P->AddImpulse(FVector(0, 0, 100000));
+		//TWeapon->Weapon1P->AddImpulse(FVector(FMath::FRandRange(0.0F, 105.0F), FMath::FRandRange(0.0F, 100.0F), FMath::FRandRange(0.0F, 100.0F)));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "WERwer");
+
+	}
+	Weapons.Empty();
+}
+
+void ABOOMCharacter::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+{
+	if (HealthComponent)
+	{
+		HealthComponent->AddHealth(-Damage);
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Health: " + FString::SanitizeFloat(HealthComponent->Health));
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Damage: " + FString::SanitizeFloat(Damage));
+
+		if (HealthComponent->Health <= 0)
+		{
+
+			OnDeath();
+		}
+	}
 }
 
 void ABOOMCharacter::Move(const FInputActionValue& Value)

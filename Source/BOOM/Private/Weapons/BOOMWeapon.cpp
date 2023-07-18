@@ -27,9 +27,15 @@ ABOOMWeapon::ABOOMWeapon()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Weapon1P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh1P");
+	
+	
 	BOOMPickUp = CreateDefaultSubobject<UBOOMPickUpComponent>("PickUpComponent");
 	BOOMPickUp->SetupAttachment(Weapon1P);
-	
+	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	//BOOMPickUp->bHiddenInGame = false;
+	//BOOMPickUp->ShapeColor = FColor(3, 30, 255);
+
 	ActiveState = CreateDefaultSubobject<UBOOMWeaponStateActive>("ActiveState");
 	InactiveState = CreateDefaultSubobject<UBOOMWeaponStateInactive>("InactiveState");
 	FiringState = CreateDefaultSubobject<UBOOMWeaponStateFiring>("FiringState");
@@ -62,6 +68,7 @@ ABOOMWeapon::ABOOMWeapon()
 	WeaponDamage = 100.0F;
 
 	CurrentState = InactiveState; //@todo: note
+
 }
 
 
@@ -437,7 +444,9 @@ void ABOOMWeapon::HandleBeingDropped()
 	FDetachmentTransformRules DetRules(EDetachmentRule::KeepWorld, true);
 
 	GotoState(InactiveState);
-	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Weapon1P->SetSimulatePhysics(true);
+	Weapon1P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Character = nullptr;
 	DetachFromActor(DetRules);
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor(20, 69, 103), "handlebeingdropped");

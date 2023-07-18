@@ -7,7 +7,10 @@
 UBOOMPickUpComponent::UBOOMPickUpComponent()
 {
 	//SphereRadius = PickUpRadius Should be based around weapon size maybe? Arbitrary value for now;
-	SphereRadius = 50;
+	SphereRadius = 150.F;
+	bHiddenInGame = false;
+	ShapeColor = FColor(3, 30, 255);
+
 }
 
 void UBOOMPickUpComponent::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -21,6 +24,7 @@ void UBOOMPickUpComponent::BeginPlay()
 	Super::BeginPlay();
 	OnComponentBeginOverlap.AddDynamic(this, &UBOOMPickUpComponent::OnSphereBeginOverlap);
 	OnComponentEndOverlap.AddDynamic(this, &UBOOMPickUpComponent::OnSphereEndOverlap);
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(100, 100, 200), "Boompickupcomponent");
 
 
 }

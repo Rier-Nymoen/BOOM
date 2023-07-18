@@ -183,7 +183,7 @@ public:
 
 	//Prioritized item currently being interacted with
 	UPROPERTY()
-		AActor* HighlightedActor;
+	AActor* HighlightedActor;
 
 public:
 	int MaxWeaponsEquipped;
@@ -209,7 +209,18 @@ public:
 
 	UFUNCTION()
 	bool HasEmptyWeaponSlots();
-
 	
+protected:
+
+	UPROPERTY()
+	class UBOOMHealthComponent* HealthComponent;
+	 
+	UFUNCTION()
+	virtual void OnDeath();
+
+	virtual void ThrowInventory();
+
+	UFUNCTION()
+	virtual void OnTakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
 };

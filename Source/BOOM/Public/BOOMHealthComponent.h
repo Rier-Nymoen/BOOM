@@ -27,7 +27,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	float Health;
 
+	UPROPERTY(BlueprintReadWrite)
 	float MaxHealth;
+
 
 		//has very basic logic suited just for this component.
 
