@@ -26,13 +26,28 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	float Health;
-private:
+
+	UPROPERTY(BlueprintReadWrite)
+	float MaxHealth;
 
 
-	UPROPERTY(EditAnywhere)
-	float HealthRegenerationRate;
+		//has very basic logic suited just for this component.
+
+		//shield logic would have the same thing.
+
+	//only has things to manipulate the object!!!!
+
+	/*
+	ROOT CLASS HOLDS SPECIFIC LOGIC
+
+	MINIMUM SET OF REUSABLE CODE THAT IS GUARANTEED TO BE reused.
+
+
+	dont want to be super granular.
+	*/
 
 	UFUNCTION()
-	void RegenerateHealth();
+	void AddHealth(int Amount);
+private:
 		
 };

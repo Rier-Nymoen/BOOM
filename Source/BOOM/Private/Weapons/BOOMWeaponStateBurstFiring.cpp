@@ -41,7 +41,6 @@ void UBOOMWeaponStateBurstFiring::ExitState()
 
 	if (Weapon != nullptr)
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor(120, 0, 200), "Ended burst state");
 		Weapon->GetWorldTimerManager().ClearTimer(TimerHandle_RefireTimer);
 		CurrentShot = 0;
 	}

@@ -39,6 +39,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Name)
 	FName Name = FName(TEXT("W1"));
 
+	//@todo add when improving weapon system.
+	UPROPERTY(EditAnywhere, Category = Component)
+		class USceneComponent* MuzzleLocation;
 	/*Character holding weapon*/
 	ABOOMCharacter* Character;
 
@@ -146,19 +149,32 @@ public:
 protected:
 	float HitscanRange;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float FireRateSeconds;
 public:
+	UFUNCTION()
+	void GotoStateEquipping();
+
+	UFUNCTION()
+	void GotoStateActive();
+
+	UFUNCTION()
+	void GotoStateInactive();
+
 	
 	UFUNCTION()
 	float GetFireRateSeconds();
-
 	
 	////consider moving to the "firing state" class
 	UFUNCTION()
 	float GetLastTimeFiredSeconds();
 
 	bool IsReadyToFire();
-
+	//
 	virtual void HandleBeingDropped();
-	
+
+	virtual void DisableCollision();
+
+	virtual bool CanReload();
+
 };

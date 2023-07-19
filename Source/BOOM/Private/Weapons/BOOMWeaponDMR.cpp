@@ -3,7 +3,7 @@
 
 #include "Weapons/BOOMWeaponDMR.h"
 #include "Weapons/BOOMWeaponStateBurstFiring.h"
-
+#include "Weapons/BOOMWeaponStateSingleShotFiring.h"
 ABOOMWeaponDMR::ABOOMWeaponDMR()
 {
 

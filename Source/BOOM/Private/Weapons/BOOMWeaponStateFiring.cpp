@@ -25,6 +25,7 @@ void UBOOMWeaponStateFiring::EnterState()
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 
 	//Upon entering the state, fire	and have refire timer
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Orange, "Firing::EnterState");
 
 	if (Weapon != nullptr && Weapon->IsReadyToFire())
 	{
@@ -60,7 +61,6 @@ void UBOOMWeaponStateFiring::HandleUnequipping()
 
 	if (Weapon != nullptr)
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "stateended");
 
 		Weapon->GotoState(Weapon->InactiveState);
 	}
@@ -73,7 +73,8 @@ void UBOOMWeaponStateFiring::HandleReloadInput()
 
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 
-	if (Weapon != nullptr)
+	if (Weapon != nullptr && Weapon->CanReload()) /*The CanReload() check is to stop the refire timer from being canceled while holding the input, which messes up the shots.
+													With the Hierarchical State Machine, I think this only applies to firing states for now. Note: Could be bugs when weapon melee is added.*/
 	{
 		Weapon->GotoState(Weapon->ReloadingState);
 	}

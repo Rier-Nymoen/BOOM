@@ -6,6 +6,7 @@
 #include "UI/BOOMPlayerHUD.h"
 #include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Weapons/BOOMWeaponStateActive.h"
@@ -15,6 +16,8 @@
 #include "Weapons/BOOMWeaponStateReloading.h"
 #include "Weapons/BOOMWeaponStateUnequipping.h"
 #include "Math/UnrealMathUtility.h"
+#include "AI/BOOMAIController.h"
+#include "Camera/CameraComponent.h"
 
 
 //@TODO decide if I am changing variable names
@@ -26,9 +29,11 @@ ABOOMWeapon::ABOOMWeapon()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Weapon1P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh1P");
+	
 	BOOMPickUp = CreateDefaultSubobject<UBOOMPickUpComponent>("PickUpComponent");
 	BOOMPickUp->SetupAttachment(Weapon1P);
-	
+	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
 	ActiveState = CreateDefaultSubobject<UBOOMWeaponStateActive>("ActiveState");
 	InactiveState = CreateDefaultSubobject<UBOOMWeaponStateInactive>("InactiveState");
 	FiringState = CreateDefaultSubobject<UBOOMWeaponStateFiring>("FiringState");
@@ -40,25 +45,20 @@ ABOOMWeapon::ABOOMWeapon()
 	//Player should spawn in with the max ammo reserves at the start of the game
 	CurrentAmmoReserves = MaxAmmoReserves;
 
-
 	AmmoCost = 1;
-
 	MagazineSize = 30;
 
 	//Player should spawn with a full magazine
 	CurrentAmmo = MagazineSize;
-
 	ReloadDurationSeconds = 2.2f;
-
 	HitscanRange = 2000.0F;
-
 	LastTimeFiredSeconds = -1.0F;
+	FireRateSeconds = 0.066F; //@Todo configure to rpm
 
-	//FireRateSeconds = 0.066F;
-	FireRateSeconds = 0.18F;
-
-	//@TODO change to hitscan damage, projectiles have their own damage stat.
+	//@TODO make based off firemodes
 	WeaponDamage = 100.0F;
+
+	CurrentState = InactiveState;
 }
 
 
@@ -73,11 +73,13 @@ void ABOOMWeapon::BeginPlay()
 
 	Super::BeginPlay();
 	bGenerateOverlapEventsDuringLevelStreaming = true;
+
+
 }
 
 void ABOOMWeapon::Tick(float DeltaSeconds)
 {
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1000.0F, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), FString::SanitizeFloat(GetWorld()->GetTimeSeconds()));
+
 
 }
 
@@ -89,28 +91,22 @@ void ABOOMWeapon::Fire()
 		return;
 	}
 
+
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 
+	//@TODO: revamp
 	if (PlayerController)
 	{
 		FRotator CameraRotation;
 		FVector CameraLocation;
 
 		//Eventually must change these to adjust for aim based on weapon spread. 
-
 		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 		CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-	/*	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Magenta, FString(CameraLocation.ToString()));
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, FString(CameraRotation.ToString()));*/
 
 		FVector Start = CameraLocation;
 
-		//NoSpreadCalculator
-		//FVector End = Start + (CameraRotation.Vector() * HitscanRange);
-
 		FVector End = Start + (CalculateSpread(CameraRotation).Vector() * HitscanRange);
-
-
 
 		FHitResult HitResult;
 		FCollisionQueryParams TraceParams;
@@ -124,14 +120,44 @@ void ABOOMWeapon::Fire()
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
 		DrawDebugLine(GetWorld(), Start, End, FColor(FMath::FRandRange(0.0F,255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
 
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+		if (Character->GetPlayerHUD())
+		{
+			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+
+		}
 
 		if (bHit)
 		{
 			UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
 		}
-
+		//return to avoid overnesting?
 	}
+	else
+	{
+		ABOOMAIController* AIController = Cast<ABOOMAIController>(Character->GetController());
+		if (AIController)
+		{
+			//Placeholder code, just to test things.
+			FVector Start  = GetActorLocation() + FVector(0,0,100);
+			FVector End = Start + (CalculateSpread(GetActorRotation()).Vector() * HitscanRange);
+			LastTimeFiredSeconds = GetWorld()->GetTimeSeconds();
+
+
+			FHitResult HitResult;
+			FCollisionQueryParams TraceParams;
+			bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
+			DrawDebugLine(GetWorld(), Start, End, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
+			if (bHit)
+			{
+				UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
+			}
+			//end of placeholder code
+		}
+	}
+	
+
+	
+	
 	
 }
 
@@ -172,8 +198,8 @@ void ABOOMWeapon::ReloadWeapon()
 {
 
 	//if we have Reserve Ammo to reload the weapon, then we can do this
-	if (CurrentAmmoReserves > 0)
-	{								// will need to check bullet difference != 0 maybe
+	if (CanReload()) //May be unnecessary but keeping here for now in case of unexpected issues.
+	{								
 		//How much ammo is missing from the mags ammo capacity
 		int BulletDifference = (MagazineSize - CurrentAmmo);
 
@@ -181,11 +207,17 @@ void ABOOMWeapon::ReloadWeapon()
 		CurrentAmmoReserves -= FMath::Min(BulletDifference, CurrentAmmoReserves);
 
 		check(Character)
-			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+		if (Character->GetPlayerHUD())
+		{
+				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
+				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+		}
 
-		GotoState(ActiveState);
+
 	}
+
+	GotoState(ActiveState);
+
 }
 
 
@@ -196,42 +228,7 @@ void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 	{
 		return;
 	}
-	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-
-	//seems wonky that the weapon is handling logic for what the character is doing. Could have this function call the character's equip function. However, unsure.
-	if ( Character->Weapons.Num() == 0)
-	{
-		GotoState(EquippingState);
-		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Name);
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
-		Character->Weapons.Add(this); //using add will not work here.
-
-	}
-	else if(Character->Weapons.Num() != Character->MaxWeaponsEquipped)
-	{
-
-		GotoState(InactiveState);
-		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("spine_01")));
-		Character->Weapons.Add(this); //using add will not work here.
-
-	}
-	else
-	{
-		Character->DropCurrentWeapon();
-		Character->Weapons[Character->CurrentWeaponSlot] = this;
-		GotoState(EquippingState);
-		AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Name);
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
-	}
-
-	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	Character->SetHasRifle(true);
- 
+	Character->EquipWeapon(this);
 }
 
 void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
@@ -244,18 +241,24 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 	if (WeaponData)
 	{
 
-		check(TargetCharacter->PlayerHUD)
-		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptImage(WeaponData->ItemImage);
-		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptText(Name);
-		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Visible);
+		if (TargetCharacter->GetPlayerHUD())
+		{
+			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptImage(WeaponData->ItemImage);
+			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptText(Name);
+			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Visible);
+		}
+
 
 	}
 }
 
 void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* TargetCharacter)
 {
-	check(TargetCharacter->GetPlayerHUD())
-	TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Hidden);
+	if (TargetCharacter->GetPlayerHUD())
+	{
+		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Hidden);
+
+	}
 }
 
 void ABOOMWeapon::HandleFireInput()
@@ -270,7 +273,7 @@ void ABOOMWeapon::HandleStopFireInput()
 
 void ABOOMWeapon::AddAmmo(int Amount)
 {
-	CurrentAmmo = FMath::Clamp(CurrentAmmo + Amount, 0, MaxAmmoReserves);
+	CurrentAmmo = FMath::Clamp(CurrentAmmo + Amount, 0, MagazineSize);
 }
 
 bool ABOOMWeapon::HasAmmo()
@@ -312,11 +315,6 @@ FRotator ABOOMWeapon::CalculateSpread(FRotator PlayerLookRotation)
 	FRotator Offset(AdjustedSpreadX, AdjustedSpreadZ, 0);
 
 	return (PlayerLookRotation + Offset);
-
-
-
-
-
 	//account for normal rotation and position, offset rounds somewhat based on ymin ymax
 }
 
@@ -334,17 +332,34 @@ void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 	{
 		PreviousState->ExitState();
 	}
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.F, FColor(255, 82, 255), "Start of ID: "+ GetName() + "Model Name:" + Name.ToString());
+
 	CurrentState = NewState;
 	CurrentState->EnterState();
-	 
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.F, FColor(255, 82, 255), "End of ID: " + GetName() + "Model Name:" + Name.ToString());
 
+
+}
+
+void ABOOMWeapon::GotoStateEquipping()
+{
+	GotoState(EquippingState);
+}
+
+void ABOOMWeapon::GotoStateActive()
+{
+	GotoState(ActiveState);
+}
+
+void ABOOMWeapon::GotoStateInactive()
+{
+	GotoState(InactiveState);
 }
 
 float ABOOMWeapon::GetFireRateSeconds()
 {
 	return FireRateSeconds;
 }
-
 
 //move functionality
 float ABOOMWeapon::GetLastTimeFiredSeconds()
@@ -356,11 +371,11 @@ bool ABOOMWeapon::IsReadyToFire()
 {
 	if ((GetWorld()->GetTimeSeconds() - LastTimeFiredSeconds  ) >= ( FireRateSeconds ))
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1000.0F, FColor(69,2,180), "Ready to fire");
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor(69,2,180), "Ready to fire");
 
 		return true;
 	}
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1000.0F, FColor(180, 2, 69), "Not ready to fire");
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor(180, 2, 69), "Not ready to fire");
 
 	return false;
 }
@@ -368,11 +383,40 @@ bool ABOOMWeapon::IsReadyToFire()
 void ABOOMWeapon::HandleBeingDropped()
 {
 	FDetachmentTransformRules DetRules(EDetachmentRule::KeepWorld, true);
-
-	this->GotoState(InactiveState);
-	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	Character = nullptr;
 	DetachFromActor(DetRules);
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor(20, 69, 103), "handlebeingdropped");
 
+	GotoState(UnequippingState);
+
+	Weapon1P->SetSimulatePhysics(true);
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepWorld, false);
+	BOOMPickUp->AttachToComponent(Weapon1P, AttachmentRules);
+	if (Character)
+	{
+		//@TODO weapon could spawn or past objects - may solve issue a different way
+	
+		Weapon1P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		/*
+		On character death, velocity will be 0, need to have character have velocity on death.
+		or may need Velocity and forward vector recorded before death when dying
+		*/
+		Weapon1P->SetPhysicsLinearVelocity(Character->GetActorForwardVector() * Character->GetVelocity().Size(), true);
+	}
+
+	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	Character = nullptr;
+
+}
+
+void ABOOMWeapon::DisableCollision()
+{
+	Weapon1P->SetSimulatePhysics(false);
+	Weapon1P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	BOOMPickUp->SetSimulatePhysics(false);
+	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+}
+
+bool ABOOMWeapon::CanReload()
+{
+	return CurrentAmmoReserves > 0 && CurrentAmmo < MagazineSize;
 }

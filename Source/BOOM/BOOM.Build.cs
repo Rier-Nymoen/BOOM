@@ -10,7 +10,7 @@ public class BOOM : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput" });
 
-        PublicDependencyModuleNames.AddRange(new string[] {"AIModule", "NavigationSystem"});
+        PublicDependencyModuleNames.AddRange(new string[] {"AIModule", "NavigationSystem", "GameplayTasks"});
 
     }
 }

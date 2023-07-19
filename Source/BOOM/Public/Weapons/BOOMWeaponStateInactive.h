@@ -15,6 +15,8 @@ class BOOM_API UBOOMWeaponStateInactive : public UBOOMWeaponState
 	GENERATED_BODY()
 
 	virtual void EnterState() override;
+	virtual void ExitState() override;
+
 
 	virtual void HandleEquipping() override;
 };

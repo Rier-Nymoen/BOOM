@@ -44,6 +44,9 @@ class ABOOMCharacter : public ACharacter
 public:
 	ABOOMCharacter();
 
+	FName SocketNameGripPoint;
+	FName SocketNameHolsterPoint;
+
 protected:
 	virtual void BeginPlay();
 
@@ -79,6 +82,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DataTable)
 	class UDataTable* WeaponTable;
+
+	void StartFire();
+	UFUNCTION()
+		void StopFire();
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -92,7 +99,14 @@ protected:
 
 	void SwapWeapon(const FInputActionValue& Value);
 
-	void Fire(const FInputActionValue& Value);
+	//void StartFire(const FInputActionValue& Value);
+
+
+	UFUNCTION()
+	void Reload();
+
+	UFUNCTION()
+	virtual void Fire();
 	
 	void Interact(const FInputActionValue& Value);
 
@@ -132,18 +146,13 @@ protected:
 
 
 protected:
-	UFUNCTION()
-		void Reload();
 
-	UFUNCTION()
-		void StopFire();
+
 
 public:
 
-
 	UFUNCTION()
 	void DropCurrentWeapon();
-
 
 	bool bIsPendingFiring;
 
@@ -174,15 +183,44 @@ public:
 
 	//Prioritized item currently being interacted with
 	UPROPERTY()
-		AActor* HighlightedActor;
+	AActor* HighlightedActor;
 
 public:
-	UPROPERTY()
 	int MaxWeaponsEquipped;
 
 	UPROPERTY()
 	int CurrentWeaponSlot;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory", meta=(ArrayClamp="2"))
+	TArray<TSubclassOf<ABOOMWeapon>> WeaponsToSpawn;
+
+
+	void SpawnWeapons();
+
 	TArray<class ABOOMWeapon*> Weapons;
+
 	class ABOOMWeapon* Weapon;
+
+	UFUNCTION()
+	virtual void EquipWeapon(ABOOMWeapon* TargetWeapon);
+
+	UFUNCTION()
+	bool HasNoWeapons();
+
+	UFUNCTION()
+	bool HasEmptyWeaponSlots();
+	
+protected:
+
+	UPROPERTY()
+	class UBOOMHealthComponent* HealthComponent;
+	 
+	UFUNCTION()
+	virtual void OnDeath();
+
+	virtual void ThrowInventory();
+
+	UFUNCTION()
+	virtual void OnTakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
 };

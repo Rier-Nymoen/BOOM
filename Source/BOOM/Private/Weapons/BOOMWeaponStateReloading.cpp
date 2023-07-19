@@ -11,9 +11,17 @@ void UBOOMWeaponStateReloading::EnterState()
 
 	if (Weapon)
 	{	
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.0F, FColor(202,30, 106), "Reload::EnterState");
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor(202,30, 106), "Reload::EnterState");
 
+		//@check on this in the futue.		
+		if (!Weapon->CanReload())
+		{
+			Weapon->GotoStateActive();
+			return;
+		}
+		//play anims etc
 		Weapon->GetWorldTimerManager().SetTimer(TimerHandle_ReloadWeapon, Weapon, &ABOOMWeapon::ReloadWeapon, Weapon->ReloadDurationSeconds, false);
+
 	}
 	
 }
@@ -25,7 +33,6 @@ void UBOOMWeaponStateReloading::ExitState()
 
 void UBOOMWeaponStateReloading::HandleFireInput()
 {
-
 	//disabled reload canceling for now
 	//ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	//if (Weapon)
@@ -58,6 +65,7 @@ void UBOOMWeaponStateReloading::CancelReload()
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
+
 		Weapon->GetWorldTimerManager().ClearTimer(TimerHandle_ReloadWeapon);
 	}
 }
