@@ -61,11 +61,11 @@ void UBOOMWeaponStateCharging::HandleStopFiringInput()
 	{
 		if (CurrentCharge < ChargeThreshold)
 		{
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Green, "Low charge shot");
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Green, "Low charge shot");
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Green, "High charge shot");
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Green, "High charge shot");
 
 		}
 

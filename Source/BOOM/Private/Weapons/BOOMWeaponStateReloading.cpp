@@ -11,7 +11,7 @@ void UBOOMWeaponStateReloading::EnterState()
 
 	if (Weapon)
 	{	
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(202,30, 106), "Reload::EnterState");
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor(202,30, 106), "Reload::EnterState");
 
 		//@check on this in the futue.		
 		if (!Weapon->CanReload())
@@ -33,7 +33,6 @@ void UBOOMWeaponStateReloading::ExitState()
 
 void UBOOMWeaponStateReloading::HandleFireInput()
 {
-
 	//disabled reload canceling for now
 	//ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	//if (Weapon)

@@ -24,7 +24,6 @@ void UBOOMPickUpComponent::BeginPlay()
 	Super::BeginPlay();
 	OnComponentBeginOverlap.AddDynamic(this, &UBOOMPickUpComponent::OnSphereBeginOverlap);
 	OnComponentEndOverlap.AddDynamic(this, &UBOOMPickUpComponent::OnSphereEndOverlap);
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(100, 100, 200), "Boompickupcomponent");
 
 
 }

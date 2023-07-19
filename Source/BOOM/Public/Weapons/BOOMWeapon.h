@@ -170,12 +170,11 @@ public:
 	float GetLastTimeFiredSeconds();
 
 	bool IsReadyToFire();
-
+	//
 	virtual void HandleBeingDropped();
 
 	virtual void DisableCollision();
 
 	virtual bool CanReload();
-
 
 };

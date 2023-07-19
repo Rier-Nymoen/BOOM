@@ -82,10 +82,8 @@ void ABOOMCharacter::BeginPlay()
 
 		FTimerHandle InteractionHandle;
 		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
+
 	}
-
-
-	//Must happen after HUD is created
 
 	//@TODO Can cause game to crash when a PlayerHUD is expected and we have non-player characters
 	SpawnWeapons();
@@ -96,20 +94,18 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+
 }
 
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Overlaps++;
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(100, 100, 200), "Overlaps Increased to: " + FString::FromInt(Overlaps));
 }	
 
 
 void ABOOMCharacter::OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	Overlaps--;
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor(200, 100, 100), "Overlaps Decreased to: " +  FString::FromInt(Overlaps));
-
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -166,7 +162,6 @@ void ABOOMCharacter::Fire()
 
 void ABOOMCharacter::StopFire()
 {
-
 	bIsPendingFiring = false;
 	if (Weapons.IsValidIndex(CurrentWeaponSlot))
 	{
@@ -177,7 +172,6 @@ void ABOOMCharacter::StopFire()
 		}
 	
 	}
-
 }
 
 void ABOOMCharacter::DropCurrentWeapon()
@@ -283,17 +277,15 @@ void ABOOMCharacter::CheckPlayerLook()
 
 }
 
-
+//@TODO: Revamp later when other inventory features are implemented.
 void ABOOMCharacter::SpawnWeapons()
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Magenta, FString::FromInt(WeaponsToSpawn.Num()));
 	if (WeaponsToSpawn.Num() > MaxWeaponsEquipped)
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Red, "Too many weapons added to character");
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Too many weapons added to character");
 	}
 	
-	//temporary code
-
+	
 	for (TSubclassOf<ABOOMWeapon> WeaponClass : WeaponsToSpawn)
 	{
 		if(!WeaponClass)
@@ -308,20 +300,16 @@ void ABOOMCharacter::SpawnWeapons()
 			break;
 		}
 		EquipWeapon(SpawnedWeapon);
-		
 	}
-
-
 
 }
 
 void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 {
-
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	TargetWeapon->Character = this;
-	TargetWeapon->Weapon1P->SetSimulatePhysics(false);
-	TargetWeapon->Weapon1P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+
 	TargetWeapon->DisableCollision();
 	if (HasNoWeapons())
 	{
@@ -347,6 +335,10 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 	}
 	else
 	{
+		/*
+		@TODO:  Avoid or Prevent - If collision is enabled, the character can pick up a weapon that is in their hand and also attempt to drop it, which causes the
+		weapon's character reference to be assigned to the same character, and then nullified, causing seg faults.
+		*/
 		DropCurrentWeapon();
 		TargetWeapon->GotoStateEquipping();
 		Weapons[CurrentWeaponSlot] = TargetWeapon;
@@ -358,14 +350,6 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
 		}
 	}
-
-	/*
-	@TODO: Fix and prevent - If collision is enabled, the character can pick up a weapon that is in their hand and also attempt to drop it, which causes the
-	weapon's character reference to be assigned to the same character, and then nullified, causing seg faults.
-	*/
-	//TargetWeapon->Weapon1P->SetSimulatePhysics(false);
-	//TargetWeapon->DisableCollision();
-	
 	SetHasRifle(true);
 }
 
@@ -381,13 +365,12 @@ bool ABOOMCharacter::HasEmptyWeaponSlots()
 
 void ABOOMCharacter::OnDeath()
 {
-	//Play death animations, lose control, throw inventory, stop active states.
-	//AController* Controller = GetController();
 	if (Controller)
 	{
 		Controller->UnPossess();
 	}
-	
+	//todo - specify function
+	OnTakeAnyDamage.RemoveAll(this);
 	ThrowInventory();
 	if (PlayerHUD)
 	{
@@ -397,15 +380,10 @@ void ABOOMCharacter::OnDeath()
 
 void ABOOMCharacter::ThrowInventory()
 {
-	for (ABOOMWeapon* TWeapon : Weapons)
+	for (ABOOMWeapon* TWeapon : Weapons) //jank code 
 	{
-		
-		TWeapon->HandleUnequipping();
 		TWeapon->HandleBeingDropped();
-		TWeapon->Weapon1P->AddImpulse(FVector(0, 0, 100000));
-		//TWeapon->Weapon1P->AddImpulse(FVector(FMath::FRandRange(0.0F, 105.0F), FMath::FRandRange(0.0F, 100.0F), FMath::FRandRange(0.0F, 100.0F)));
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "WERwer");
-
+		//Can isolate death physics behaviors or have dropping behavior that is shared on death.
 	}
 	Weapons.Empty();
 }
@@ -416,11 +394,9 @@ void ABOOMCharacter::OnTakeDamage(AActor* DamagedActor, float Damage, const UDam
 	{
 		HealthComponent->AddHealth(-Damage);
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Health: " + FString::SanitizeFloat(HealthComponent->Health));
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Damage: " + FString::SanitizeFloat(Damage));
 
 		if (HealthComponent->Health <= 0)
 		{
-
 			OnDeath();
 		}
 	}
@@ -459,7 +435,7 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 		return;
 	}
 	//@TODO - switch to isValidIndex checks
-	if (Weapons[CurrentWeaponSlot] != nullptr)
+	if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
 	{
 		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameHolsterPoint);
@@ -475,7 +451,7 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 			CurrentWeaponSlot++;
 		}
 
-		if (Weapons[CurrentWeaponSlot] != nullptr) //maybe use isValidIndex instead
+		if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr) //maybe use isValidIndex instead
 		{
 			Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameGripPoint);
 			Weapons[CurrentWeaponSlot]->HandleEquipping();
@@ -485,11 +461,7 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 				GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
 				GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
 			}
-
 		}
-
-
-		//@TODO: force weapon being swapped to, to be in an active state.
 	}
 }
 
@@ -523,9 +495,7 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 		}
 		this->GetNearestInteractable();
 		return;
-
 	}
-
 }
 
 void ABOOMCharacter::SetHasRifle(bool bNewHasRifle)

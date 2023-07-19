@@ -5,7 +5,6 @@
 #include "Weapons/BOOMWeaponStateCharging.h"
 ABOOMWeaponChargingPrototype::ABOOMWeaponChargingPrototype()
 {
-	//@TODO fill out weapon stats
 	FiringState = CreateDefaultSubobject<UBOOMWeaponStateCharging>("ChargingState");
 }
 

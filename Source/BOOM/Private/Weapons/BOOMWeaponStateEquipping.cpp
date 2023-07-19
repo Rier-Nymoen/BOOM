@@ -6,7 +6,7 @@
 void UBOOMWeaponStateEquipping::EnterState()
 {
 	
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "Equippin::EnterState");
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Cyan, "Equipping::EnterState");
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{

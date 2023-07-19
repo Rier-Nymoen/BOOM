@@ -13,5 +13,4 @@ ABOOMWeaponDMR::ABOOMWeaponDMR()
 	CurrentAmmoReserves = 114;
 	CurrentAmmo = MagazineSize;
 	FiringState = CreateDefaultSubobject<UBOOMWeaponStateBurstFiring>("BurstFiringState");
-	//FiringState = CreateDefaultSubobject<UBOOMWeaponStateSingleShotFiring>("SingleShotFiringState");
 }
