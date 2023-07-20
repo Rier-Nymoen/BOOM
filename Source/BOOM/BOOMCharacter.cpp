@@ -394,7 +394,7 @@ void ABOOMCharacter::OnTakeDamage(AActor* DamagedActor, float Damage, const UDam
 	{
 		HealthComponent->AddHealth(-Damage);
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Health: " + FString::SanitizeFloat(HealthComponent->Health));
-
+		//Regen health logic, updates about health component
 		if (HealthComponent->Health <= 0)
 		{
 			OnDeath();
@@ -441,15 +441,9 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameHolsterPoint);
 		Weapons[CurrentWeaponSlot]->HandleUnequipping();
 
-		//@TODO: Force weapon being holstered to inactive state
-		if (CurrentWeaponSlot == (Weapons.Num() - 1))
-		{
-			CurrentWeaponSlot = 0;
-		}
-		else
-		{
-			CurrentWeaponSlot++;
-		}
+		//
+		CurrentWeaponSlot++;
+		CurrentWeaponSlot = (CurrentWeaponSlot % MaxWeaponsEquipped);
 
 		if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr) //maybe use isValidIndex instead
 		{

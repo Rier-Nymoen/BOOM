@@ -155,10 +155,6 @@ void ABOOMWeapon::Fire()
 		}
 	}
 	
-
-	
-	
-	
 }
 
 bool ABOOMWeapon::IsIntendingToRefire()

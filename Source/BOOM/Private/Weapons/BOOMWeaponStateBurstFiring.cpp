@@ -3,7 +3,7 @@
 
 #include "Weapons/BOOMWeaponStateBurstFiring.h"
 #include "Weapons/BOOMWeapon.h"
-
+//@todo add options for queueable input
 UBOOMWeaponStateBurstFiring::UBOOMWeaponStateBurstFiring()
 {
 	BurstSize = 3;
