@@ -82,9 +82,7 @@ void ABOOMCharacter::BeginPlay()
 
 		FTimerHandle InteractionHandle;
 		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
-
 	}
-
 	//@TODO Can cause game to crash when a PlayerHUD is expected and we have non-player characters
 	SpawnWeapons();
 
@@ -143,7 +141,7 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 void ABOOMCharacter::Reload()
 {
-	if (Weapons.Num() == 0)
+	if (HasNoWeapons())
 	{
 		return;
 	}
@@ -168,9 +166,7 @@ void ABOOMCharacter::StopFire()
 		if (Weapons[CurrentWeaponSlot] != nullptr)
 		{
 			Weapons[CurrentWeaponSlot]->HandleStopFireInput();
-
 		}
-	
 	}
 }
 
@@ -374,7 +370,7 @@ void ABOOMCharacter::OnDeath()
 	ThrowInventory();
 	if (PlayerHUD)
 	{
-		PlayerHUD->RemoveFromViewport();
+		PlayerHUD->RemoveFromParent();
 	}
 }
 
@@ -394,7 +390,7 @@ void ABOOMCharacter::OnTakeDamage(AActor* DamagedActor, float Damage, const UDam
 	{
 		HealthComponent->AddHealth(-Damage);
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Health: " + FString::SanitizeFloat(HealthComponent->Health));
-
+		//Regen health logic, updates about health component
 		if (HealthComponent->Health <= 0)
 		{
 			OnDeath();
@@ -441,15 +437,9 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameHolsterPoint);
 		Weapons[CurrentWeaponSlot]->HandleUnequipping();
 
-		//@TODO: Force weapon being holstered to inactive state
-		if (CurrentWeaponSlot == (Weapons.Num() - 1))
-		{
-			CurrentWeaponSlot = 0;
-		}
-		else
-		{
-			CurrentWeaponSlot++;
-		}
+		//
+		CurrentWeaponSlot++;
+		CurrentWeaponSlot = (CurrentWeaponSlot % MaxWeaponsEquipped);
 
 		if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr) //maybe use isValidIndex instead
 		{
@@ -469,7 +459,7 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 void ABOOMCharacter::StartFire()
 {
 	bIsPendingFiring = true;
-	if (Weapons.Num() == 0)
+	if (HasNoWeapons())
 	{
 		return;
 	}
