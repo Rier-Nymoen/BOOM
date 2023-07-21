@@ -45,10 +45,7 @@ void UBOOMWeaponStateFiring::ExitState()
 
 	if (Weapon != nullptr)
 	{
-
 		Weapon->GetWorldTimerManager().ClearTimer(TimerHandle_RefireTimer);
-
-
 	}
 
 }

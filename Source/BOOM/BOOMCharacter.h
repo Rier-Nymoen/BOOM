@@ -209,6 +209,13 @@ public:
 
 	UFUNCTION()
 	bool HasEmptyWeaponSlots();
+
+
+	//Put somewhere else possibly
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
+		class ABOOMPatrolRoute* PatrolRouteComponent;
+
+	ABOOMPatrolRoute* GetPatrolRouteComponent() const { return PatrolRouteComponent ;}
 	
 protected:
 
@@ -222,5 +229,7 @@ protected:
 
 	UFUNCTION()
 	virtual void OnTakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+
 
 };

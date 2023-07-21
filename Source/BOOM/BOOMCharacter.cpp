@@ -82,9 +82,7 @@ void ABOOMCharacter::BeginPlay()
 
 		FTimerHandle InteractionHandle;
 		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
-
 	}
-
 	//@TODO Can cause game to crash when a PlayerHUD is expected and we have non-player characters
 	SpawnWeapons();
 
@@ -143,7 +141,7 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 void ABOOMCharacter::Reload()
 {
-	if (Weapons.Num() == 0)
+	if (HasNoWeapons())
 	{
 		return;
 	}
@@ -168,9 +166,7 @@ void ABOOMCharacter::StopFire()
 		if (Weapons[CurrentWeaponSlot] != nullptr)
 		{
 			Weapons[CurrentWeaponSlot]->HandleStopFireInput();
-
 		}
-	
 	}
 }
 
@@ -374,7 +370,7 @@ void ABOOMCharacter::OnDeath()
 	ThrowInventory();
 	if (PlayerHUD)
 	{
-		PlayerHUD->RemoveFromViewport();
+		PlayerHUD->RemoveFromParent();
 	}
 }
 
@@ -463,7 +459,7 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 void ABOOMCharacter::StartFire()
 {
 	bIsPendingFiring = true;
-	if (Weapons.Num() == 0)
+	if (HasNoWeapons())
 	{
 		return;
 	}
