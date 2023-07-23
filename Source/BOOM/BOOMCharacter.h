@@ -211,9 +211,9 @@ public:
 	bool HasEmptyWeaponSlots();
 
 
-	//Put somewhere else possibly
+	//Put somewhere else possibly protected???
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-		class ABOOMPatrolRoute* PatrolRouteComponent;
+	class ABOOMPatrolRoute* PatrolRouteComponent;
 
 	ABOOMPatrolRoute* GetPatrolRouteComponent() const { return PatrolRouteComponent ;}
 	
