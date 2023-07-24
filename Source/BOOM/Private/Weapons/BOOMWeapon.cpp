@@ -18,7 +18,7 @@
 #include "Math/UnrealMathUtility.h"
 #include "AI/BOOMAIController.h"
 #include "Camera/CameraComponent.h"
-
+#include "BOOM/BOOMProjectile.h"
 
 //@TODO decide if I am changing variable names
 
@@ -26,10 +26,10 @@
 ABOOMWeapon::ABOOMWeapon()
 {
 	//dont forget to turn off
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	Weapon1P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh1P");
-	
+
 	BOOMPickUp = CreateDefaultSubobject<UBOOMPickUpComponent>("PickUpComponent");
 	BOOMPickUp->SetupAttachment(Weapon1P);
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -59,6 +59,7 @@ ABOOMWeapon::ABOOMWeapon()
 	WeaponDamage = 100.0F;
 
 	CurrentState = InactiveState;
+
 }
 
 
@@ -92,9 +93,71 @@ void ABOOMWeapon::Fire()
 	}
 
 
+	AddAmmo(-AmmoCost);
+
+
+	//Update the time weapon was fired.
+	LastTimeFiredSeconds = GetWorld()->GetTimeSeconds();
+
+
+	//delete temp code
+	if (Projectile)
+	{
+
+		FireProjectile();
+	}
+	else
+	{
+		FireHitscan();
+
+	}
+
+	if (Character->GetPlayerHUD())
+	{
+		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+
+	}
+
+	/*
+	For now, depending on player controller, thats where we originate the vectors.
+	*/
+
+	//delete temp code
+
+
+}
+
+bool ABOOMWeapon::IsIntendingToRefire()
+{
+	if (GetCharacter()->bIsPendingFiring && HasAmmo())
+	{
+		return true;
+	}
+	if (CurrentAmmo <= 0 && CurrentAmmoReserves > 0)
+	{
+
+		GotoState(ReloadingState);
+	}
+	else
+	{
+		GotoState(ActiveState);
+	}
+	return false;
+}
+
+ABOOMCharacter* ABOOMWeapon::GetCharacter()
+{
+
+	checkSlow(Character)
+		return Character;
+}
+
+void ABOOMWeapon::FireHitscan()
+{
+	//@TODO: revamp
+
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 
-	//@TODO: revamp
 	if (PlayerController)
 	{
 		FRotator CameraRotation;
@@ -112,19 +175,14 @@ void ABOOMWeapon::Fire()
 		FCollisionQueryParams TraceParams;
 
 		//@TODO - think about a way to have modifiable ammo costs i.e. higher costs on a charged shot. Need charged shot,effects, etc to take place.
-		AddAmmo(-AmmoCost);
-		
-		//Update the time weapon was fired.
-		LastTimeFiredSeconds = GetWorld()->GetTimeSeconds();
+		//AddAmmo(-AmmoCost);
+
+		////Update the time weapon was fired.
+		//LastTimeFiredSeconds = GetWorld()->GetTimeSeconds();
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		DrawDebugLine(GetWorld(), Start, End, FColor(FMath::FRandRange(0.0F,255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
+		DrawDebugLine(GetWorld(), Start, End, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
 
-		if (Character->GetPlayerHUD())
-		{
-			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-
-		}
 
 		if (bHit)
 		{
@@ -132,54 +190,24 @@ void ABOOMWeapon::Fire()
 		}
 		//return to avoid overnesting?
 	}
-	else
-	{
-		ABOOMAIController* AIController = Cast<ABOOMAIController>(Character->GetController());
-		if (AIController)
-		{
-			//Placeholder code, just to test things.
-			FVector Start  = GetActorLocation() + FVector(0,0,100);
-			FVector End = Start + (CalculateSpread(GetActorRotation()).Vector() * HitscanRange);
-			LastTimeFiredSeconds = GetWorld()->GetTimeSeconds();
-
-
-			FHitResult HitResult;
-			FCollisionQueryParams TraceParams;
-			bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-			DrawDebugLine(GetWorld(), Start, End, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
-			if (bHit)
-			{
-				UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
-			}
-			//end of placeholder code
-		}
-	}
-	
 }
 
-bool ABOOMWeapon::IsIntendingToRefire()
-{
-	if (GetCharacter()->bIsPendingFiring && HasAmmo())
-	{
-		return true;
-	}
-	if (CurrentAmmo <= 0 && CurrentAmmoReserves > 0)
-	{
-		
-		GotoState(ReloadingState);
-	}
-	else
-	{
-		GotoState(ActiveState);
-	}
-	return false;
-}
-
-ABOOMCharacter* ABOOMWeapon::GetCharacter()
+void ABOOMWeapon::FireProjectile()
 {
 
-	checkSlow(Character)
-	return Character;
+	//thought i could const before  but it seems not...
+	UWorld* const World = GetWorld();
+	if (World)
+	{
+		FVector MuzzleLocation = Weapon1P->GetSocketLocation("Muzzle");
+		FRotator MuzzleRotation = Weapon1P->GetSocketRotation("Muzzle");
+		FActorSpawnParameters ProjectileSpawnParams;
+
+		ProjectileSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		World->SpawnActor<ABOOMProjectile>(Projectile, MuzzleLocation, MuzzleRotation, ProjectileSpawnParams);
+	}
+
 }
 
 void ABOOMWeapon::HandleReloadInput()
@@ -192,10 +220,9 @@ void ABOOMWeapon::HandleReloadInput()
 
 void ABOOMWeapon::ReloadWeapon()
 {
-
 	//if we have Reserve Ammo to reload the weapon, then we can do this
 	if (CanReload()) //May be unnecessary but keeping here for now in case of unexpected issues.
-	{								
+	{
 		//How much ammo is missing from the mags ammo capacity
 		int BulletDifference = (MagazineSize - CurrentAmmo);
 
@@ -203,11 +230,11 @@ void ABOOMWeapon::ReloadWeapon()
 		CurrentAmmoReserves -= FMath::Min(BulletDifference, CurrentAmmoReserves);
 
 		check(Character)
-		if (Character->GetPlayerHUD())
-		{
+			if (Character->GetPlayerHUD())
+			{
 				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
 				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-		}
+			}
 
 
 	}
@@ -219,7 +246,7 @@ void ABOOMWeapon::ReloadWeapon()
 
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {
-	Character = TargetCharacter;	
+	Character = TargetCharacter;
 	if (Character == nullptr)
 	{
 		return;
@@ -232,7 +259,7 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 	const  FString cont(TEXT("cont"));
 
 	check(TargetCharacter)
-	FItemInformation* WeaponData = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, true);
+		FItemInformation* WeaponData = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, true);
 
 	if (WeaponData)
 	{
@@ -365,9 +392,9 @@ float ABOOMWeapon::GetLastTimeFiredSeconds()
 
 bool ABOOMWeapon::IsReadyToFire()
 {
-	if ((GetWorld()->GetTimeSeconds() - LastTimeFiredSeconds  ) >= ( FireRateSeconds ))
+	if ((GetWorld()->GetTimeSeconds() - LastTimeFiredSeconds) >= (FireRateSeconds))
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor(69,2,180), "Ready to fire");
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor(69, 2, 180), "Ready to fire");
 
 		return true;
 	}
@@ -389,7 +416,7 @@ void ABOOMWeapon::HandleBeingDropped()
 	if (Character)
 	{
 		//@TODO weapon could spawn or past objects - may solve issue a different way
-	
+
 		Weapon1P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		/*
 		On character death, velocity will be 0, need to have character have velocity on death.
