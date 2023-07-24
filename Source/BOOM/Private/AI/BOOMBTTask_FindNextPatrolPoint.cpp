@@ -5,7 +5,7 @@
 
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "BOOM/BOOMCharacter.h"
+#include "BOOMAICharacter.h"
 #include "AI/BOOMPatrolRoute.h"
 
 UBOOMBTTask_FindNextPatrolPoint::UBOOMBTTask_FindNextPatrolPoint()
@@ -17,7 +17,7 @@ EBTNodeResult::Type UBOOMBTTask_FindNextPatrolPoint::ExecuteTask(UBehaviorTreeCo
 {
 
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	const ABOOMCharacter* AICharacter = Cast<ABOOMCharacter>(AIController->GetCharacter());
+	const ABOOMAICharacter* AICharacter = Cast<ABOOMAICharacter>(AIController->GetCharacter());
 
 	if (!AICharacter)
 	{

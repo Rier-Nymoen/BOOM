@@ -16,7 +16,7 @@ class UCameraComponent;
 class UAnimMontage;
 class USoundBase;
 
-//want to use Data table since its stored on disk
+//want to use Data table since its stored on disk. 
 USTRUCT(BlueprintType)
 struct FItemInformation : public FTableRowBase
 {
@@ -209,13 +209,6 @@ public:
 
 	UFUNCTION()
 	bool HasEmptyWeaponSlots();
-
-
-	//Put somewhere else possibly
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-		class ABOOMPatrolRoute* PatrolRouteComponent;
-
-	ABOOMPatrolRoute* GetPatrolRouteComponent() const { return PatrolRouteComponent ;}
 	
 protected:
 

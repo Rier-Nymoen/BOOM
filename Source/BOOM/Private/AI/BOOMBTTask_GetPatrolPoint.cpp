@@ -4,7 +4,7 @@
 #include "AI/BOOMBTTask_GetPatrolPoint.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "BOOM/BOOMCharacter.h"
+#include "BOOMAICharacter.h"
 #include "AI/BOOMPatrolRoute.h"
 
 UBOOMBTTask_GetPatrolPoint::UBOOMBTTask_GetPatrolPoint()
@@ -16,7 +16,7 @@ UBOOMBTTask_GetPatrolPoint::UBOOMBTTask_GetPatrolPoint()
 EBTNodeResult::Type UBOOMBTTask_GetPatrolPoint::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	const ABOOMCharacter* AICharacter = Cast<ABOOMCharacter>(AIController->GetCharacter());
+	const ABOOMAICharacter* AICharacter = Cast<ABOOMAICharacter>(AIController->GetCharacter());
 
 	if (!AICharacter)
 	{
@@ -27,7 +27,7 @@ EBTNodeResult::Type UBOOMBTTask_GetPatrolPoint::ExecuteTask(UBehaviorTreeCompone
 		return EBTNodeResult::Failed;
 
 	}
-	ABOOMPatrolRoute* PatrolRoute = AICharacter->PatrolRouteComponent;
+	ABOOMPatrolRoute* PatrolRoute = AICharacter->GetPatrolRouteComponent();
 
 	if (!PatrolRoute)
 	{
