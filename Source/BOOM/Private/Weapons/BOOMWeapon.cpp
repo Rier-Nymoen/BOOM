@@ -60,6 +60,7 @@ ABOOMWeapon::ABOOMWeapon()
 
 	CurrentState = InactiveState;
 
+	bOverrideCameraFiring = false;
 }
 
 
@@ -152,43 +153,54 @@ ABOOMCharacter* ABOOMWeapon::GetCharacter()
 		return Character;
 }
 
+
+/*
+Fire Hitscan/Projectile: Can choose between firing from actual muzzle of weapon, or camera. On AI, the firing would look weird coming from some camera. 
+*/
+
 void ABOOMWeapon::FireHitscan()
 {
 	//@TODO: revamp
 
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 
-	if (PlayerController)
+	FVector StartTrace;
+	FVector EndTrace;
+	if (PlayerController && !bOverrideCameraFiring)//change back to player controller
 	{
-		FRotator CameraRotation;
-		FVector CameraLocation;
+
 
 		//Eventually must change these to adjust for aim based on weapon spread. 
-		CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
-		CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+		FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+		FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
 
-		FVector Start = CameraLocation;
+		 StartTrace = CameraLocation;
 
-		FVector End = Start + (CalculateSpread(CameraRotation).Vector() * HitscanRange);
+		 EndTrace = StartTrace + (CalculateSpread(CameraRotation).Vector() * HitscanRange);
 
-		FHitResult HitResult;
-		FCollisionQueryParams TraceParams;
-
-		//@TODO - think about a way to have modifiable ammo costs i.e. higher costs on a charged shot. Need charged shot,effects, etc to take place.
-		//AddAmmo(-AmmoCost);
-
-		////Update the time weapon was fired.
-		//LastTimeFiredSeconds = GetWorld()->GetTimeSeconds();
-
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-		DrawDebugLine(GetWorld(), Start, End, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
-
-
-		if (bHit)
+	}
+	else
+	{
+		if (Weapon1P)
 		{
-			UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
+			StartTrace = Weapon1P->GetSocketLocation("Muzzle");
+			FRotator EndRotation = Weapon1P->GetSocketRotation("Muzzle");
+
+			EndTrace = StartTrace + (CalculateSpread(EndRotation).Vector() * HitscanRange);
 		}
-		//return to avoid overnesting?
+
+
+
+	}
+	FHitResult HitResult;
+	FCollisionQueryParams TraceParams;
+	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_Visibility, TraceParams);
+	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
+
+
+	if (bHit)
+	{
+		UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
 	}
 }
 
@@ -199,13 +211,36 @@ void ABOOMWeapon::FireProjectile()
 	UWorld* const World = GetWorld();
 	if (World)
 	{
-		FVector MuzzleLocation = Weapon1P->GetSocketLocation("Muzzle");
-		FRotator MuzzleRotation = Weapon1P->GetSocketRotation("Muzzle");
+		APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+		FVector ProjectileSpawnLocation;
+		FRotator ProjectileSpawnRotation;
+		if (PlayerController && !bOverrideCameraFiring)
+		{
+			FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+			FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+
+			ProjectileSpawnLocation = CameraLocation;
+			ProjectileSpawnRotation = CameraRotation;
+
+		}
+		else 
+		{
+			FVector MuzzleLocation = Weapon1P->GetSocketLocation("Muzzle");
+			FRotator MuzzleRotation = Weapon1P->GetSocketRotation("Muzzle");
+
+
+			ProjectileSpawnLocation = MuzzleLocation;
+			ProjectileSpawnRotation = MuzzleRotation;
+		}
+		
+		ProjectileSpawnRotation = CalculateSpread(ProjectileSpawnRotation);
+
+
 		FActorSpawnParameters ProjectileSpawnParams;
 
 		ProjectileSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-		World->SpawnActor<ABOOMProjectile>(Projectile, MuzzleLocation, MuzzleRotation, ProjectileSpawnParams);
+		World->SpawnActor<ABOOMProjectile>(Projectile, ProjectileSpawnLocation, ProjectileSpawnRotation, ProjectileSpawnParams);
 	}
 
 }
