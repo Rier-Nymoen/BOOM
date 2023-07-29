@@ -59,7 +59,7 @@ ABOOMWeapon::ABOOMWeapon()
 	WeaponDamage = 100.0F;
 
 	CurrentState = InactiveState;
-
+	bVisualizeHitscanTraces = true;
 	bOverrideCameraFiring = false;
 }
 
@@ -122,8 +122,6 @@ void ABOOMWeapon::Fire()
 	/*
 	For now, depending on player controller, thats where we originate the vectors.
 	*/
-
-	//delete temp code
 
 
 }
@@ -195,12 +193,22 @@ void ABOOMWeapon::FireHitscan()
 	FHitResult HitResult;
 	FCollisionQueryParams TraceParams;
 	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_Visibility, TraceParams);
-	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
 
+	if (bVisualizeHitscanTraces)
+	{
+		DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
 
+	}
+	
 	if (bHit)
 	{
-		UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
+		UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), WeaponDamage, StartTrace, HitResult, Character->GetController(), this, DamageType);
+		//UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, HitResult.BoneName.ToString());
+		/*
+		Use map of bone names to damage?
+
+		Maybe oncomponent hit to get the functionality within the actor.		*/
 	}
 }
 
@@ -356,13 +364,14 @@ void ABOOMWeapon::HandleUnequipping()
 	CurrentState->HandleUnequipping();
 }
 
+//can be significantly improved, maybe even have components
 FRotator ABOOMWeapon::CalculateSpread(FRotator PlayerLookRotation)
 {
-	float MaxSpreadX = 5.0F;
-	float MaxSpreadZ = 5.0F;
+	//float MaxSpreadX = 5.0F;
+	//float MaxSpreadZ = 5.0F;
 
-	float MinSpreadX = 0.3F;
-	float MinSpreadZ = 0.3F;
+	//float MinSpreadX = 0.3F;
+	//float MinSpreadZ = 0.3F;
 
 	float AdjustedSpreadX = FMath::RandRange(MinSpreadX, MaxSpreadX);
 	float AdjustedSpreadZ = FMath::RandRange(MinSpreadZ, MaxSpreadZ);
@@ -450,13 +459,14 @@ void ABOOMWeapon::HandleBeingDropped()
 	BOOMPickUp->AttachToComponent(Weapon1P, AttachmentRules);
 	if (Character)
 	{
-		//@TODO weapon could spawn or past objects - may solve issue a different way
 
 		Weapon1P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		/*
 		On character death, velocity will be 0, need to have character have velocity on death.
-		or may need Velocity and forward vector recorded before death when dying
+		or may need Velocity and forward vector recorded before death when dying -- Solved by physics on death
 		*/
+
+		//@TODO: Need to have this affected by directional movement and rotation, for now this is okay.
 		Weapon1P->SetPhysicsLinearVelocity(Character->GetActorForwardVector() * Character->GetVelocity().Size(), true);
 	}
 

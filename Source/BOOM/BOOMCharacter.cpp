@@ -62,6 +62,7 @@ void ABOOMCharacter::BeginPlay()
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
 	OnTakeAnyDamage.AddDynamic(this, &ABOOMCharacter::OnTakeDamage);
+	OnTakePointDamage.AddDynamic(this, &ABOOMCharacter::TakePointDamage);
 
 	/*
 	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
@@ -231,6 +232,8 @@ void ABOOMCharacter::CheckPlayerLook()
 		FCollisionQueryParams TraceParams;
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
+
+
 		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0.3);
 
 		IInteractableInterface* InteractableObject;
@@ -366,6 +369,9 @@ void ABOOMCharacter::OnDeath()
 		Controller->UnPossess();
 	}
 	//todo - specify function
+	//otherwise could cause bug hard to find
+	OnTakePointDamage.RemoveAll(this);
+
 	OnTakeAnyDamage.RemoveAll(this);
 	ThrowInventory();
 	if (PlayerHUD)
@@ -386,6 +392,8 @@ void ABOOMCharacter::ThrowInventory()
 
 void ABOOMCharacter::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "any damage");
+
 	if (HealthComponent)
 	{
 		HealthComponent->AddHealth(-Damage);
@@ -396,6 +404,34 @@ void ABOOMCharacter::OnTakeDamage(AActor* DamagedActor, float Damage, const UDam
 			OnDeath();
 		}
 	}
+}
+
+void ABOOMCharacter::TakePointDamage(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser)
+{
+	float HeadshotDamageMultiplier = 1;
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "point damage");
+
+	if (BoneName == "head")
+	{
+		HeadshotDamageMultiplier = 200.F;
+	}
+
+		if (HealthComponent)
+		{
+			HealthComponent->AddHealth(-Damage * HeadshotDamageMultiplier);
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Health: " + FString::SanitizeFloat(HealthComponent->Health));
+			//Regen health logic, updates about health component
+			if (HealthComponent->Health <= 0)
+			{
+				OnDeath();
+			}
+		}
+	/*
+	Could map bone names to damage modifier values. For now only differentiate headshots
+	*/
+
+
+
 }
 
 void ABOOMCharacter::Move(const FInputActionValue& Value)

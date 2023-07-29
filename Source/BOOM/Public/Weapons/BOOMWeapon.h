@@ -178,4 +178,20 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Overrides)
 	bool bOverrideCameraFiring;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Overrides)
+	bool bVisualizeHitscanTraces;
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	float MaxSpreadX;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	float MaxSpreadZ;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	float MinSpreadX;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	float MinSpreadZ;
 };

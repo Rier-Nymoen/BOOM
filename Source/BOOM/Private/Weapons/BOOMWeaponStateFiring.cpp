@@ -14,6 +14,17 @@ UBOOMWeaponStateFiring::UBOOMWeaponStateFiring()
 {
 	//FireRateSeconds = 2.0F;
 	//FireRateSeconds = 0.066F;
+
+	/*
+	
+	Can control aim states with enum and just handle enum
+
+	or i could use a special technique and fake it as a firing state
+	 
+	lower priority, but needs to be prepared for.
+	
+	*/
+
 }
 
 void UBOOMWeaponStateFiring::BeginPlay()
@@ -39,9 +50,6 @@ void UBOOMWeaponStateFiring::EnterState()
 void UBOOMWeaponStateFiring::ExitState()
 {
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
-
-
-
 
 	if (Weapon != nullptr)
 	{

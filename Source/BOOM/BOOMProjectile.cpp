@@ -37,7 +37,6 @@ void ABOOMProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
 	{
 		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
-
 		Destroy();
 	}
 }
