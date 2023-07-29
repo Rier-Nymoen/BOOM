@@ -4,7 +4,7 @@
 #include "AI/BOOMBTTask_GetPatrolPoint.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "BOOM/BOOMCharacter.h"
+#include "BOOMAICharacter.h"
 #include "AI/BOOMPatrolRoute.h"
 
 UBOOMBTTask_GetPatrolPoint::UBOOMBTTask_GetPatrolPoint()
@@ -16,22 +16,22 @@ UBOOMBTTask_GetPatrolPoint::UBOOMBTTask_GetPatrolPoint()
 EBTNodeResult::Type UBOOMBTTask_GetPatrolPoint::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	const ABOOMCharacter* AICharacter = Cast<ABOOMCharacter>(AIController->GetCharacter());
+	const ABOOMAICharacter* AICharacter = Cast<ABOOMAICharacter>(AIController->GetCharacter());
 
 	if (!AICharacter)
 	{
 		//return fail
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "Patrol has failed - AICharacter null");
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "Patrol has failed - AICharacter null");
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return EBTNodeResult::Failed;
 
 	}
-	ABOOMPatrolRoute* PatrolRoute = AICharacter->PatrolRouteComponent;
+	ABOOMPatrolRoute* PatrolRoute = AICharacter->GetPatrolRouteComponent();
 
 	if (!PatrolRoute)
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "Patrol has failed - PatrolRoute- null");
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "Patrol has failed - PatrolRoute- null");
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return EBTNodeResult::Failed;
@@ -40,8 +40,6 @@ EBTNodeResult::Type UBOOMBTTask_GetPatrolPoint::ExecuteTask(UBehaviorTreeCompone
 	//WORLD SPACE
 	AIController->GetBlackboardComponent()->SetValueAsVector(BlackboardKey.SelectedKeyName, PatrolRoute->GetCurrentPoint());
 
-
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "Patrol should have succeeded");
 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	return EBTNodeResult::Succeeded;
 }

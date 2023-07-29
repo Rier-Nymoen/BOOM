@@ -15,7 +15,7 @@ USTRUCT()
 struct FFireInput
 {
 	GENERATED_BODY()
-	bool bIsPendingFiring;
+		bool bIsPendingFiring;
 	//possibly additional information
 };
 
@@ -39,9 +39,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = Name)
 	FName Name = FName(TEXT("W1"));
 
-	//@todo add when improving weapon system.
-	UPROPERTY(EditAnywhere, Category = Component)
-		class USceneComponent* MuzzleLocation;
 	/*Character holding weapon*/
 	ABOOMCharacter* Character;
 
@@ -69,7 +66,7 @@ public:
 
 	UFUNCTION()
 	virtual void ReloadWeapon();
-	
+
 	UFUNCTION()
 	virtual void HandleReloadInput();
 
@@ -84,7 +81,7 @@ public:
 	//Value should be a multiple of MagazineSize. Maximum Ammo Reserves.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int MaxAmmoReserves;
-	
+
 	//Ammo reserves are the amount of bullets you have, that you can reload into the weapon. (Like Halo's system, not meant to be realistic)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int CurrentAmmoReserves;
@@ -124,15 +121,17 @@ public:
 
 	class ABOOMCharacter* GetCharacter();
 
-	//virtual void FireHitscan();
+	virtual void FireHitscan();
 
-	//virtual void FireProjectile();
+	virtual void FireProjectile();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	TSubclassOf<class ABOOMProjectile> Projectile;
 
 	float WeaponDamage;
-	
+
 	//
 	virtual void GotoState(class UBOOMWeaponState* NewState);
-
 
 	class UBOOMWeaponState* InactiveState;
 	class UBOOMWeaponState* ActiveState;
@@ -161,10 +160,10 @@ public:
 	UFUNCTION()
 	void GotoStateInactive();
 
-	
+
 	UFUNCTION()
 	float GetFireRateSeconds();
-	
+
 	////consider moving to the "firing state" class
 	UFUNCTION()
 	float GetLastTimeFiredSeconds();
@@ -177,4 +176,22 @@ public:
 
 	virtual bool CanReload();
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Overrides)
+	bool bOverrideCameraFiring;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Overrides)
+	bool bVisualizeHitscanTraces;
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	float MaxSpreadX;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	float MaxSpreadZ;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	float MinSpreadX;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	float MinSpreadZ;
 };
