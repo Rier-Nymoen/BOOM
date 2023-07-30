@@ -19,6 +19,7 @@
 #include "AI/BOOMAIController.h"
 #include "Camera/CameraComponent.h"
 #include "BOOM/BOOMProjectile.h"
+#include "Curves/CurveFloat.h"
 
 //@TODO decide if I am changing variable names
 
@@ -61,6 +62,9 @@ ABOOMWeapon::ABOOMWeapon()
 	CurrentState = InactiveState;
 	bVisualizeHitscanTraces = true;
 	bOverrideCameraFiring = false;
+
+	TimeCooling = 0;
+	bIsOverheated = false;
 }
 
 
@@ -122,7 +126,6 @@ void ABOOMWeapon::Fire()
 	/*
 	For now, depending on player controller, thats where we originate the vectors.
 	*/
-
 
 }
 
@@ -487,4 +490,63 @@ void ABOOMWeapon::DisableCollision()
 bool ABOOMWeapon::CanReload()
 {
 	return CurrentAmmoReserves > 0 && CurrentAmmo < MagazineSize;
+}
+
+void ABOOMWeapon::Heat()
+{
+
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_WeaponCooldown, this, &ABOOMWeapon::Cooldown, 0.1, true);
+
+		Temperature += FMath::Clamp(HeatingRate * Temperature + HeatingRate, 0, 100);
+		Temperature = FMath::Clamp(Temperature, 0, 100);
+
+		/*
+		Model it after Heat Transfer Rate.
+
+		Heat dissipation rate.
+
+
+		*/
+		if (Temperature >= 100)
+		{
+			bIsOverheated = true;
+			GotoState(InactiveState);
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "OVERHEATED");
+
+		}
+
+
+	TimeCooling = 0;
+
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.2F, FColor::Orange, FString::SanitizeFloat(Temperature));
+
+	
+
+	
+
+
+}
+
+void ABOOMWeapon::Cooldown()
+{
+	TimeCooling += GetWorld()->GetTimerManager().GetTimerElapsed(TimerHandle_WeaponCooldown);
+	
+		Temperature -= CoolingRate * TimeCooling;
+		Temperature = FMath::Clamp(Temperature, 0, 100);
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.2F, FColor::Green, FString::SanitizeFloat(TimeCooling));
+
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.2F, FColor::Cyan, FString::SanitizeFloat(Temperature));
+	
+
+	if (Temperature <= 0)
+	{
+
+		if (bIsOverheated)
+		{
+			GotoState(ActiveState);
+			bIsOverheated = false;
+		}
+
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_WeaponCooldown);
+	}
 }

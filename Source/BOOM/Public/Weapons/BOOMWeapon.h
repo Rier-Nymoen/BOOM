@@ -194,4 +194,42 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
 	float MinSpreadZ;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	class UCurveFloat* HeatCurve;
+
+
+	/*
+	Move to OverheatComponent
+	*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	float HeatingRate;
+
+	float Temperature;
+
+	virtual void Heat();
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	float CoolingRate;
+	float TimeCooling;
+
+	bool bIsOverheated;
+
+	virtual void Cooldown();
+	/*
+	Move to OverheatComponent
+	*/
+
+	FTimerHandle TimerHandle_WeaponCooldown;
+
+
+	//At max charge, fires immediately, otherwise can be held.
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	bool bCanHoldCharge;
+
+	UPROPERTY()
+	float Charge;
+
+
+
+
 };
