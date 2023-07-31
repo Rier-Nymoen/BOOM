@@ -9,7 +9,15 @@
 
 class UBOOMPickUpComponent;
 class ABOOMCharacter;
-class UBOOMWeaponReloadComponent;
+//class UBOOMWeaponReloadComponent;
+
+UENUM()
+enum class EZoom : int8
+{
+	Not_Zoomed,
+	Zoomed,
+
+};
 
 USTRUCT()
 struct FFireInput
@@ -33,9 +41,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = Component)
 	UBOOMPickUpComponent* BOOMPickUp;
 
-	UPROPERTY(EditAnywhere, Category = Component)
-	UBOOMWeaponReloadComponent* ReloadComponent;
-
 	UPROPERTY(EditAnywhere, Category = Name)
 	FName Name = FName(TEXT("W1"));
 
@@ -43,6 +48,8 @@ public:
 	ABOOMCharacter* Character;
 
 	FFireInput* FireInput;
+
+	EZoom ZoomMode;
 
 protected:
 	// Called when the game starts or when spawned
@@ -215,13 +222,30 @@ public:
 	bool bIsOverheated;
 
 	virtual void Cooldown();
+
+
+	FTimerHandle TimerHandle_WeaponCooldown;
 	/*
 	Move to OverheatComponent
 	*/
 
-	FTimerHandle TimerHandle_WeaponCooldown;
 
+	/*
+	Weapon Zooming
+	
+	*/
 
+	virtual void Zoom();
+	
+	virtual void ZoomOut();
+
+	virtual void ZoomIn();
+
+	/*
+	Weapon Zooming
+
+	*/
+		
 	//At max charge, fires immediately, otherwise can be held.
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
 	bool bCanHoldCharge;

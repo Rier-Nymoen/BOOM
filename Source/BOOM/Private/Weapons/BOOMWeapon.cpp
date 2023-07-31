@@ -398,6 +398,7 @@ void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 	}
 	UBOOMWeaponState* PreviousState = CurrentState;
 
+
 	if (CurrentState != nullptr)
 	{
 		PreviousState->ExitState();
@@ -405,6 +406,16 @@ void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.F, FColor(255, 82, 255), "Start of ID: "+ GetName() + "Model Name:" + Name.ToString());
 
 	CurrentState = NewState;
+
+	if (ZoomMode == EZoom::Zoomed)
+	{
+		if (CurrentState == ReloadingState || CurrentState == EquippingState || CurrentState == UnequippingState)
+		{
+			ZoomOut();
+		}
+	}
+
+
 	CurrentState->EnterState();
 	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.F, FColor(255, 82, 255), "End of ID: " + GetName() + "Model Name:" + Name.ToString());
 
@@ -523,6 +534,56 @@ void ABOOMWeapon::Heat()
 	
 
 	
+
+
+}
+
+
+void ABOOMWeapon::Zoom()
+{
+	if (ZoomMode == EZoom::Zoomed)
+	{
+		ZoomOut();
+		return;
+
+	}
+
+	if(CurrentState != ReloadingState && CurrentState != EquippingState && CurrentState != UnequippingState)
+	{
+
+		ZoomIn();
+	}
+
+	
+}
+
+
+
+void ABOOMWeapon::ZoomOut()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+	if (PlayerController)
+	{
+		ZoomMode = EZoom::Not_Zoomed;
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Zoomed out");
+		PlayerController->PlayerCameraManager->SetFOV(90);
+	}
+
+
+}
+
+
+
+void ABOOMWeapon::ZoomIn()
+{
+
+	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+	if (PlayerController)
+	{
+		ZoomMode = EZoom::Zoomed;
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Green, "Zoomed in");
+		PlayerController->PlayerCameraManager->SetFOV(45);
+	}
 
 
 }

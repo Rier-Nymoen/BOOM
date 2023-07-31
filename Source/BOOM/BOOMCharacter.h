@@ -144,6 +144,10 @@ protected:
 		class UInputAction* ReloadAction;
 
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* ZoomAction;
+
+
 
 protected:
 
@@ -227,5 +231,15 @@ protected:
 		virtual void TakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser);
 	
 	bool bIsDead;
+
+	UFUNCTION()
+	void Zoom();
+
+	//Calculates "Focal Length Scaling". 
+	//The intended effect is for regardless of player Zoom, their input will feel the same
+	virtual float GetFocalLengthScaling();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Input)
+	bool bIsFocalLengthScalingEnabled;
 
 };
