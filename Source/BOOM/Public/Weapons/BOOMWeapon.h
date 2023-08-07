@@ -254,6 +254,15 @@ public:
 	float Charge;
 
 
+	virtual void OnEquip();
 
+	virtual void OnUnequip();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* FireAction;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* StopFireAction;
 
 };

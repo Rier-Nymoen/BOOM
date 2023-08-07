@@ -251,7 +251,20 @@ void ABOOMWeapon::FireProjectile()
 
 		ProjectileSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-		World->SpawnActor<ABOOMProjectile>(Projectile, ProjectileSpawnLocation, ProjectileSpawnRotation, ProjectileSpawnParams);
+		//ABOOMProjectile* SpawnedProjectile = World->SpawnActor<ABOOMProjectile>(Projectile, ProjectileSpawnLocation, ProjectileSpawnRotation, ProjectileSpawnParams);
+		FTransform ProjectileTransform(ProjectileSpawnRotation, ProjectileSpawnLocation);
+		ABOOMProjectile* SpawnedProjectile = Cast<ABOOMProjectile>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, Projectile, ProjectileTransform));
+
+		if (SpawnedProjectile)
+		{
+			SpawnedProjectile->SetOwner(this);
+			SetInstigator(Character);
+			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(Character);
+			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(GetInstigator());
+
+
+			UGameplayStatics::FinishSpawningActor(SpawnedProjectile, ProjectileTransform);
+		}
 	}
 
 }
@@ -332,11 +345,20 @@ void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* TargetCharacter)
 
 void ABOOMWeapon::HandleFireInput()
 {
+	if (Character)
+	{
+		Character->bIsPendingFiring = true;
+	}
 	CurrentState->HandleFireInput();
 }
 
 void ABOOMWeapon::HandleStopFireInput()
 {
+
+	if (Character)
+	{
+		Character->bIsPendingFiring = false;
+	}
 	CurrentState->HandleStopFiringInput();
 }
 
@@ -609,5 +631,56 @@ void ABOOMWeapon::Cooldown()
 		}
 
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_WeaponCooldown);
+	}
+}
+
+void ABOOMWeapon::OnEquip()
+{
+
+	/*
+	The advantage of having the player bind their own inputs is to avoid the complexity of binding inputs say in - weapons with varying input cases, and vehicles.
+	Even if you used an interactable interface, I believe managing the complexity this way is easier.
+	*/
+	if (Character == nullptr)
+	{
+		return;
+	}
+	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
+	{
+		EnableInput(PlayerController);
+		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
+		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Blue, "OnEquip");
+			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMWeapon::HandleFireInput);
+			EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMWeapon::HandleStopFireInput);
+		}
+
+	}
+
+
+
+}
+
+
+void ABOOMWeapon::OnUnequip()
+{
+
+	if (Character == nullptr)
+	{
+		return;
+	}
+
+	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
+	{
+		if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
+		{
+
+			EnhancedInputComponent->ClearActionBindings();
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Orange, "OnUnequip");
+
+
+
+			DisableInput(Cast<APlayerController>(PlayerController));
+		}
 	}
 }

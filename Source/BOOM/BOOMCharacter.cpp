@@ -137,10 +137,10 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 		//Fire Weapon
 		//@TODO - Possibly let weapons bind their own firing input responses
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMCharacter::StartFire);
+		//EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMCharacter::StartFire);
 		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Started, this, &ABOOMCharacter::Zoom);
 
-		EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMCharacter::StopFire);
+		//EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMCharacter::StopFire);
 
 		//Reload Weapon
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMCharacter::Reload);

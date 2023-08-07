@@ -9,6 +9,7 @@ void UBOOMWeaponStateUnequipping::EnterState()
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
+		Weapon->OnUnequip();
 		Weapon->GotoState(Weapon->InactiveState);
 	}
 }
