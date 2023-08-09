@@ -6,10 +6,10 @@
 UBOOMElectricRadiusComponent::UBOOMElectricRadiusComponent()
 {
 
-	SphereRadius = 500.F;
+	SphereRadius = 250.F;
 	SetCollisionProfileName("ElectricProfile");
 	bHiddenInGame = false;
-	ShapeColor = FColor(255, 253, 186);
+	ShapeColor = FColor(255, 0, 204);
 
 
 

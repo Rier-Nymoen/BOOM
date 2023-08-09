@@ -57,57 +57,84 @@ void ABOOMElectricSource::MST()
 	TSet<AActor*> Visited;
 	float MinDistance = TNumericLimits<float>::Max();
 	TArray<FPriorityQueueNode> PriorityQueue;
-
-
-
 	//Add Self to Priority queue with distance of 0;
 
+	//Self is visited, has distance of 0
 	FPriorityQueueNode SelfNode(this, 0);
-	PriorityQueue.HeapPush(SelfNode, FMinDistancePredicate());
-	
+	//PriorityQueue.HeapPush(SelfNode, FMinDistancePredicate());
 	Visited.Add(SelfNode.Actor)	;
-
-	for (AActor* Vertex : OverlappedActors)
+	
+	for (AActor* VisitedActor : Visited)
 	{
-		//if (Visited.Find(Vertex)) 
-		//{
-		//	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "Visited neighbor already ");
+		TArray<AActor*> Neighbors;
+		//GetNeighbors
+		GetOverlappingActors(Neighbors);
 
-		//	continue;
-		//}
-
-		FPriorityQueueNode Node(Vertex, FVector::Distance(this->GetActorLocation(), Vertex->GetActorLocation())); 
-
-
-		
-		PriorityQueue.HeapPush(Node, FMinDistancePredicate());
-		//TArray<AActor*> Neighbor;
-
-	}
-
-	FPriorityQueueNode Elem;
-	while (PriorityQueue.Num() != 0)
-	{
-		PriorityQueue.HeapPop(Elem, FMinDistancePredicate());
-		//Should have only unique vertices added from the overlap actors into the set.
-		
-
-		if (Visited.Find(Elem.Actor))
+		for (AActor* Neighbor : Neighbors)
 		{
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "Visited");
+			if (Visited.Find(Neighbor))
+			{
+				GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Emerald, "Already found neighbor, should ignore");
+				continue;
+			}
+			//get cost to node from discovered node
+			FPriorityQueueNode NewNode(Neighbor, FVector::Distance(VisitedActor->GetActorLocation(), Neighbor->GetActorLocation()));
+			PriorityQueue.HeapPush(NewNode, FMinDistancePredicate());
 
-			continue;
 		}
 
-		//Smallest, edge but must check if it connects to another node.
-		
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "Costs in min order: " + FString::SanitizeFloat(Elem.Cost));
-
-
 	}
+	FPriorityQueueNode Elem;
+
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 40.F, FColor::Blue, "Size of priority queue" + FString::FromInt(PriorityQueue.Num()));
+
+	PriorityQueue.HeapPop(Elem, FMinDistancePredicate());
+	
+	TArray<AActor*> ElemsNeighbors;
+	Elem.Actor->GetOverlappingActors(ElemsNeighbors);
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 40.F, FColor::Magenta, "Next Elems neighbor count" + FString::FromInt(ElemsNeighbors.Num()));
+
+
+	//FPriorityQueueNode Elem;
+	//while (PriorityQueue.Num() != 0)
+	//{
+	//	PriorityQueue.HeapPop(Elem, FMinDistancePredicate());
+	//	//Should have only unique vertices added from the overlap actors into the set.
+	//	
+
+	//	if (Visited.Find(Elem.Actor))
+	//	{
+	//		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "Visited");
+
+	//		continue;
+	//	}
+
+	//	//Smallest, edge but must check if it connects to another node.
+	//	
+	//	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "Costs in min order: " + FString::SanitizeFloat(Elem.Cost));
+
+
+	//}
 
 
 
 
 }
 
+//for (AActor* Vertex : OverlappedActors)
+//{
+//	//if (Visited.Find(Vertex)) 
+//	//{
+//	//	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "Visited neighbor already ");
+
+//	//	continue;
+//	//}
+
+//	FPriorityQueueNode Node(Vertex, FVector::Distance(this->GetActorLocation(), Vertex->GetActorLocation())); 
+
+
+//	
+//	PriorityQueue.HeapPush(Node, FMinDistancePredicate());
+//	//TArray<AActor*> Neighbor;
+
+//}
