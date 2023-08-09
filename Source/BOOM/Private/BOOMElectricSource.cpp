@@ -69,12 +69,12 @@ void ABOOMElectricSource::MST()
 
 	for (AActor* Vertex : OverlappedActors)
 	{
-		if (Visited.Find(Vertex))
-		{
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "AlreadyFoundVertex ");
+		//if (Visited.Find(Vertex)) 
+		//{
+		//	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "Visited neighbor already ");
 
-			continue;
-		}
+		//	continue;
+		//}
 
 		FPriorityQueueNode Node(Vertex, FVector::Distance(this->GetActorLocation(), Vertex->GetActorLocation())); 
 
@@ -92,8 +92,10 @@ void ABOOMElectricSource::MST()
 		//Should have only unique vertices added from the overlap actors into the set.
 		
 
-		if (Visited.Find(Vertex))
+		if (Visited.Find(Elem.Actor))
 		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "Visited");
+
 			continue;
 		}
 

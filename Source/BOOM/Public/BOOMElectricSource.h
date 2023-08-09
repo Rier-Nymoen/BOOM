@@ -51,7 +51,11 @@ struct FPriorityQueueNode
 {
 	GENERATED_BODY()
 
-	FPriorityQueueNode();
+
+	FPriorityQueueNode()
+	{
+
+	}
 
 	FPriorityQueueNode(AActor* InActor, float InCost)
 	{
