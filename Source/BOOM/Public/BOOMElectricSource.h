@@ -6,6 +6,42 @@
 #include "GameFramework/Actor.h"
 #include "BOOMElectricSource.generated.h"
 
+
+
+USTRUCT()
+struct FPriorityQueueNode
+{
+	GENERATED_BODY()
+
+
+	FPriorityQueueNode()
+	{
+
+	}
+
+	FPriorityQueueNode(AActor* InActor, float InCost, AActor* InParent)
+	{
+		Actor = InActor;
+		Cost = InCost;
+		Parent = InParent;
+	}
+	AActor* Actor;
+	float Cost;
+	AActor* Parent;
+};
+
+USTRUCT()
+struct FMinDistancePredicate
+{
+	GENERATED_BODY()
+		bool operator()(const FPriorityQueueNode& A, const FPriorityQueueNode& B) const
+	{
+		return A.Cost < B.Cost;
+	}
+};
+
+
+
 UCLASS()
 class BOOM_API ABOOMElectricSource : public AActor
 {
@@ -35,8 +71,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Electric)
 		bool bIsPowerSource;
 
+	UPROPERTY()
+		FTimerHandle TimerHandle_DrawMST;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float DebugMSTInterval;
+
 	UFUNCTION()
-		void MST();
+	void MST();
+
+	UFUNCTION()
+	void DrawMST(TArray<FPriorityQueueNode> MSTResult);
 
 	bool bIsConnectedToPowerSource;
 
@@ -46,34 +91,3 @@ public:
 	FTimerHandle TimerHandle_MST;
 
 };
-USTRUCT()
-struct FPriorityQueueNode
-{
-	GENERATED_BODY()
-
-
-	FPriorityQueueNode()
-	{
-
-	}
-
-	FPriorityQueueNode(AActor* InActor, float InCost)
-	{
-		Actor = InActor;
-		Cost = InCost;
-	}
-		AActor* Actor;
-	float Cost;
-};
-
-USTRUCT()
-struct FMinDistancePredicate
-{
-	GENERATED_BODY()
-	bool operator()(const FPriorityQueueNode & A, const FPriorityQueueNode & B) const
-	{
-		return A.Cost < B.Cost;
-	}
-};
-
-

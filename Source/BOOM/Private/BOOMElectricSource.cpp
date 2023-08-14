@@ -5,6 +5,8 @@
 
 #include "BOOMElectricRadiusComponent.h"
 #include "BOOMWeightedGraph.h"
+#include "Util/IndexPriorityQueue.h"
+
 // Sets default values
 ABOOMElectricSource::ABOOMElectricSource()
 {
@@ -18,7 +20,8 @@ ABOOMElectricSource::ABOOMElectricSource()
 	Overlaps = 0;
 	bIsPowerSource = false;
 	bIsConnectedToPowerSource = bIsPowerSource;
-	
+	DebugMSTInterval = 1.0F;
+
 }
 
 // Called when the game starts or when spawned
@@ -29,7 +32,7 @@ void ABOOMElectricSource::BeginPlay()
 
 	if (bIsPowerSource)
 	{
-		GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &ABOOMElectricSource::MST, 5.F, false);
+		GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &ABOOMElectricSource::MST, DebugMSTInterval, true);
 	}
 
 }
@@ -40,101 +43,182 @@ void ABOOMElectricSource::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	//GetOverlappingActors(OverlappedActors);
 
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor(252, 61, 3), "Connected: " + FString::FromInt(OverlappedActors.Num()));
 
 }
+
+/*
+
+original minheap route but didn't want to create my own minheap just for DecreaseKey Functionality to be supported.
+*/
+
+//void ABOOMElectricSource::MST()
+//{
+//
+//	GetOverlappingActors(OverlappedActors);
+//	Overlaps += OverlappedActors.Num();
+//	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor(252, 61, 3), "Overlapped Actors On Spawn: " + FString::FromInt(Overlaps));
+//
+//
+//	TSet<AActor*> Visited;
+//	TSet<AActor*> UnVisited;
+//	
+//	UnVisited.Add(this);
+//
+//
+//	float Infinity = TNumericLimits<float>::Max();
+//	TArray<FPriorityQueueNode> PriorityQueue;
+//	//Add Self to Priority queue with distance of 0;
+//
+//	FPriorityQueueNode StartNode(this, 0);
+//	PriorityQueue.HeapPush(StartNode, FMinDistancePredicate()); //can get index....
+//
+//
+//	while (PriorityQueue.Num() != 0)
+//	{
+//
+//		FPriorityQueueNode CurrentNode;
+//		PriorityQueue.HeapPop(CurrentNode, FMinDistancePredicate());
+//		Visited.Add(CurrentNode.Actor);
+//
+//		TArray<AActor*> Neighbors;
+//
+//		CurrentNode.Actor->GetOverlappingActors(Neighbors);
+//		for (AActor* Neighbor : Neighbors)
+//		{
+//			//not in Minheap
+//			if (!Visited.Find(Neighbor))
+//			{
+//				FPriorityQueueNode NewNode(Neighbor, Infinity);
+//				int VertexPosition = PriorityQueue.HeapPush(NewNode, FMinDistancePredicate());
+//				GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, FString::FromInt(VertexPosition));
+//
+//			}
+//			else
+//			{
+//				
+//
+//				float Distance = FVector::Distance(CurrentNode.Actor->GetActorLocation(), Neighbor->GetActorLocation());
+//			}
+//		}
+//	
+//
+//
+//	}
+//
+//
+//}
+
+
+/*
+Prim's Algorithm Implementation - Creates a Minimum Spanning Tree -  https://en.wikipedia.org/wiki/Minimum_spanning_tree#:~:text=A%20minimum%20spanning%20tree%20(MST,minimum%20possible%20total%20edge%20weight.
+*/
+
+
+/*
+
+Right now this operates on a time interval, but optimizations will be made when the system gets further developed. 
+
+Can try to make MST generation event based such as player interaction, delegate, and overlaps
+
+*/
 
 void ABOOMElectricSource::MST()
 {
 
-
-
 	GetOverlappingActors(OverlappedActors);
-	Overlaps += OverlappedActors.Num();
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor(252, 61, 3), "Overlapped Actors On Spawn: " + FString::FromInt(Overlaps));
+	//Overlaps += OverlappedActors.Num();
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor(252, 61, 3), "Overlapped Actors On Spawn: " + FString::FromInt(Overlaps));
 
 
 	TSet<AActor*> Visited;
-	float MinDistance = TNumericLimits<float>::Max();
+	TMap<AActor*, float> DistanceMap;
+	TArray<FPriorityQueueNode> MSTResult;
+
 	TArray<FPriorityQueueNode> PriorityQueue;
 	//Add Self to Priority queue with distance of 0;
 
-	//Self is visited, has distance of 0
-	FPriorityQueueNode SelfNode(this, 0);
-	//PriorityQueue.HeapPush(SelfNode, FMinDistancePredicate());
-	Visited.Add(SelfNode.Actor)	;
-	
-	for (AActor* VisitedActor : Visited)
-	{
-		TArray<AActor*> Neighbors;
-		//GetNeighbors
-		GetOverlappingActors(Neighbors);
+	FPriorityQueueNode StartNode(this, 0, nullptr);
+	DistanceMap.Add(this, 0);
+	PriorityQueue.HeapPush(StartNode, FMinDistancePredicate()); 
 
+	float Infinity = TNumericLimits<float>::Max();
+	while (PriorityQueue.Num() != 0)
+	{
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3120.0F, FColor(60, 255, 133), "Iteration:");
+
+		FPriorityQueueNode CurrentNode;
+		PriorityQueue.HeapPop(CurrentNode, FMinDistancePredicate());
+
+
+		if (Visited.Find(CurrentNode.Actor))
+		{
+			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3102.0F, FColor(60, 11, 133), "Continued.");
+
+			continue;
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3102.0F, FColor(60, 160, 133), "Actor: " + CurrentNode.Actor->GetActorLocation().ToString() + "Not found");
+
+			if (CurrentNode.Parent != nullptr)
+			{
+				//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3102.0F, FColor(60, 11, 133), "Its Parent is: " + CurrentNode.Parent->GetActorLocation().ToString());
+			}
+			MSTResult.Add(CurrentNode);
+
+		}
+		Visited.Add(CurrentNode.Actor);
+
+		TArray<AActor*> Neighbors;
+
+		CurrentNode.Actor->GetOverlappingActors(Neighbors);
 		for (AActor* Neighbor : Neighbors)
 		{
-			if (Visited.Find(Neighbor))
-			{
-				GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Emerald, "Already found neighbor, should ignore");
-				continue;
-			}
-			//get cost to node from discovered node
-			FPriorityQueueNode NewNode(Neighbor, FVector::Distance(VisitedActor->GetActorLocation(), Neighbor->GetActorLocation()));
-			PriorityQueue.HeapPush(NewNode, FMinDistancePredicate());
+			
+			float Distance = FVector::Distance(CurrentNode.Actor->GetActorLocation(), Neighbor->GetActorLocation());
 
+			if (!DistanceMap.Find(Neighbor))
+			{
+				//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3012.0F, FColor(133, 115, 233), "Assigned Infinity Initially.");
+				DistanceMap.Add(Neighbor, Infinity);
+			}
+
+			if (!Visited.Find(Neighbor) &&  DistanceMap[Neighbor] > Distance)
+			{
+				FPriorityQueueNode NewNode(Neighbor, Distance, CurrentNode.Actor);
+				DistanceMap[Neighbor] = Distance;
+				PriorityQueue.HeapPush(NewNode, FMinDistancePredicate());
+				//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3102.0F, FColor(123, 161, 133), "Neighbor Added: " + Neighbor->GetActorLocation().ToString());
+
+			}
+			
 		}
 
 	}
-	FPriorityQueueNode Elem;
 
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 40.F, FColor::Blue, "Size of priority queue" + FString::FromInt(PriorityQueue.Num()));
-
-	PriorityQueue.HeapPop(Elem, FMinDistancePredicate());
+	//GetWorldTimerManager().SetTimer(TimerHandle_DrawMST, this, &ABOOMElectricSource::DrawMST, 3.F, false);
+	DrawMST(MSTResult);
 	
-	TArray<AActor*> ElemsNeighbors;
-	Elem.Actor->GetOverlappingActors(ElemsNeighbors);
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 40.F, FColor::Magenta, "Next Elems neighbor count" + FString::FromInt(ElemsNeighbors.Num()));
-
-
-	//FPriorityQueueNode Elem;
-	//while (PriorityQueue.Num() != 0)
-	//{
-	//	PriorityQueue.HeapPop(Elem, FMinDistancePredicate());
-	//	//Should have only unique vertices added from the overlap actors into the set.
-	//	
-
-	//	if (Visited.Find(Elem.Actor))
-	//	{
-	//		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "Visited");
-
-	//		continue;
-	//	}
-
-	//	//Smallest, edge but must check if it connects to another node.
-	//	
-	//	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "Costs in min order: " + FString::SanitizeFloat(Elem.Cost));
-
-
-	//}
-
-
-
-
 }
 
-//for (AActor* Vertex : OverlappedActors)
-//{
-//	//if (Visited.Find(Vertex)) 
-//	//{
-//	//	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.0F, FColor(252, 61, 3), "Visited neighbor already ");
+void ABOOMElectricSource::DrawMST(TArray<FPriorityQueueNode> MSTResult)
+{
+	int i = 0;
+	if (!MSTResult.IsEmpty())
+	{
+		while (i < MSTResult.Num()) //probably switch to iterator
+		{
 
-//	//	continue;
-//	//}
+			if (MSTResult[i].Parent != nullptr)
+			{
+				DrawDebugLine(GetWorld(), MSTResult[i].Actor->GetActorLocation(), MSTResult[i].Parent->GetActorLocation(), FColor::Emerald, false, DebugMSTInterval);
+			}
 
-//	FPriorityQueueNode Node(Vertex, FVector::Distance(this->GetActorLocation(), Vertex->GetActorLocation())); 
+			
 
-
-//	
-//	PriorityQueue.HeapPush(Node, FMinDistancePredicate());
-//	//TArray<AActor*> Neighbor;
-
-//}
+			//GetWorldTimerManager().SetTimer(TimerHandle_DrawMST, this, &ABOOMElectricSource::DrawMST, 0.3F, false);
+			i++;
+		}
+		MSTResult.Empty();
+	}
+}
