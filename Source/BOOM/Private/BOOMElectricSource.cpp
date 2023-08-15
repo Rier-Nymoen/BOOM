@@ -129,7 +129,9 @@ void ABOOMElectricSource::MST()
 	//Overlaps += OverlappedActors.Num();
 	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor(252, 61, 3), "Overlapped Actors On Spawn: " + FString::FromInt(Overlaps));
 
-
+	/*
+	Shouldn't create and destroy memory every second
+	*/
 	TSet<AActor*> Visited;
 	TMap<AActor*, float> DistanceMap;
 	TArray<FPriorityQueueNode> MSTResult;
@@ -158,7 +160,7 @@ void ABOOMElectricSource::MST()
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3102.0F, FColor(60, 160, 133), "Actor: " + CurrentNode.Actor->GetActorLocation().ToString() + "Not found");
+			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3102.0F, FColor(60, 160, 133), "Actor: " + CurrentNode.Actor->GetActorLocation().ToString() + "Not found");
 
 			if (CurrentNode.Parent != nullptr)
 			{
@@ -174,7 +176,22 @@ void ABOOMElectricSource::MST()
 		CurrentNode.Actor->GetOverlappingActors(Neighbors);
 		for (AActor* Neighbor : Neighbors)
 		{
+
+			//Path is obstructed if an electric connection is impeded by non-conductors.
+			FHitResult HitResult;
+			FCollisionQueryParams TraceParams;
+			bool bPathIsObstructed = GetWorld()->LineTraceSingleByChannel(HitResult, CurrentNode.Actor->GetActorLocation(), Neighbor->GetActorLocation(), ECC_Visibility, TraceParams);
+
+			if (bPathIsObstructed)
+			{
+				DrawDebugLine(GetWorld(), CurrentNode.Actor->GetActorLocation(), HitResult.Location, FColor::Red, false, DebugMSTInterval, 1, 3.F);
+				continue; 
+			}
+
 			
+
+
+
 			float Distance = FVector::Distance(CurrentNode.Actor->GetActorLocation(), Neighbor->GetActorLocation());
 
 			if (!DistanceMap.Find(Neighbor))
@@ -211,7 +228,8 @@ void ABOOMElectricSource::DrawMST(TArray<FPriorityQueueNode> MSTResult)
 
 			if (MSTResult[i].Parent != nullptr)
 			{
-				DrawDebugLine(GetWorld(), MSTResult[i].Actor->GetActorLocation(), MSTResult[i].Parent->GetActorLocation(), FColor::Emerald, false, DebugMSTInterval);
+
+				DrawDebugLine(GetWorld(), MSTResult[i].Actor->GetActorLocation(), MSTResult[i].Parent->GetActorLocation(), FColor::Blue, false, DebugMSTInterval,1, 3.F);
 			}
 
 			
