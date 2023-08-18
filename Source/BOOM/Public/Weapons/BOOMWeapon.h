@@ -157,6 +157,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float FireRateSeconds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		UMaterialInstance* ImpactDecal;
+
 public:
 	UFUNCTION()
 	void GotoStateEquipping();
@@ -264,5 +268,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* StopFireAction;
+
+
+	//UPROPERTY()
+	//	TArray<float Spread> Spread;
+
 
 };

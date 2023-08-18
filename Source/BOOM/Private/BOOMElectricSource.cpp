@@ -33,6 +33,7 @@ void ABOOMElectricSource::BeginPlay()
 	if (bIsPowerSource)
 	{
 		GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &ABOOMElectricSource::MST, DebugMSTInterval, true);
+
 	}
 
 }
@@ -161,11 +162,6 @@ void ABOOMElectricSource::MST()
 		else
 		{
 			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3102.0F, FColor(60, 160, 133), "Actor: " + CurrentNode.Actor->GetActorLocation().ToString() + "Not found");
-
-			if (CurrentNode.Parent != nullptr)
-			{
-				//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3102.0F, FColor(60, 11, 133), "Its Parent is: " + CurrentNode.Parent->GetActorLocation().ToString());
-			}
 			MSTResult.Add(CurrentNode);
 
 		}
@@ -215,6 +211,7 @@ void ABOOMElectricSource::MST()
 
 	//GetWorldTimerManager().SetTimer(TimerHandle_DrawMST, this, &ABOOMElectricSource::DrawMST, 3.F, false);
 	DrawMST(MSTResult);
+
 	
 }
 
@@ -223,6 +220,7 @@ void ABOOMElectricSource::DrawMST(TArray<FPriorityQueueNode> MSTResult)
 	int i = 0;
 	if (!MSTResult.IsEmpty())
 	{
+
 		while (i < MSTResult.Num()) //probably switch to iterator
 		{
 
@@ -237,6 +235,8 @@ void ABOOMElectricSource::DrawMST(TArray<FPriorityQueueNode> MSTResult)
 			//GetWorldTimerManager().SetTimer(TimerHandle_DrawMST, this, &ABOOMElectricSource::DrawMST, 0.3F, false);
 			i++;
 		}
-		MSTResult.Empty();
+		//MSTResult.Empty();
+
 	}
 }
+

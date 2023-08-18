@@ -20,6 +20,7 @@
 #include "Camera/CameraComponent.h"
 #include "BOOM/BOOMProjectile.h"
 #include "Curves/CurveFloat.h"
+#include "Components/DecalComponent.h"
 
 //@TODO decide if I am changing variable names
 
@@ -207,7 +208,15 @@ void ABOOMWeapon::FireHitscan()
 	{
 		UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), WeaponDamage, StartTrace, HitResult, Character->GetController(), this, DamageType);
 		//UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, HitResult.BoneName.ToString());
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, HitResult.BoneName.ToString());
+
+		if (ImpactDecal)
+		{
+			UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), ImpactDecal, FVector(5, 5, 5), HitResult.Location);
+			Decal->SetFadeScreenSize(100.F);
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "impact decal");
+
+		}
 		/*
 		Use map of bone names to damage?
 
@@ -390,13 +399,8 @@ void ABOOMWeapon::HandleUnequipping()
 }
 
 //can be significantly improved, maybe even have components
-FRotator ABOOMWeapon::CalculateSpread(FRotator PlayerLookRotation)
+FRotator ABOOMWeapon::CalculateSpread(FRotator PlayerLookRotation) //this is BoxSpread, not noticable unless firing plenty of rounds.
 {
-	//float MaxSpreadX = 5.0F;
-	//float MaxSpreadZ = 5.0F;
-
-	//float MinSpreadX = 0.3F;
-	//float MinSpreadZ = 0.3F;
 
 	float AdjustedSpreadX = FMath::RandRange(MinSpreadX, MaxSpreadX);
 	float AdjustedSpreadZ = FMath::RandRange(MinSpreadZ, MaxSpreadZ);
