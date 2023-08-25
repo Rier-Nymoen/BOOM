@@ -115,8 +115,6 @@ public:
 
 	virtual void HandleUnequipping();
 
-	virtual FRotator CalculateSpread(FRotator PlayerLookRotation);
-
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UDamageType> DamageType;
 
@@ -153,6 +151,7 @@ public:
 	float ReloadDurationSeconds;
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float HitscanRange;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
@@ -206,8 +205,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
 	float MinSpreadZ;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
-	class UCurveFloat* HeatCurve;
+	UPROPERTY(BlueprintReadWrite, Category = Weapon)
+
+	//Maps current heat to added heat value for consecutive shots
+	struct FRuntimeFloatCurve HeatIncreaseCurve;
+
+	
+	UPROPERTY(BlueprintReadWrite, Category = Weapon)
+
+	struct FRuntimeFloatCurve HeatCooldownCurve;
+
 
 
 	/*
@@ -263,15 +270,30 @@ public:
 	virtual void OnUnequip();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* FireAction;
+	class UInputAction* FireAction;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* StopFireAction;
+	class UInputAction* StopFireAction;
 
 
-	//UPROPERTY()
-	//	TArray<float Spread> Spread;
+	//Maps heat level to bullet spread angle
 
+	/*
+	Will be adaptable to allow the heat level to affect the weapon spread if desired.
+
+
+	
+	*/
+	UPROPERTY(EditAnywhere, Category = Curve)
+	struct FRuntimeFloatCurve SpreadCurve;
+
+	FVector CalculateBulletSpreadDir(FRotator StartRot);
+
+	UPROPERTY(EditAnywhere, Category = Spread)
+	float MaxSpreadAngle;
+
+	UPROPERTY(EditAnywhere, Category = Spread)
+	float CurrentSpreadAngle;
 
 };

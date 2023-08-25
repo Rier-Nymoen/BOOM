@@ -66,6 +66,7 @@ ABOOMWeapon::ABOOMWeapon()
 
 	TimeCooling = 0;
 	bIsOverheated = false;
+
 }
 
 
@@ -177,9 +178,10 @@ void ABOOMWeapon::FireHitscan()
 		FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
 
 		 StartTrace = CameraLocation;
+		 
+		 FVector ShotDirection = CalculateBulletSpreadDir(CameraRotation);
 
-		 EndTrace = StartTrace + (CalculateSpread(CameraRotation).Vector() * HitscanRange);
-
+		 EndTrace = StartTrace + (ShotDirection * HitscanRange);
 	}
 	else
 	{
@@ -188,7 +190,7 @@ void ABOOMWeapon::FireHitscan()
 			StartTrace = Weapon1P->GetSocketLocation("Muzzle");
 			FRotator EndRotation = Weapon1P->GetSocketRotation("Muzzle");
 
-			EndTrace = StartTrace + (CalculateSpread(EndRotation).Vector() * HitscanRange);
+			EndTrace = StartTrace * HitscanRange;
 		}
 
 
@@ -213,8 +215,8 @@ void ABOOMWeapon::FireHitscan()
 		if (ImpactDecal)
 		{
 			UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), ImpactDecal, FVector(5, 5, 5), HitResult.Location);
-			Decal->SetFadeScreenSize(100.F);
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "impact decal");
+			Decal->SetFadeScreenSize(10.F);
+			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "impact decal");
 
 		}
 		/*
@@ -253,7 +255,7 @@ void ABOOMWeapon::FireProjectile()
 			ProjectileSpawnRotation = MuzzleRotation;
 		}
 		
-		ProjectileSpawnRotation = CalculateSpread(ProjectileSpawnRotation);
+		//spread goes heres
 
 
 		FActorSpawnParameters ProjectileSpawnParams;
@@ -398,21 +400,6 @@ void ABOOMWeapon::HandleUnequipping()
 	CurrentState->HandleUnequipping();
 }
 
-//can be significantly improved, maybe even have components
-FRotator ABOOMWeapon::CalculateSpread(FRotator PlayerLookRotation) //this is BoxSpread, not noticable unless firing plenty of rounds.
-{
-
-	float AdjustedSpreadX = FMath::RandRange(MinSpreadX, MaxSpreadX);
-	float AdjustedSpreadZ = FMath::RandRange(MinSpreadZ, MaxSpreadZ);
-
-	AdjustedSpreadX = FMath::RandRange(-AdjustedSpreadX, AdjustedSpreadX);
-	AdjustedSpreadZ = FMath::RandRange(-AdjustedSpreadZ, AdjustedSpreadZ);
-
-	FRotator Offset(AdjustedSpreadX, AdjustedSpreadZ, 0);
-
-	return (PlayerLookRotation + Offset);
-	//account for normal rotation and position, offset rounds somewhat based on ymin ymax
-}
 
 void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 {
@@ -478,11 +465,11 @@ bool ABOOMWeapon::IsReadyToFire()
 {
 	if ((GetWorld()->GetTimeSeconds() - LastTimeFiredSeconds) >= (FireRateSeconds))
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor(69, 2, 180), "Ready to fire");
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor(69, 2, 180), "Ready to fire");
 
 		return true;
 	}
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor(180, 2, 69), "Not ready to fire");
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor(180, 2, 69), "Not ready to fire");
 
 	return false;
 }
@@ -548,7 +535,7 @@ void ABOOMWeapon::Heat()
 		{
 			bIsOverheated = true;
 			GotoState(InactiveState);
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "OVERHEATED");
+			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "OVERHEATED");
 
 		}
 
@@ -591,7 +578,7 @@ void ABOOMWeapon::ZoomOut()
 	if (PlayerController)
 	{
 		ZoomMode = EZoom::Not_Zoomed;
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Zoomed out");
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Zoomed out");
 		PlayerController->PlayerCameraManager->SetFOV(90);
 	}
 
@@ -607,7 +594,7 @@ void ABOOMWeapon::ZoomIn()
 	if (PlayerController)
 	{
 		ZoomMode = EZoom::Zoomed;
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Green, "Zoomed in");
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Green, "Zoomed in");
 		PlayerController->PlayerCameraManager->SetFOV(45);
 	}
 
@@ -654,7 +641,7 @@ void ABOOMWeapon::OnEquip()
 		EnableInput(PlayerController);
 		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 		{
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Blue, "OnEquip");
+			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Blue, "OnEquip");
 			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMWeapon::HandleFireInput);
 			EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMWeapon::HandleStopFireInput);
 		}
@@ -680,7 +667,7 @@ void ABOOMWeapon::OnUnequip()
 		{
 
 			EnhancedInputComponent->ClearActionBindings();
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Orange, "OnUnequip");
+			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Orange, "OnUnequip");
 
 
 
@@ -688,3 +675,44 @@ void ABOOMWeapon::OnUnequip()
 		}
 	}
 }
+
+
+FVector ABOOMWeapon::CalculateBulletSpreadDir(FRotator StartRot) //This is circular spread. The idea  to use Quaternions was from Epic's Lyra project.
+{	
+	//Imagining an axis of rotation around the weapon's barrel, this is will represent where on a spread circle the bullet will land. (Magnitude of Rotation)
+	float AngleAround = FMath::FRand() * 360;
+
+	//Angle of deviation from the barrel (Affects Radius of spread circle)
+	float HalfAngle = FMath::FRand() * FMath::FRand() * FMath::FRand() *  CurrentSpreadAngle / 2;
+
+	//WorldRotation of Weapon muzzle.
+	FQuat StartQuat(StartRot);
+
+	FQuat HalfAngleQuat(FRotator(HalfAngle, 0,0)); 
+
+	FQuat AngleAroundQuat(FRotator(0, 0, AngleAround));
+
+	//Has to be done right to left: Rotate to origin of shot <-- Rotate vector along axis  <-- Apply Deviation
+	FQuat FinalQuat = StartQuat * AngleAroundQuat* HalfAngleQuat;
+
+	//I believe with how Epic implements quaternions, the Identity Quaterion is  cos(0) + sin(0)(1,0,0).
+	/*
+	
+	 https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html According to this resource: "There is one special case in which equation (6) will fail.
+	 A quaternion with the value q = (1,0,0,0) is known as the identity quaternion, and will produce no rotation.
+	 In this case, equation (5) will produce a rotation angle (theta) of zero, which is what we expect. 
+	 However, since the axis of rotation is undefined when there is no rotation, equation (6) will generate a divide-by-zero error.
+	 Any software implementation should therefore test whether q0 equals 1.0, and if it does should set theta = 0, and (xhat, yhat, zhat) = (1, 0, 0)."
+	
+	*/
+	/*
+	So if we treat the vector (1,0,0) as the starting axis of rotation of the quaternion, then rotating the vector by this quaternion should yield an angle of axis matching the operations we took.
+	*/
+
+
+	FVector FinalVector = FinalQuat.RotateVector(FVector(1, 0, 0));
+
+
+	return FinalVector;
+}
+
