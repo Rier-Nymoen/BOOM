@@ -21,8 +21,8 @@
 #include "BOOM/BOOMProjectile.h"
 #include "Curves/CurveFloat.h"
 #include "Components/DecalComponent.h"
+#include "Components/CapsuleComponent.h"
 
-//@TODO decide if I am changing variable names
 
 // Sets default values
 ABOOMWeapon::ABOOMWeapon()
@@ -215,7 +215,7 @@ void ABOOMWeapon::FireHitscan()
 		if (ImpactDecal)
 		{
 			UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), ImpactDecal, FVector(5, 5, 5), HitResult.Location);
-			Decal->SetFadeScreenSize(10.F);
+			Decal->SetFadeScreenSize(0.F);
 			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "impact decal");
 
 		}
@@ -261,6 +261,8 @@ void ABOOMWeapon::FireProjectile()
 		FActorSpawnParameters ProjectileSpawnParams;
 
 		ProjectileSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		ProjectileSpawnRotation = CalculateBulletSpreadDir(ProjectileSpawnRotation).Rotation();
+
 
 		//ABOOMProjectile* SpawnedProjectile = World->SpawnActor<ABOOMProjectile>(Projectile, ProjectileSpawnLocation, ProjectileSpawnRotation, ProjectileSpawnParams);
 		FTransform ProjectileTransform(ProjectileSpawnRotation, ProjectileSpawnLocation);
@@ -272,7 +274,11 @@ void ABOOMWeapon::FireProjectile()
 			SetInstigator(Character);
 			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(Character);
 			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(GetInstigator());
-
+			Character->GetCapsuleComponent()->MoveIgnoreActors.Add(SpawnedProjectile);
+			/*
+			Possibly empty MoveIgnoreActors after x amount of time.
+			
+			*/
 
 			UGameplayStatics::FinishSpawningActor(SpawnedProjectile, ProjectileTransform);
 		}
