@@ -99,6 +99,11 @@ protected:
 
 	void SwapWeapon(const FInputActionValue& Value);
 
+	void StartCrouch(const FInputActionValue& Value);
+	void EndCrouch(const FInputActionValue& Value);
+
+	virtual void Jump();
+
 	//void StartFire(const FInputActionValue& Value);
 
 
@@ -147,7 +152,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* ZoomAction;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* CrouchAction;
 
 protected:
 

@@ -123,6 +123,9 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ABOOMCharacter::StartCrouch);
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ABOOMCharacter::EndCrouch); 
+
 		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::Move);
 
@@ -534,6 +537,26 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 			}
 		}
 	}
+}
+
+void ABOOMCharacter::StartCrouch(const FInputActionValue& Value)
+{
+	Crouch();
+}
+
+void ABOOMCharacter::EndCrouch(const FInputActionValue& Value)
+{
+	UnCrouch();
+}
+
+void ABOOMCharacter::Jump()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	Super::Jump();
+
 }
 
 //void ABOOMCharacter::StartFire(const FInputActionValue& Value)
