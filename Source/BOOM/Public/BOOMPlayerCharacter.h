@@ -15,7 +15,7 @@ class BOOM_API ABOOMPlayerCharacter : public ABOOMCharacter
 	GENERATED_BODY()
 
 public:
-	ABOOMPlayerCharacter();
+	// ABOOMPlayerCharacter();
 protected:
 
 	//virtual void BeginPlay() override;

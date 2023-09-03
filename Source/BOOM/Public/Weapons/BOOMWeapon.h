@@ -256,13 +256,13 @@ public:
 	Weapon Zooming
 
 	*/
-		
-	//At max charge, fires immediately, otherwise can be held.
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
-	bool bCanHoldCharge;
-
-	UPROPERTY()
-	float Charge;
+	// 	
+	// //At max charge, fires immediately, otherwise can be held.
+	// UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
+	// bool bCanHoldCharge;
+	//
+	// UPROPERTY()
+	// float Charge;
 
 
 	virtual void OnEquip();

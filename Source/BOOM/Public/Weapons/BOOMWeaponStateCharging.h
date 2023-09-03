@@ -24,7 +24,17 @@ public:
 	virtual void ExitState() override;
 
 protected:
-	//@TODO consider making charged weapons with other reload types. need more components for that.
+	
+	UPROPERTY()
+	FTimerHandle TimerHandle_OnOvercharged;
 
+	bool bFiresOnOvercharged;
+
+	bool bIsOvercharged;
+	UFUNCTION()
+	virtual void OnOvercharged();
+
+	UFUNCTION()
+	virtual void HandleStopFiringInput() override;
 	
 };

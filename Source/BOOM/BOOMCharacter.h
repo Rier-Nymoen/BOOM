@@ -8,13 +8,14 @@
 #include "Engine/DataTable.h"
 
 #include "BOOMCharacter.generated.h"
-
+class UBOOMCharacterMovementComponent;
 class UInputComponent;
 class USkeletalMeshComponent;
 class USceneComponent;
 class UCameraComponent;
 class UAnimMontage;
 class USoundBase;
+
 
 //want to use Data table since its stored on disk. 
 USTRUCT(BlueprintType)
@@ -47,6 +48,7 @@ public:
 	FName SocketNameGripPoint;
 	FName SocketNameHolsterPoint;
 
+	
 protected:
 	virtual void BeginPlay();
 
@@ -57,6 +59,11 @@ protected:
 	UFUNCTION()
 	void OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UPROPERTY(VisibleAnywhere, Category = "Character")
+	UBOOMCharacterMovementComponent* BOOMCharacterMovementComp;
+
+	
+private:
 	UPROPERTY()
 	TArray< AActor* > OverlappedActors;
 
@@ -85,7 +92,8 @@ public:
 
 	void StartFire();
 	UFUNCTION()
-		void StopFire();
+	void StopFire();
+	
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;

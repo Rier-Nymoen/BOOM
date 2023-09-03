@@ -3,6 +3,3 @@
 
 #include "BOOMPlayerCharacter.h"
 
-ABOOMPlayerCharacter::ABOOMPlayerCharacter()
-{
-}

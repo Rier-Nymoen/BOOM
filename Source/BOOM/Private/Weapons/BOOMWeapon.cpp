@@ -471,12 +471,8 @@ bool ABOOMWeapon::IsReadyToFire()
 {
 	if ((GetWorld()->GetTimeSeconds() - LastTimeFiredSeconds) >= (FireRateSeconds))
 	{
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor(69, 2, 180), "Ready to fire");
-
 		return true;
 	}
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.4F, FColor(180, 2, 69), "Not ready to fire");
-
 	return false;
 }
 

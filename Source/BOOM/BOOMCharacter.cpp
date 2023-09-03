@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "BOOMCharacter.h"
+
 #include "BOOMProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
@@ -15,13 +16,17 @@
 #include "Math/NumericLimits.h"
 #include "AI/BOOMAIController.h"
 #include "BOOMHealthComponent.h"
-
+#include "GameFramework/CharacterMovementComponent.h"
+#include "BOOMCharacterMovementComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ABOOMCharacter
 
 ABOOMCharacter::ABOOMCharacter()
 {
+
+	//Could put in object initializer list if I really want to
+	
 	PrimaryActorTick.bCanEverTick = true;
 	// Character doesnt have a rifle at start
 	bHasRifle = false;
@@ -32,7 +37,7 @@ ABOOMCharacter::ABOOMCharacter()
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
-
+	
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>("CharacterMesh1P");
 	Mesh1P->SetOnlyOwnerSee(true);
@@ -56,6 +61,10 @@ ABOOMCharacter::ABOOMCharacter()
 	HealthComponent = CreateDefaultSubobject<UBOOMHealthComponent>("HealthComponent");
 
 	bIsFocalLengthScalingEnabled = false;
+
+	//b crouch maintains place location could be used for crouch jumping
+	
+	BOOMCharacterMovementComp = Cast<UBOOMCharacterMovementComponent>(GetCharacterMovement());
 }
 
 void ABOOMCharacter::BeginPlay()
