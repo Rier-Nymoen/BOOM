@@ -319,6 +319,18 @@ void ABOOMWeapon::ReloadWeapon()
 
 }
 
+void ABOOMWeapon::FeedReloadWeapon()
+{
+	CurrentAmmo++;
+	CurrentAmmoReserves--;
+	check(Character)
+	if (Character->GetPlayerHUD())
+	{
+		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
+		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+	}
+}
+
 
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {

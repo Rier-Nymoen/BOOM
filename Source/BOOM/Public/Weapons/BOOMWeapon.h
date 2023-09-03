@@ -75,6 +75,9 @@ public:
 	virtual void ReloadWeapon();
 
 	UFUNCTION()
+	virtual void FeedReloadWeapon();
+
+	UFUNCTION()
 	virtual void HandleReloadInput();
 
 
