@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "BOOMCharacter.h"
+
 #include "BOOMProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
@@ -15,13 +16,17 @@
 #include "Math/NumericLimits.h"
 #include "AI/BOOMAIController.h"
 #include "BOOMHealthComponent.h"
-
+#include "GameFramework/CharacterMovementComponent.h"
+#include "BOOMCharacterMovementComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ABOOMCharacter
 
 ABOOMCharacter::ABOOMCharacter()
 {
+
+	//Could put in object initializer list if I really want to
+	
 	PrimaryActorTick.bCanEverTick = true;
 	// Character doesnt have a rifle at start
 	bHasRifle = false;
@@ -32,7 +37,7 @@ ABOOMCharacter::ABOOMCharacter()
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
-
+	
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>("CharacterMesh1P");
 	Mesh1P->SetOnlyOwnerSee(true);
@@ -54,6 +59,12 @@ ABOOMCharacter::ABOOMCharacter()
 	bIsPendingFiring = false;
 
 	HealthComponent = CreateDefaultSubobject<UBOOMHealthComponent>("HealthComponent");
+
+	bIsFocalLengthScalingEnabled = false;
+
+	//b crouch maintains place location could be used for crouch jumping
+	
+	BOOMCharacterMovementComp = Cast<UBOOMCharacterMovementComponent>(GetCharacterMovement());
 }
 
 void ABOOMCharacter::BeginPlay()
@@ -99,12 +110,16 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Overlaps++;
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, FString::FromInt(Overlaps));
+
 }	
 
 
 void ABOOMCharacter::OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	Overlaps--;
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Blue, FString::FromInt(Overlaps));
+
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -116,6 +131,9 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		//Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ABOOMCharacter::StartCrouch);
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ABOOMCharacter::EndCrouch); 
 
 		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::Move);
@@ -130,9 +148,11 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ABOOMCharacter::Interact);
 
 		//Fire Weapon
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMCharacter::StartFire);
+		//@TODO - Possibly let weapons bind their own firing input responses
+		//EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMCharacter::StartFire);
+		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Started, this, &ABOOMCharacter::Zoom);
 
-		EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMCharacter::StopFire);
+		//EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMCharacter::StopFire);
 
 		//Reload Weapon
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMCharacter::Reload);
@@ -234,7 +254,7 @@ void ABOOMCharacter::CheckPlayerLook()
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
 
 
-		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0.3);
+		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0.3);
 
 		IInteractableInterface* InteractableObject;
 		if (bHit)
@@ -434,6 +454,35 @@ void ABOOMCharacter::TakePointDamage(AActor* DamagedActor, float Damage, AContro
 
 }
 
+void ABOOMCharacter::Zoom()
+{
+	if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
+	{
+		Weapons[CurrentWeaponSlot]->Zoom();
+	}
+
+}
+
+//@TODO: Store as value
+float ABOOMCharacter::GetFocalLengthScaling()
+{
+	APlayerController* PlayerController;
+	float FocalScalingFactor = 1;
+
+	PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		float FOVAngle = PlayerController->PlayerCameraManager->GetFOVAngle();
+		//90 is default FOV -- store as var
+		FocalScalingFactor= FMath::Tan(FOVAngle / 2) / FMath::Tan(90.F / 2);
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, FString::SanitizeFloat(FocalScalingFactor));
+
+
+	}
+
+	return FocalScalingFactor;
+}
+
 void ABOOMCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -454,9 +503,17 @@ void ABOOMCharacter::Look(const FInputActionValue& Value)
 
 	if (Controller != nullptr)
 	{
+		//@TODO: Move to player settings and include save system
+		if (bIsFocalLengthScalingEnabled)
+		{
+			AddControllerYawInput(LookAxisVector.X * GetFocalLengthScaling());
+			AddControllerPitchInput(LookAxisVector.Y * GetFocalLengthScaling());
+			return;
+		}
 		// add yaw and pitch input to controller
-		AddControllerYawInput(LookAxisVector.X);
-		AddControllerPitchInput(LookAxisVector.Y);
+			AddControllerYawInput(LookAxisVector.X );
+		AddControllerPitchInput(LookAxisVector.Y );
+
 	}
 }
 
@@ -489,6 +546,26 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 			}
 		}
 	}
+}
+
+void ABOOMCharacter::StartCrouch(const FInputActionValue& Value)
+{
+	Crouch();
+}
+
+void ABOOMCharacter::EndCrouch(const FInputActionValue& Value)
+{
+	UnCrouch();
+}
+
+void ABOOMCharacter::Jump()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	Super::Jump();
+
 }
 
 //void ABOOMCharacter::StartFire(const FInputActionValue& Value)

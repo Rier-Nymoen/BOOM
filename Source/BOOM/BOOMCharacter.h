@@ -8,13 +8,14 @@
 #include "Engine/DataTable.h"
 
 #include "BOOMCharacter.generated.h"
-
+class UBOOMCharacterMovementComponent;
 class UInputComponent;
 class USkeletalMeshComponent;
 class USceneComponent;
 class UCameraComponent;
 class UAnimMontage;
 class USoundBase;
+
 
 //want to use Data table since its stored on disk. 
 USTRUCT(BlueprintType)
@@ -47,6 +48,7 @@ public:
 	FName SocketNameGripPoint;
 	FName SocketNameHolsterPoint;
 
+	
 protected:
 	virtual void BeginPlay();
 
@@ -57,6 +59,11 @@ protected:
 	UFUNCTION()
 	void OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UPROPERTY(VisibleAnywhere, Category = "Character")
+	UBOOMCharacterMovementComponent* BOOMCharacterMovementComp;
+
+	
+private:
 	UPROPERTY()
 	TArray< AActor* > OverlappedActors;
 
@@ -85,7 +92,8 @@ public:
 
 	void StartFire();
 	UFUNCTION()
-		void StopFire();
+	void StopFire();
+	
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -98,6 +106,11 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	void SwapWeapon(const FInputActionValue& Value);
+
+	void StartCrouch(const FInputActionValue& Value);
+	void EndCrouch(const FInputActionValue& Value);
+
+	virtual void Jump();
 
 	//void StartFire(const FInputActionValue& Value);
 
@@ -144,6 +157,11 @@ protected:
 		class UInputAction* ReloadAction;
 
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* ZoomAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* CrouchAction;
 
 protected:
 
@@ -227,5 +245,15 @@ protected:
 		virtual void TakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser);
 	
 	bool bIsDead;
+
+	UFUNCTION()
+	void Zoom();
+
+	//Calculates "Focal Length Scaling". 
+	//The intended effect is for regardless of player Zoom, their input will feel the same
+	virtual float GetFocalLengthScaling();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Input)
+	bool bIsFocalLengthScalingEnabled;
 
 };

@@ -10,6 +10,7 @@ void UBOOMWeaponStateEquipping::EnterState()
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
+		Weapon->OnEquip();
 		Weapon->GotoState(Weapon->ActiveState);
 	}
 }

@@ -13,13 +13,9 @@ UCLASS()
 class BOOM_API UBOOMWeaponStateCharging : public UBOOMWeaponStateFiring
 {
 	GENERATED_BODY()
-
-
 public:
 
-
 	UBOOMWeaponStateCharging();
-
 
 	virtual void BeginPlay() override;
 
@@ -27,34 +23,18 @@ public:
 
 	virtual void ExitState() override;
 
+protected:
+	
+	UPROPERTY()
+	FTimerHandle TimerHandle_OnOvercharged;
 
-	virtual void HandleStopFiringInput() override;
+	bool bFiresOnOvercharged;
 
-	//Increment amount of weapon per increment time
-	float ChargeRate;
+	bool bIsOvercharged;
+	UFUNCTION()
+	virtual void OnOvercharged();
 
 	UFUNCTION()
-	virtual void AddCharge(float Amount);
-
-protected:
-	//@TODO consider making charged weapons with other reload types. need more components for that.
-
-
+	virtual void HandleStopFiringInput() override;
 	
-	float CurrentCharge;
-
-	//Level of charge needed to produce charged shot
-	float ChargeThreshold;
-
-	//How often we add ChargeRate.
-	float ChargeIncrementTimeSeconds;
-
-	float ChargedShotCost;
-
-	float UnchargedShotCost;
-
-	FTimerHandle TimerHandle_IncrementCharge;
-
-	FTimerDelegate ChargeDelegate;
-
 };

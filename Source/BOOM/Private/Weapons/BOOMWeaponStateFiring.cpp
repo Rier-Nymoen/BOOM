@@ -12,18 +12,6 @@ I believe refire functionality should reside in the Firing state. Otherwise duri
 */
 UBOOMWeaponStateFiring::UBOOMWeaponStateFiring()
 {
-	//FireRateSeconds = 2.0F;
-	//FireRateSeconds = 0.066F;
-
-	/*
-	
-	Can control aim states with enum and just handle enum
-
-	or i could use a special technique and fake it as a firing state
-	 
-	lower priority, but needs to be prepared for.
-	
-	*/
 
 }
 
@@ -43,7 +31,6 @@ void UBOOMWeaponStateFiring::EnterState()
 			
 			Weapon->Fire();
 			Weapon->GetWorldTimerManager().SetTimer(TimerHandle_RefireTimer, this, &UBOOMWeaponStateFiring::CheckRefireTimer, Weapon->GetFireRateSeconds(), true);
-		
 	}
 }
 
@@ -97,7 +84,7 @@ void UBOOMWeaponStateFiring::CheckRefireTimer()
 	if (Weapon != nullptr)
 	{
 		
-		if (Weapon->IsIntendingToRefire()) //If true, function causes weapon state to change
+		if (Weapon->IsIntendingToRefire()) //If false, function causes weapon state to change
 		{
 			Weapon->Fire();
 			return;

@@ -11,9 +11,8 @@ void UBOOMWeaponStateReloading::EnterState()
 
 	if (Weapon)
 	{	
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor(202,30, 106), "Reload::EnterState");
+		// GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor(202,30, 106), "Reload::EnterState");
 
-		//@check on this in the futue.		
 		if (!Weapon->CanReload())
 		{
 			Weapon->GotoStateActive();

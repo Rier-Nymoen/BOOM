@@ -8,79 +8,66 @@
 
 UBOOMWeaponStateCharging::UBOOMWeaponStateCharging()
 {
-	ChargeRate = 50.0F;
-	CurrentCharge = 0.0F;
-	ChargedShotCost = 10.0F;
-	UnchargedShotCost = 3.0F;
-	ChargeThreshold = 100.0F;
-	ChargeIncrementTimeSeconds = 0.91F;
+	/*
+	 *
+	 *
+	 * An interface 
+	 */
+	bIsOvercharged = false;
+	bFiresOnOvercharged = true;
 }
 
 void UBOOMWeaponStateCharging::BeginPlay()
 {
-	ChargeDelegate.BindUFunction(this, FName("AddCharge"), ChargeRate);
 
 }
 
 void UBOOMWeaponStateCharging::EnterState()
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, ChargeIncrementTimeSeconds, FColor::Cyan, FString::SanitizeFloat(CurrentCharge));
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
-	{             
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, ChargeIncrementTimeSeconds, FColor::Orange, "Timer set");
-
-		Weapon->GetWorldTimerManager().SetTimer(TimerHandle_IncrementCharge, ChargeDelegate, ChargeIncrementTimeSeconds, true);
+	{
+		Weapon->GetWorldTimerManager().SetTimer(TimerHandle_OnOvercharged,  this, &UBOOMWeaponStateCharging::OnOvercharged, 2.F, false);
 	}
 
-
 }
-
-
 
 void UBOOMWeaponStateCharging::ExitState()
 {
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
-		Weapon->GetWorldTimerManager().ClearTimer(TimerHandle_IncrementCharge);
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, ChargeIncrementTimeSeconds, FColor::Orange, "Timer cleared");
-
-
-		CurrentCharge = 0;
-
+		
+		bIsOvercharged = false;
 	}
 }
 
-
-void UBOOMWeaponStateCharging::HandleStopFiringInput()
+void UBOOMWeaponStateCharging::OnOvercharged()
 {
-
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
-		if (CurrentCharge < ChargeThreshold)
+		bIsOvercharged = true;
+		if(bFiresOnOvercharged)
 		{
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Green, "Low charge shot");
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.F, FColor::Blue, "Fired on overchargeD");
+
+			Weapon->Fire();
+
+			//Expand upon allowing other firing states to be called as a result. Ex: Weapon that charges but releases a burst.
+			Weapon->GotoStateActive();
 		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Green, "High charge shot");
-
-		}
-
-
-		Weapon->GotoState(Weapon->ActiveState);
 	}
 }
 
-void UBOOMWeaponStateCharging::AddCharge(float Amount)
+void UBOOMWeaponStateCharging::HandleStopFiringInput()
 {
-	CurrentCharge = FMath::Clamp(CurrentCharge + Amount, 0, ChargeThreshold);
-
-
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, ChargeIncrementTimeSeconds, FColor::Cyan, "Current Charge is: " + FString::SanitizeFloat(CurrentCharge));
-
-
-
+	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
+	if (Weapon)
+	{
+		bIsOvercharged ? Weapon->Fire() : Weapon->ZoomIn();  /*Could have this go to a different firing state entirely, but firemodes and firing states need to be incorporated together.*/
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.F, FColor::Cyan, "Fired or zoomed in on stop firing");
+	}
+	Weapon->GotoStateActive();
 }
+
