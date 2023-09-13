@@ -248,11 +248,7 @@ protected:
 
 	UFUNCTION()
 	void Zoom();
-
-	//Calculates "Focal Length Scaling". 
-	//The intended effect is for regardless of player Zoom, their input will feel the same
-	virtual float GetFocalLengthScaling();
-
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Input)
 	bool bIsFocalLengthScalingEnabled;
 

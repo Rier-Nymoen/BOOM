@@ -4,7 +4,6 @@
 #include "BOOMElectricSource.h"
 
 #include "BOOMElectricRadiusComponent.h"
-#include "BOOMWeightedGraph.h"
 #include "Util/IndexPriorityQueue.h"
 
 // Sets default values

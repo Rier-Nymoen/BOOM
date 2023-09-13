@@ -79,12 +79,10 @@ public:
 
 	UFUNCTION()
 	virtual void HandleReloadInput();
-
-
+	
 	UFUNCTION()
 	virtual void HandleFireInput();
-
-
+	
 	UFUNCTION()
 	virtual void HandleStopFireInput();
 
@@ -111,6 +109,9 @@ public:
 	UFUNCTION()
 	virtual void AddAmmo(int Amount);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int BulletsPerShot;
+	
 	UFUNCTION()
 	virtual bool HasAmmo();
 
@@ -143,10 +144,15 @@ public:
 
 	class UBOOMWeaponState* InactiveState;
 	class UBOOMWeaponState* ActiveState;
+	UPROPERTY(EditAnywhere)
 	class UBOOMWeaponState* CurrentState;
+	UPROPERTY(EditAnywhere)
 	class UBOOMWeaponState* EquippingState;
+	UPROPERTY(EditAnywhere)
 	class UBOOMWeaponState* FiringState;
+	UPROPERTY(EditAnywhere)
 	class UBOOMWeaponState* ReloadingState;
+	UPROPERTY(EditAnywhere)
 	class UBOOMWeaponState* UnequippingState;
 
 	//The time it takes to reload
@@ -156,7 +162,7 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float HitscanRange;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float FireRateSeconds;
 
@@ -172,8 +178,7 @@ public:
 
 	UFUNCTION()
 	void GotoStateInactive();
-
-
+	
 	UFUNCTION()
 	float GetFireRateSeconds();
 
@@ -194,19 +199,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Overrides)
 	bool bVisualizeHitscanTraces;
-
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
-	float MaxSpreadX;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
-	float MaxSpreadZ;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
-	float MinSpreadX;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
-	float MinSpreadZ;
+	
 
 	UPROPERTY(BlueprintReadWrite, Category = Weapon)
 
@@ -217,9 +210,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = Weapon)
 
 	struct FRuntimeFloatCurve HeatCooldownCurve;
-
-
-
+	
 	/*
 	Move to OverheatComponent
 	*/
@@ -236,14 +227,12 @@ public:
 	bool bIsOverheated;
 
 	virtual void Cooldown();
-
-
+	
 	FTimerHandle TimerHandle_WeaponCooldown;
 	/*
 	Move to OverheatComponent
 	*/
-
-
+	
 	/*
 	Weapon Zooming
 	
@@ -266,37 +255,56 @@ public:
 	//
 	// UPROPERTY()
 	// float Charge;
-
-
+	
 	virtual void OnEquip();
 
 	virtual void OnUnequip();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* FireAction;
-
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* StopFireAction;
-
 
 	//Maps heat level to bullet spread angle
 
 	/*
 	Will be adaptable to allow the heat level to affect the weapon spread if desired.
-
-
-	
 	*/
-	UPROPERTY(EditAnywhere, Category = Curve)
-	struct FRuntimeFloatCurve SpreadCurve;
 
+	float CurrentHeat;
+
+	//type if for defining curves for object in editor
+	UPROPERTY(EditAnywhere, Category = Spread)
+	struct FRuntimeFloatCurve HeatToSpreadCurve;
+
+	UPROPERTY(EditAnywhere, Category = Spread)
+	struct FRuntimeFloatCurve HeatToCooldownCurve;
+
+	UPROPERTY(EditAnywhere, Category = Spread)
+	struct FRuntimeFloatCurve HeatToHeatIncreaseCurve;
+	
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	float WeaponCoolingStartSeconds;
+	
 	FVector CalculateBulletSpreadDir(FRotator StartRot);
+
+
+	UPROPERTY(EditAnywhere, Category = Spread)
+	bool bHeatAffectsSpread;
 
 	UPROPERTY(EditAnywhere, Category = Spread)
 	float MaxSpreadAngle;
 
+	
+	UPROPERTY(EditAnywhere, Category = Spread)
+	float MinSpreadAngle;
+
 	UPROPERTY(EditAnywhere, Category = Spread)
 	float CurrentSpreadAngle;
 
+	//Affects how likely shots are to group towards the center. From the center, a random value is picked and raised to the power of SpreadGroupingExponent
+	UPROPERTY(EditAnywhere, Category = Spread)
+	float SpreadGroupingExponent;
+	
 };
