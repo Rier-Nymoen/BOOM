@@ -162,7 +162,7 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float HitscanRange;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float FireRateSeconds;
 
@@ -283,6 +283,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Spread)
 	struct FRuntimeFloatCurve HeatToHeatIncreaseCurve;
+	
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	float WeaponCoolingStartSeconds;
 	
 	FVector CalculateBulletSpreadDir(FRotator StartRot);
 

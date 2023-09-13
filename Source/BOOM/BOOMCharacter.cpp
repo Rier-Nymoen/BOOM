@@ -250,11 +250,8 @@ void ABOOMCharacter::CheckPlayerLook()
 		FHitResult HitResult;
 		FCollisionQueryParams TraceParams;
 
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
-
-
-		//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0.3);
-
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel4, TraceParams);
+		
 		IInteractableInterface* InteractableObject;
 		if (bHit)
 		{
@@ -262,7 +259,6 @@ void ABOOMCharacter::CheckPlayerLook()
 			{
 				return;
 			}
-
 			HighlightedActor = HitResult.GetActor();
 
 			InteractableObject = Cast<IInteractableInterface>(HighlightedActor);
@@ -279,6 +275,7 @@ void ABOOMCharacter::CheckPlayerLook()
 			{
 				InteractableObject->OnInteractionRangeExited(this);
 			}
+			
 			if(Overlaps > 0)
 			{
 				HighlightedActor = this->GetNearestInteractable();
@@ -289,10 +286,8 @@ void ABOOMCharacter::CheckPlayerLook()
 					InteractableObject->OnInteractionRangeEntered(this);
 				}			
 			}
-
 		}
 	}
-
 }
 
 //@TODO: Revamp later when other inventory features are implemented.
@@ -569,7 +564,6 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 			HighlightedActor = nullptr;
 			InteractableObject->Interact(this);
 			InteractableObject->OnInteractionRangeExited(this);
-			
 		}
 		this->GetNearestInteractable();
 		return;

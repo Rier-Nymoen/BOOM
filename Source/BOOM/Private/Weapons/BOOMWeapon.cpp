@@ -71,6 +71,8 @@ ABOOMWeapon::ABOOMWeapon()
 	CurrentHeat = 0;
 
 	SpreadGroupingExponent = 2;
+
+	WeaponCoolingStartSeconds = 2.F;
 	
 }
 
@@ -132,8 +134,7 @@ void ABOOMWeapon::Fire()
 		CurrentSpreadAngle = HeatToSpreadCurve.GetRichCurve()->Eval(CurrentHeat);
 		
 		CurrentSpreadAngle = FMath::Clamp(CurrentSpreadAngle, MinSpreadAngle, MaxSpreadAngle);
-		//not in right position but too tired to think right now
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_WeaponCooldown, this, &ABOOMWeapon::Cooldown, 2, true);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_WeaponCooldown, this, &ABOOMWeapon::Cooldown, WeaponCoolingStartSeconds, true);
 	}
 }
 
@@ -215,7 +216,6 @@ void ABOOMWeapon::FireHitscan()
 		}
 		/*
 		Use map of bone names to damage?
-		Maybe oncomponent hit to get the functionality within the actor.
 		*/
 	}
 }
@@ -326,16 +326,16 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 	const  FString cont(TEXT("cont"));
 
 	check(TargetCharacter)
-		FItemInformation* WeaponData = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, true);
+	FItemInformation* WeaponData = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, true);
 
-	if (WeaponData)
+	if(TargetCharacter->GetPlayerHUD())
 	{
-		if (TargetCharacter->GetPlayerHUD())
+		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptText(Name);
+		if(WeaponData)
 		{
 			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptImage(WeaponData->ItemImage);
-			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptText(Name);
-			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Visible);
 		}
+		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
