@@ -24,7 +24,6 @@
 
 ABOOMCharacter::ABOOMCharacter()
 {
-
 	//Could put in object initializer list if I really want to
 	
 	PrimaryActorTick.bCanEverTick = true;
@@ -304,7 +303,6 @@ void ABOOMCharacter::SpawnWeapons()
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Too many weapons added to character");
 	}
 	
-	
 	for (TSubclassOf<ABOOMWeapon> WeaponClass : WeaponsToSpawn)
 	{
 		if(!WeaponClass)
@@ -325,7 +323,8 @@ void ABOOMCharacter::SpawnWeapons()
 
 void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 {
-	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
+
 	TargetWeapon->Character = this;
 
 
@@ -449,9 +448,6 @@ void ABOOMCharacter::TakePointDamage(AActor* DamagedActor, float Damage, AContro
 	/*
 	Could map bone names to damage modifier values. For now only differentiate headshots
 	*/
-
-
-
 }
 
 void ABOOMCharacter::Zoom()
@@ -463,25 +459,6 @@ void ABOOMCharacter::Zoom()
 
 }
 
-//@TODO: Store as value
-float ABOOMCharacter::GetFocalLengthScaling()
-{
-	APlayerController* PlayerController;
-	float FocalScalingFactor = 1;
-
-	PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController)
-	{
-		float FOVAngle = PlayerController->PlayerCameraManager->GetFOVAngle();
-		//90 is default FOV -- store as var
-		FocalScalingFactor= FMath::Tan(FOVAngle / 2) / FMath::Tan(90.F / 2);
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, FString::SanitizeFloat(FocalScalingFactor));
-
-
-	}
-
-	return FocalScalingFactor;
-}
 
 void ABOOMCharacter::Move(const FInputActionValue& Value)
 {
@@ -500,19 +477,14 @@ void ABOOMCharacter::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
+	
 	if (Controller != nullptr)
 	{
 		//@TODO: Move to player settings and include save system
-		if (bIsFocalLengthScalingEnabled)
-		{
-			AddControllerYawInput(LookAxisVector.X * GetFocalLengthScaling());
-			AddControllerPitchInput(LookAxisVector.Y * GetFocalLengthScaling());
-			return;
-		}
+
 		// add yaw and pitch input to controller
-			AddControllerYawInput(LookAxisVector.X );
-		AddControllerPitchInput(LookAxisVector.Y );
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(LookAxisVector.Y);
 
 	}
 }
@@ -526,8 +498,11 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 	//@TODO - switch to isValidIndex checks
 	if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
 	{
-		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+
+		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
+		
 		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameHolsterPoint);
+		
 		Weapons[CurrentWeaponSlot]->HandleUnequipping();
 
 		//

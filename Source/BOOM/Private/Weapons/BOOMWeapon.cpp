@@ -23,7 +23,6 @@
 #include "Components/DecalComponent.h"
 #include "Components/CapsuleComponent.h"
 
-
 // Sets default values
 ABOOMWeapon::ABOOMWeapon()
 {
@@ -66,10 +65,14 @@ ABOOMWeapon::ABOOMWeapon()
 
 	TimeCooling = 0;
 	bIsOverheated = false;
+	BulletsPerShot = 1;
 
+	bHeatAffectsSpread = false;
+	CurrentHeat = 0;
+
+	SpreadGroupingExponent = 2;
+	
 }
-
-
 
 // Called when the game starts or when spawned
 void ABOOMWeapon::BeginPlay()
@@ -81,16 +84,12 @@ void ABOOMWeapon::BeginPlay()
 
 	Super::BeginPlay();
 	bGenerateOverlapEventsDuringLevelStreaming = true;
-
-
 }
 
 void ABOOMWeapon::Tick(float DeltaSeconds)
 {
 
-
 }
-
 
 void ABOOMWeapon::Fire()
 {
@@ -99,36 +98,43 @@ void ABOOMWeapon::Fire()
 		return;
 	}
 
-
 	AddAmmo(-AmmoCost);
-
-
+	
 	//Update the time weapon was fired.
 	LastTimeFiredSeconds = GetWorld()->GetTimeSeconds();
 
+		//need object pooling solution before implementing multiple projectiles per shot.
+		if (Projectile)
+		{
 
-	//delete temp code
-	if (Projectile)
-	{
-
-		FireProjectile();
-	}
-	else
-	{
-		FireHitscan();
-
-	}
-
+			FireProjectile();
+		}
+		else
+		{
+			FireHitscan();
+		}	
+	
+	
 	if (Character->GetPlayerHUD())
 	{
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-
 	}
 
-	/*
-	For now, depending on player controller, thats where we originate the vectors.
-	*/
-
+	//TODO if weapon spread changes based on heat level
+	
+	//Should clamp the values around the ranges of the curves incase we get an X value that is out of range of the curve it will be used as an input to.
+	if(bHeatAffectsSpread)
+	{
+		GetWorldTimerManager().ClearTimer(TimerHandle_WeaponCooldown);
+		
+		CurrentHeat += HeatToHeatIncreaseCurve.GetRichCurve()->Eval(CurrentHeat);
+		
+		CurrentSpreadAngle = HeatToSpreadCurve.GetRichCurve()->Eval(CurrentHeat);
+		
+		CurrentSpreadAngle = FMath::Clamp(CurrentSpreadAngle, MinSpreadAngle, MaxSpreadAngle);
+		//not in right position but too tired to think right now
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_WeaponCooldown, this, &ABOOMWeapon::Cooldown, 2, true);
+	}
 }
 
 bool ABOOMWeapon::IsIntendingToRefire()
@@ -151,11 +157,9 @@ bool ABOOMWeapon::IsIntendingToRefire()
 
 ABOOMCharacter* ABOOMWeapon::GetCharacter()
 {
-
 	checkSlow(Character)
 		return Character;
 }
-
 
 /*
 Fire Hitscan/Projectile: Can choose between firing from actual muzzle of weapon, or camera. On AI, the firing would look weird coming from some camera. 
@@ -163,16 +167,12 @@ Fire Hitscan/Projectile: Can choose between firing from actual muzzle of weapon,
 
 void ABOOMWeapon::FireHitscan()
 {
-	//@TODO: revamp
-
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 
 	FVector StartTrace;
 	FVector EndTrace;
 	if (PlayerController && !bOverrideCameraFiring)//change back to player controller
 	{
-
-
 		//Eventually must change these to adjust for aim based on weapon spread. 
 		FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 		FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
@@ -192,9 +192,6 @@ void ABOOMWeapon::FireHitscan()
 
 			EndTrace = StartTrace * HitscanRange;
 		}
-
-
-
 	}
 	FHitResult HitResult;
 	FCollisionQueryParams TraceParams;
@@ -203,7 +200,6 @@ void ABOOMWeapon::FireHitscan()
 	if (bVisualizeHitscanTraces)
 	{
 		DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
-
 	}
 	
 	if (bHit)
@@ -216,19 +212,16 @@ void ABOOMWeapon::FireHitscan()
 		{
 			UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), ImpactDecal, FVector(5, 5, 5), HitResult.Location);
 			Decal->SetFadeScreenSize(0.F);
-			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, "impact decal");
-
 		}
 		/*
 		Use map of bone names to damage?
-
-		Maybe oncomponent hit to get the functionality within the actor.		*/
+		Maybe oncomponent hit to get the functionality within the actor.
+		*/
 	}
 }
 
 void ABOOMWeapon::FireProjectile()
 {
-
 	//thought i could const before  but it seems not...
 	UWorld* const World = GetWorld();
 	if (World)
@@ -243,27 +236,21 @@ void ABOOMWeapon::FireProjectile()
 
 			ProjectileSpawnLocation = CameraLocation;
 			ProjectileSpawnRotation = CameraRotation;
-
 		}
 		else 
 		{
 			FVector MuzzleLocation = Weapon1P->GetSocketLocation("Muzzle");
 			FRotator MuzzleRotation = Weapon1P->GetSocketRotation("Muzzle");
-
-
+			
 			ProjectileSpawnLocation = MuzzleLocation;
 			ProjectileSpawnRotation = MuzzleRotation;
 		}
-		
 		//spread goes heres
-
-
 		FActorSpawnParameters ProjectileSpawnParams;
 
 		ProjectileSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		ProjectileSpawnRotation = CalculateBulletSpreadDir(ProjectileSpawnRotation).Rotation();
-
-
+		
 		//ABOOMProjectile* SpawnedProjectile = World->SpawnActor<ABOOMProjectile>(Projectile, ProjectileSpawnLocation, ProjectileSpawnRotation, ProjectileSpawnParams);
 		FTransform ProjectileTransform(ProjectileSpawnRotation, ProjectileSpawnLocation);
 		ABOOMProjectile* SpawnedProjectile = Cast<ABOOMProjectile>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, Projectile, ProjectileTransform));
@@ -277,13 +264,10 @@ void ABOOMWeapon::FireProjectile()
 			Character->GetCapsuleComponent()->MoveIgnoreActors.Add(SpawnedProjectile);
 			/*
 			Possibly empty MoveIgnoreActors after x amount of time.
-			
 			*/
-
 			UGameplayStatics::FinishSpawningActor(SpawnedProjectile, ProjectileTransform);
 		}
 	}
-
 }
 
 void ABOOMWeapon::HandleReloadInput()
@@ -311,12 +295,8 @@ void ABOOMWeapon::ReloadWeapon()
 				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
 				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
 			}
-
-
 	}
-
 	GotoState(ActiveState);
-
 }
 
 void ABOOMWeapon::FeedReloadWeapon()
@@ -330,7 +310,6 @@ void ABOOMWeapon::FeedReloadWeapon()
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
 	}
 }
-
 
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {
@@ -351,15 +330,12 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 
 	if (WeaponData)
 	{
-
 		if (TargetCharacter->GetPlayerHUD())
 		{
 			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptImage(WeaponData->ItemImage);
 			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptText(Name);
 			TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Visible);
 		}
-
-
 	}
 }
 
@@ -383,7 +359,6 @@ void ABOOMWeapon::HandleFireInput()
 
 void ABOOMWeapon::HandleStopFireInput()
 {
-
 	if (Character)
 	{
 		Character->bIsPendingFiring = false;
@@ -418,7 +393,6 @@ void ABOOMWeapon::HandleUnequipping()
 	CurrentState->HandleUnequipping();
 }
 
-
 void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 {
 
@@ -445,12 +419,10 @@ void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 			ZoomOut();
 		}
 	}
-
-
+	
 	CurrentState->EnterState();
 	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.F, FColor(255, 82, 255), "End of ID: " + GetName() + "Model Name:" + Name.ToString());
-
-
+	
 }
 
 void ABOOMWeapon::GotoStateEquipping()
@@ -498,9 +470,10 @@ void ABOOMWeapon::HandleBeingDropped()
 	Weapon1P->SetSimulatePhysics(true);
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepWorld, false);
 	BOOMPickUp->AttachToComponent(Weapon1P, AttachmentRules);
+
+	
 	if (Character)
 	{
-
 		Weapon1P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		/*
 		On character death, velocity will be 0, need to have character have velocity on death.
@@ -513,7 +486,6 @@ void ABOOMWeapon::HandleBeingDropped()
 
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Character = nullptr;
-
 }
 
 void ABOOMWeapon::DisableCollision()
@@ -522,7 +494,6 @@ void ABOOMWeapon::DisableCollision()
 	Weapon1P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	BOOMPickUp->SetSimulatePhysics(false);
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
 }
 
 bool ABOOMWeapon::CanReload()
@@ -533,38 +504,7 @@ bool ABOOMWeapon::CanReload()
 void ABOOMWeapon::Heat()
 {
 
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_WeaponCooldown, this, &ABOOMWeapon::Cooldown, 0.1, true);
-
-		Temperature += FMath::Clamp(HeatingRate * Temperature + HeatingRate, 0, 100);
-		Temperature = FMath::Clamp(Temperature, 0, 100);
-
-		/*
-		Model it after Heat Transfer Rate.
-
-		Heat dissipation rate.
-
-
-		*/
-		if (Temperature >= 100)
-		{
-			bIsOverheated = true;
-			GotoState(InactiveState);
-			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "OVERHEATED");
-
-		}
-
-
-	TimeCooling = 0;
-
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.2F, FColor::Orange, FString::SanitizeFloat(Temperature));
-
-	
-
-	
-
-
 }
-
 
 void ABOOMWeapon::Zoom()
 {
@@ -572,19 +512,13 @@ void ABOOMWeapon::Zoom()
 	{
 		ZoomOut();
 		return;
-
 	}
-
 	if(CurrentState != ReloadingState && CurrentState != EquippingState && CurrentState != UnequippingState)
 	{
 
 		ZoomIn();
 	}
-
-	
 }
-
-
 
 void ABOOMWeapon::ZoomOut()
 {
@@ -592,56 +526,36 @@ void ABOOMWeapon::ZoomOut()
 	if (PlayerController)
 	{
 		ZoomMode = EZoom::Not_Zoomed;
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Zoomed out");
 		PlayerController->PlayerCameraManager->SetFOV(90);
 	}
-
-
 }
-
-
 
 void ABOOMWeapon::ZoomIn()
 {
-
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 	if (PlayerController)
 	{
 		ZoomMode = EZoom::Zoomed;
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Green, "Zoomed in");
 		PlayerController->PlayerCameraManager->SetFOV(45);
 	}
-
-
 }
 
 void ABOOMWeapon::Cooldown()
 {
-	TimeCooling += GetWorld()->GetTimerManager().GetTimerElapsed(TimerHandle_WeaponCooldown);
 	
-		Temperature -= CoolingRate * TimeCooling;
-		Temperature = FMath::Clamp(Temperature, 0, 100);
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.2F, FColor::Green, FString::SanitizeFloat(TimeCooling));
-
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.2F, FColor::Cyan, FString::SanitizeFloat(Temperature));
 	
+	float CooldownRate = HeatToCooldownCurve.GetRichCurve()->Eval(CurrentHeat);
+	CurrentHeat = FMath::Clamp(CurrentHeat - CooldownRate, 0.F , 100.F);
 
-	if (Temperature <= 0)
+	if(CurrentHeat == 0 )
 	{
-
-		if (bIsOverheated)
-		{
-			GotoState(ActiveState);
-			bIsOverheated = false;
-		}
-
-		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_WeaponCooldown);
+		GetWorldTimerManager().ClearTimer(TimerHandle_WeaponCooldown);
 	}
+	
 }
 
 void ABOOMWeapon::OnEquip()
 {
-
 	/*
 	The advantage of having the player bind their own inputs is to avoid the complexity of binding inputs say in - weapons with varying input cases, and vehicles.
 	Even if you used an interactable interface, I believe managing the complexity this way is easier.
@@ -661,9 +575,6 @@ void ABOOMWeapon::OnEquip()
 		}
 
 	}
-
-
-
 }
 
 
@@ -682,9 +593,6 @@ void ABOOMWeapon::OnUnequip()
 
 			EnhancedInputComponent->ClearActionBindings();
 			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Orange, "OnUnequip");
-
-
-
 			DisableInput(Cast<APlayerController>(PlayerController));
 		}
 	}
@@ -694,20 +602,20 @@ void ABOOMWeapon::OnUnequip()
 FVector ABOOMWeapon::CalculateBulletSpreadDir(FRotator StartRot) //This is circular spread. The idea  to use Quaternions was from Epic's Lyra project.
 {	
 	//Imagining an axis of rotation around the weapon's barrel, this is will represent where on a spread circle the bullet will land. (Magnitude of Rotation)
-	float AngleAround = FMath::FRand() * 360;
+	const float AngleAround = FMath::FRand() * 360;
 
 	//Angle of deviation from the barrel (Affects Radius of spread circle)
-	float HalfAngle = FMath::FRand() * FMath::FRand() * FMath::FRand() *  CurrentSpreadAngle / 2;
+	const float HalfAngle = FMath::Pow(FMath::FRand(), SpreadGroupingExponent) *  CurrentSpreadAngle / 2;
 
 	//WorldRotation of Weapon muzzle.
-	FQuat StartQuat(StartRot);
+	 FQuat StartQuat(StartRot);
 
-	FQuat HalfAngleQuat(FRotator(HalfAngle, 0,0)); 
+	 FQuat HalfAngleQuat(FRotator(HalfAngle, 0,0)); 
 
-	FQuat AngleAroundQuat(FRotator(0, 0, AngleAround));
+	 FQuat AngleAroundQuat(FRotator(0, 0, AngleAround));
 
 	//Has to be done right to left: Rotate to origin of shot <-- Rotate vector along axis  <-- Apply Deviation
-	FQuat FinalQuat = StartQuat * AngleAroundQuat* HalfAngleQuat;
+	 FQuat FinalQuat = StartQuat * AngleAroundQuat* HalfAngleQuat;
 
 	//I believe with how Epic implements quaternions, the Identity Quaterion is  cos(0) + sin(0)(1,0,0).
 	/*
