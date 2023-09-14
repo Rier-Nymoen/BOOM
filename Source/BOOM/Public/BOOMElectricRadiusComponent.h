@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable, ClassGroup=(Custom), meta = (BlueprintSpawnableComponent))
 class BOOM_API UBOOMElectricRadiusComponent : public USphereComponent
 {
 	GENERATED_BODY()
