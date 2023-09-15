@@ -17,7 +17,6 @@ class BOOM_API UBOOMElectricRadiusComponent : public USphereComponent
 public:
 
 	UBOOMElectricRadiusComponent();
-
 protected:
 
 	virtual void BeginPlay() override;
@@ -27,5 +26,6 @@ protected:
 
 	UFUNCTION()
 	void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 
 };

@@ -2,6 +2,7 @@
 
 
 #include "BOOMElectricRadiusComponent.h"
+#include "BOOMElectricSourceComponent.h"
 
 UBOOMElectricRadiusComponent::UBOOMElectricRadiusComponent()
 {
@@ -10,9 +11,6 @@ UBOOMElectricRadiusComponent::UBOOMElectricRadiusComponent()
 	SetCollisionProfileName("ElectricProfile");
 	bHiddenInGame = true;
 	ShapeColor = FColor(255, 0, 204);
-
-
-
 }
 
 void UBOOMElectricRadiusComponent::BeginPlay()
@@ -24,12 +22,8 @@ void UBOOMElectricRadiusComponent::BeginPlay()
 
 void UBOOMElectricRadiusComponent::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Cyan, "Electricity connection");
 }
 
 void UBOOMElectricRadiusComponent::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Orange, "Electricity disconnection");
-
 }
