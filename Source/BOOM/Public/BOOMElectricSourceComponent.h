@@ -61,9 +61,6 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
-	
-	UPROPERTY(EditAnywhere, Category = State)
-	bool bIsActivated;
 
 	UPROPERTY()
 	FTimerHandle TimerHandle_ConnectMST;
@@ -95,8 +92,9 @@ protected:
 	UFUNCTION()
 	void OnTest(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UFUNCTION()
-	void OnTestEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	UPROPERTY(VisibleAnywhere)
+	bool bCanBeRecalculated;
+
 
 
 };

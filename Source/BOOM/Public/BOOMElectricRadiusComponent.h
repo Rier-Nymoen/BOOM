@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/SphereComponent.h"
+#include "Interfaces/ElectricInterface.h"
 #include "BOOMElectricRadiusComponent.generated.h"
 
 /**
  * 
  */
-UCLASS(Blueprintable, ClassGroup=(Custom), meta = (BlueprintSpawnableComponent))
-class BOOM_API UBOOMElectricRadiusComponent : public USphereComponent
+UCLASS(Blueprintable, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class BOOM_API UBOOMElectricRadiusComponent : public USphereComponent, public IElectricInterface
 {
 	GENERATED_BODY()
 
@@ -27,5 +28,10 @@ protected:
 	UFUNCTION()
 	void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	virtual void OnConnectToPower() override;
+	virtual void OnDisconnectFromPower() override;
+
+	UPROPERTY(VisibleAnywhere, Category = State);
+	bool bIsPowered;
 
 };

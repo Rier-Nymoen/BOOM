@@ -11,6 +11,7 @@ UBOOMElectricRadiusComponent::UBOOMElectricRadiusComponent()
 	SetCollisionProfileName("ElectricProfile");
 	bHiddenInGame = true;
 	ShapeColor = FColor(255, 0, 204);
+	bIsPowered = false;
 }
 
 void UBOOMElectricRadiusComponent::BeginPlay()
@@ -26,4 +27,22 @@ void UBOOMElectricRadiusComponent::OnSphereBeginOverlap(UPrimitiveComponent* Ove
 
 void UBOOMElectricRadiusComponent::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+}
+
+void UBOOMElectricRadiusComponent::OnConnectToPower()
+{	
+	if (bIsPowered)
+	{
+		return;
+	}
+	bIsPowered = true;
+}
+
+void UBOOMElectricRadiusComponent::OnDisconnectFromPower()
+{
+	if (!bIsPowered)
+	{
+		return;
+	}
+	bIsPowered = false;
 }

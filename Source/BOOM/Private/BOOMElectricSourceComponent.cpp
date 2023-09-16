@@ -11,11 +11,11 @@
 UBOOMElectricSourceComponent::UBOOMElectricSourceComponent()
 {
 	Overlaps = 0;
-	bIsActivated = true;
 	RecalculateInterval = 0.3F;
 	bHiddenInGame = true;
 	SphereRadius = 250.F;
 	ShapeColor = FColor(0, 60, 255);
+	bCanBeRecalculated = true;
 }
 
 void UBOOMElectricSourceComponent::BeginPlay()
@@ -27,36 +27,58 @@ void UBOOMElectricSourceComponent::BeginPlay()
 
 		if(GetOwner())
 		{
-			GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true); //change bool
+			GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true); //change bool after debugging.
 		}
-	
 }
 
-/*
-Prim's Algorithm Implementation - Creates a Minimum Spanning Tree -  https://en.wikipedia.org/wiki/Minimum_spanning_tree#:~:text=A%20minimum%20spanning%20tree%20(MST,minimum%20possible%20total%20edge%20weight.
-*/
-//If any component gets deleted from editor, can cause a major problem
-
-//@TODO handle updating of MST when non-conducting nodes block paths. Probably get overlap of the connections between?
-//@TOOD few bugs to handle but its looking okay
-void UBOOMElectricSourceComponent::MST()
+void UBOOMElectricSourceComponent::CheckForUpdates()
 {
+	bCanBeRecalculated = true;
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Magenta, FString::FromInt(LastCheckedPosition.Num()));
 	for (TPair<UPrimitiveComponent*, FVector> Component : LastCheckedPosition)
 	{
+		if (Component.Key->GetComponentLocation() == Component.Value)
+		{
+			continue;
+		}
+		else
+		{
+			MST();
+			return;
+		}
+	}
+}
+/*	
+Prim's Algorithm Implementation - Creates a Minimum Spanning Tree -  https://en.wikipedia.org/wiki/Minimum_spanning_tree#:~:text=A%20minimum%20spanning%20tree%20(MST,minimum%20possible%20total%20edge%20weight.
+*/
 
+/*
+@TODO research if its worth using an incremental MST algorithm. Would love to optimize but time constraints exist.
+@TODO note in this version objects that block connections dont update the MST... yet.
+*/
+//Need to make sure actors using the component have level streaming enabled
+//bug if you cant calculate the MST the first try with whats overlapping, then you cant cant rebuild the tree until inserting a new node.
+void UBOOMElectricSourceComponent::MST()
+{
+	//Realistically we will want to see if the components owner implements the interface.
+	for (TPair<UPrimitiveComponent*, FVector> Component : LastCheckedPosition)
+	{
 		Component.Key->OnComponentBeginOverlap.Clear();
+		if (IElectricInterface* ElectricObject = Cast<IElectricInterface>(Component.Key))
+		{
+			ElectricObject->OnDisconnectFromPower();
+		}
+		
 	}
 
 	LastCheckedPosition.Empty();
 
 	GetOverlappingComponents(OverlappedComponents);
-
 	TSet<UPrimitiveComponent*> Visited;
 	TMap<UPrimitiveComponent*, float> DistanceMap;
 	TArray<FPriorityQueueNode> PriorityQueue;
 	TArray<FPriorityQueueNode> Path;
 	FCollisionQueryParams TraceParams;
-
 	
 	FPriorityQueueNode StartNode(this, 0, nullptr, this->GetComponentLocation());
 	DistanceMap.Add(this, 0);
@@ -68,7 +90,6 @@ void UBOOMElectricSourceComponent::MST()
 	{
 		FPriorityQueueNode CurrentNode;
 		PriorityQueue.HeapPop(CurrentNode, FMinDistancePredicate());
-		
 
 		if(Visited.Find(CurrentNode.Component))
 		{
@@ -117,41 +138,50 @@ void UBOOMElectricSourceComponent::MST()
 				DistanceMap[Neighbor] = DistanceSquared;
 				PriorityQueue.HeapPush(NewNode, FMinDistancePredicate());
 			}
-			
 		}
 	}
 	ConnectMST(Path);
 }
 
-void UBOOMElectricSourceComponent::CheckForUpdates()
+void UBOOMElectricSourceComponent::ConnectMST(TArray<FPriorityQueueNode> MSTResult)
 {
-
-	if (LastCheckedPosition.IsEmpty())
+	int i = 0;
+	if (MSTResult.IsEmpty())
 	{
 		return;
 	}
-	
-	for (TPair<UPrimitiveComponent*, FVector> Component : LastCheckedPosition)
+	while (i < MSTResult.Num())
 	{
 
-		if (Component.Key->GetComponentLocation() == Component.Value)
+		if (MSTResult[i].ParentComponent != nullptr)
 		{
-			continue;
-		}
-		else
-		{
-			MST();
-			return;
-		}
-	}
-}
+			UPrimitiveComponent* CurrentNode = MSTResult[i].Component;
 
+			LastCheckedPosition.Add(CurrentNode, MSTResult[i].Position);
+
+			CurrentNode->OnComponentBeginOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnTest);
+
+			DrawDebugLine(GetWorld(), CurrentNode->GetComponentLocation(), MSTResult[i].ParentComponent->GetComponentLocation(), FColor::Blue, false, RecalculateInterval, 1, 3.F);
+
+			if (IElectricInterface* ElectricObject = Cast<IElectricInterface>(CurrentNode))
+			{
+				ElectricObject->OnConnectToPower();
+			}
+		}
+		i++;
+	}
+
+}
 
 
 void UBOOMElectricSourceComponent::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Blue, "rootoverlap");
-	MST();
+	if (bCanBeRecalculated)
+	{
+		bCanBeRecalculated = false;
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
+		MST();
+	}
 }
 
 void UBOOMElectricSourceComponent::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -160,37 +190,13 @@ void UBOOMElectricSourceComponent::OnSphereEndOverlap(UPrimitiveComponent* Overl
 
 void UBOOMElectricSourceComponent::OnTest(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
-	MST();
-}
-
-void UBOOMElectricSourceComponent::OnTestEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
-	MST();
-}
-
-void UBOOMElectricSourceComponent::ConnectMST(TArray<FPriorityQueueNode> MSTResult)
-{
-	int i = 0;
-	if(!MSTResult.IsEmpty())
+	if (bCanBeRecalculated)
 	{
-		while(i < MSTResult.Num())
-		{
-			
-			if(MSTResult[i].ParentComponent != nullptr)
-			{
-
-				UPrimitiveComponent* CurrentNode = MSTResult[i].Component;
-				LastCheckedPosition.Add(CurrentNode, MSTResult[i].Position);
-
-				//this can bind itself 1000+ times.. big no no.
-				CurrentNode->OnComponentBeginOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnTest);
-
-				DrawDebugLine(GetWorld(), CurrentNode->GetComponentLocation(), MSTResult[i].ParentComponent->GetComponentLocation(), FColor::Blue, false, RecalculateInterval,1, 3.F);
-			}
-			i++;
-		}
+		bCanBeRecalculated = false;
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
+		MST();
 	}
 }
+
+
 
