@@ -34,7 +34,6 @@ void UBOOMElectricSourceComponent::BeginPlay()
 void UBOOMElectricSourceComponent::CheckForUpdates()
 {
 	bCanBeRecalculated = true;
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Magenta, FString::FromInt(LastCheckedPosition.Num()));
 	for (TPair<UPrimitiveComponent*, FVector> Component : LastCheckedPosition)
 	{
 		if (Component.Key->GetComponentLocation() == Component.Value)
@@ -62,8 +61,14 @@ void UBOOMElectricSourceComponent::MST()
 {
 	//Realistically we will want to see if the components owner implements the interface.
 	for (TPair<UPrimitiveComponent*, FVector> Component : LastCheckedPosition)
-	{
+	{	
+		if (!IsValid(Component.Key))
+		{
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 50.F, FColor::Red, "CAUGHT BAD CASE");
+			continue;
+		}
 		Component.Key->OnComponentBeginOverlap.Clear();
+
 		if (IElectricInterface* ElectricObject = Cast<IElectricInterface>(Component.Key))
 		{
 			ElectricObject->OnDisconnectFromPower();
@@ -72,6 +77,7 @@ void UBOOMElectricSourceComponent::MST()
 	}
 
 	LastCheckedPosition.Empty();
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
 
 	GetOverlappingComponents(OverlappedComponents);
 	TSet<UPrimitiveComponent*> Visited;
@@ -179,7 +185,6 @@ void UBOOMElectricSourceComponent::OnSphereBeginOverlap(UPrimitiveComponent* Ove
 	if (bCanBeRecalculated)
 	{
 		bCanBeRecalculated = false;
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
 		MST();
 	}
 }
@@ -193,7 +198,6 @@ void UBOOMElectricSourceComponent::OnTest(UPrimitiveComponent* OverlappedCompone
 	if (bCanBeRecalculated)
 	{
 		bCanBeRecalculated = false;
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
 		MST();
 	}
 }
