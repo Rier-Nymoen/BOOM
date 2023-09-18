@@ -28,21 +28,3 @@ void UBOOMElectricRadiusComponent::OnSphereBeginOverlap(UPrimitiveComponent* Ove
 void UBOOMElectricRadiusComponent::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 }
-
-void UBOOMElectricRadiusComponent::OnConnectToPower()
-{	
-	if (bIsPowered)
-	{
-		return;
-	}
-	bIsPowered = true;
-}
-
-void UBOOMElectricRadiusComponent::OnDisconnectFromPower()
-{
-	if (!bIsPowered)
-	{
-		return;
-	}
-	bIsPowered = false;
-}

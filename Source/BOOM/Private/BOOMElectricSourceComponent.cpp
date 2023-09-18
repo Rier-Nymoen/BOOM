@@ -33,19 +33,15 @@ void UBOOMElectricSourceComponent::BeginPlay()
 			GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
 		}
 		MST();
-
 	}
-
 }
 
 /*	
 Prim's Algorithm Implementation - Creates a Minimum Spanning Tree -  https://en.wikipedia.org/wiki/Minimum_spanning_tree#:~:text=A%20minimum%20spanning%20tree%20(MST,minimum%20possible%20total%20edge%20weight.
 */
 
-/*
-@TODO research if its worth using an incremental MST algorithm. Would love to optimize but time constraints exist.
-@TODO note in this version objects that block connections dont update the MST... yet.
-*/
+//@TODO Object pooling for spawning in electric effects and hitboxes when connecting the MST.
+
 //Need to make sure actors using the component have level streaming enabled
 
 //NEED TO DO VALIDITY CHECKS FOR NODES IN THE TREE.
@@ -143,10 +139,12 @@ void UBOOMElectricSourceComponent::MST()
 			LastCheckedPosition.Remove(Component.Key);
 			GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "A node was removed from the tree.");
 			//Also disconnect from power.
-
-			if (IElectricInterface* InterfaceObject = Cast<IElectricInterface>(Component.Key))
+			if (Component.Key->GetOwner())
 			{
-				InterfaceObject->OnDisconnectFromPower();
+				if (IElectricInterface* InterfaceObject = Cast<IElectricInterface>(Component.Key->GetOwner()))
+				{
+					InterfaceObject->OnDisconnectFromPower();
+				}
 			}
 
 
@@ -190,9 +188,12 @@ void UBOOMElectricSourceComponent::ConnectMST(TArray<FPriorityQueueNode> MSTResu
 				LastCheckedPosition.Add(CurrentNode);
 				//needs to be powered
 
-				if (IElectricInterface* InterfaceObject = Cast<IElectricInterface>(CurrentNode))
+				if (CurrentNode->GetOwner())
 				{
-					InterfaceObject->OnConnectToPower();
+					if (IElectricInterface* InterfaceObject = Cast<IElectricInterface>(CurrentNode->GetOwner()))
+					{
+						InterfaceObject->OnConnectToPower();
+					}
 				}
 			}
 			DrawDebugLine(GetWorld(), CurrentNode->GetComponentLocation(), MSTResult[i].ParentComponent->GetComponentLocation(), FColor::Blue, false, RecalculateInterval, 1, 3.F);
@@ -229,6 +230,14 @@ void UBOOMElectricSourceComponent::OnTest(UPrimitiveComponent* OverlappedCompone
 
 }
 
+
+//@TODO 
+/* 
+* A bug occurs when an object adjacemt to a tree node remains overlapping, but is blocked by an obstacle. This causes the object to not be considered when
+* it is moved.
+
+To fix: need to store nodes that are blocked and also check if their positions changed.
+*/
 void UBOOMElectricSourceComponent::CheckForUpdates()
 {
 	for (TPair<UPrimitiveComponent*, FVector> Component : LastCheckedPosition)
