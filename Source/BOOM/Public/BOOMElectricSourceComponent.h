@@ -82,6 +82,14 @@ protected:
 	UPROPERTY()
 	FTimerHandle TimerHandle_MST;
 
+	UPROPERTY()
+	TSet<UPrimitiveComponent*> PoweredNodes;
+
+	UFUNCTION()
+	void RemoveNodePower(UPrimitiveComponent* NodeToRemove);
+	UFUNCTION()
+	void PowerNode(UPrimitiveComponent* Node);
+
 	UFUNCTION()
 	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -89,7 +97,13 @@ protected:
 	void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
-	void OnTest(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnGraphNodeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnGraphNodeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UPROPERTY()
+	TMap<UPrimitiveComponent*, FVector> GraphNodes;
 
 	UPROPERTY(VisibleAnywhere)
 	bool bCanBeRecalculated;
