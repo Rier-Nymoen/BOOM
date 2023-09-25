@@ -16,15 +16,18 @@ UBOOMElectricSourceComponent::UBOOMElectricSourceComponent()
 	SphereRadius = 250.F;
 	ShapeColor = FColor(0, 60, 255);
 	bCanBeRecalculated = true;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UBOOMElectricSourceComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	OnComponentBeginOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnSphereBeginOverlap);
-	OnComponentEndOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnSphereEndOverlap);
-	
+
+	UpdateOverlaps();
 	GetOverlappingComponents(OverlappedComponents);
+
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Cyan, FString::FromInt(OverlappedComponents.Num()));
+
 	if (OverlappedComponents.Num() > 0)
 	{
 		if (GetOwner())
@@ -34,6 +37,14 @@ void UBOOMElectricSourceComponent::BeginPlay()
 		}
 		MST();
 	}
+}
+
+void UBOOMElectricSourceComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	GetOverlappingComponents(OverlappedComponents);
+
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Green, "Overlapped actors: " +  FString::FromInt(OverlappedComponents.Num()));
 }
 
 /*	
@@ -91,11 +102,7 @@ void UBOOMElectricSourceComponent::MST()
 
 		for (UPrimitiveComponent* Neighbor : Neighbors)
 		{
-			if (Neighbor == nullptr)
-			{
-				GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.F, FColor::Red, "NuLLPTR NEIGHBOR");
-				return;
-			}
+
 			if (!GraphNodes.Find(Neighbor))
 			{
 				Neighbor->OnComponentEndOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnGraphNodeEndOverlap);
@@ -211,22 +218,12 @@ void UBOOMElectricSourceComponent::PowerNode(UPrimitiveComponent* Node)
 		PoweredNodes.Remove(Node);
 	}
 
-
-	if (Node == nullptr)
-	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Red, "nullptr node");
-
-	}
-
 	if (IElectricInterface* ElectricInterface = Cast<IElectricInterface>(Node->GetOwner()))
 	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Emerald, "OnConnectPower");
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Emerald, "OnConnectPower");
 		ElectricInterface->OnConnectToPower();
 	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Red, "NoGo");
-	}
+
 }
 
 void UBOOMElectricSourceComponent::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -253,15 +250,9 @@ void UBOOMElectricSourceComponent::OnGraphNodeBeginOverlap(UPrimitiveComponent* 
 }
 
 
-//@TODO 
-/* 
-* A bug occurs when an object adjacemt to a tree node remains overlapping, but is blocked by an obstacle. This causes the object to not be considered when
-* it is moved.
-
-To fix: need to store nodes that are blocked and also check if their positions changed.
-*/
 void UBOOMElectricSourceComponent::CheckForUpdates()
 {
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Red, "GraphNodes Size: " + FString::FromInt(GraphNodes.Num()));
 	for (TPair<UPrimitiveComponent*, FVector> Component : GraphNodes) //consider making it a const reference is what intellisense said?
 	{
 		if (Component.Key->GetComponentLocation() == Component.Value)
@@ -270,7 +261,7 @@ void UBOOMElectricSourceComponent::CheckForUpdates()
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Cyan, "checking for updates caused mst call");
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Cyan, "checking for updates caused mst call");
 			MST();
 			return;
 		}
@@ -287,7 +278,24 @@ When we calculate the new MST result, thats when we want to take the old result,
 
 void UBOOMElectricSourceComponent::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	TArray<UPrimitiveComponent*> Neighbors;
+	OverlappedComp->GetOverlappingComponents(Neighbors);
+	for (UPrimitiveComponent* Neighbor : Neighbors) //IsValid checks possibly
+	{
+		if (GraphNodes.Find(Neighbor))
+		{
+			return;
+		}
+	}
+	OverlappedComp->OnComponentBeginOverlap.Clear();
+	OverlappedComp->OnComponentEndOverlap.Clear();
 
+	GraphNodes.Remove(OverlappedComp);
+	if (PoweredNodes.Find(OverlappedComp))
+	{
+		RemoveNodePower(OverlappedComp);
+	}
+	MST(); //Will remove anything not powered
 }
 
 void UBOOMElectricSourceComponent::OnGraphNodeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -302,6 +310,8 @@ void UBOOMElectricSourceComponent::OnGraphNodeEndOverlap(UPrimitiveComponent* Ov
 		}
 	}
 	OverlappedComp->OnComponentBeginOverlap.Clear();
+	OverlappedComp->OnComponentEndOverlap.Clear();
+
 	GraphNodes.Remove(OverlappedComp);
 	if (PoweredNodes.Find(OverlappedComp))
 	{
@@ -310,8 +320,3 @@ void UBOOMElectricSourceComponent::OnGraphNodeEndOverlap(UPrimitiveComponent* Ov
 	MST(); //Will remove anything not powered
 }
 
-
-/*
-
-I could just set nodes in the mst to be powered
-*/

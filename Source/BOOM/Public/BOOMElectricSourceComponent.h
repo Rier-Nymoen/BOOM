@@ -53,6 +53,7 @@ public:
 
 	UBOOMElectricSourceComponent();
 
+	UPROPERTY()
 	TArray<UPrimitiveComponent*> OverlappedComponents;
 
 	UFUNCTION()
@@ -61,6 +62,8 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
 
 	UPROPERTY()
 	FTimerHandle TimerHandle_ConnectMST;
