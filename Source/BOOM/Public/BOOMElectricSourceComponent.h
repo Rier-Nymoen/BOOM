@@ -21,17 +21,19 @@ struct FPriorityQueueNode
 
 	}
 
-	FPriorityQueueNode(UPrimitiveComponent* InComponent, float InCost, UPrimitiveComponent* InParentComponent, FVector InPosition)
+	FPriorityQueueNode(UPrimitiveComponent* InComponent, float InCost, UPrimitiveComponent* InParentComponent, FVector InPosition, TArray<UPrimitiveComponent*> InChildComponents)
 	{
 		Component = InComponent;
 		Cost = InCost;
 		ParentComponent = InParentComponent;
 		Position = InPosition;
+		ChildComponents = InChildComponents;
 	}
 	UPrimitiveComponent* Component;
 	float Cost;
 	UPrimitiveComponent* ParentComponent;
 	FVector Position;
+	TArray<UPrimitiveComponent*> ChildComponents;
 };
 
 USTRUCT()
@@ -72,7 +74,7 @@ protected:
 	float RecalculateInterval;
 
 	UFUNCTION()
-	void ConnectMST(TArray<FPriorityQueueNode> MSTResult);
+	void ConnectMST(TArray<FPriorityQueueNode> MinimumSpanningTree);
 
 	UFUNCTION()
 	void CheckForUpdates();
@@ -80,37 +82,26 @@ protected:
 	UPROPERTY()
 	TMap<UPrimitiveComponent*, FVector> LastCheckedPosition;
 
-	int Overlaps;
-
 	UPROPERTY()
 	FTimerHandle TimerHandle_MST;
 
 	UPROPERTY()
 	TSet<UPrimitiveComponent*> PoweredNodes;
 
-	UFUNCTION()
-	void RemoveNodePower(UPrimitiveComponent* NodeToRemove);
-	UFUNCTION()
-	void PowerNode(UPrimitiveComponent* Node);
+	//TMap<UPrimitiveComponent*, UPrimitiveComponent*> PredecessorMap;
+	UPROPERTY()
+	TSet<UPrimitiveComponent*> Visited;
 
 	UFUNCTION()
 	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UFUNCTION()
 	void OnGraphNodeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UFUNCTION()
-	void OnGraphNodeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UPROPERTY()
 	TMap<UPrimitiveComponent*, FVector> GraphNodes;
 
 	UPROPERTY(VisibleAnywhere)
 	bool bCanBeRecalculated;
-
-
-
 };

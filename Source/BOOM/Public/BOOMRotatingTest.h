@@ -32,7 +32,7 @@ public:
 
 
 	FTimerHandle TimerHandle_Rotate;
-
+	bool bIsPowered;
 
 	UFUNCTION()
 	virtual void Spin();

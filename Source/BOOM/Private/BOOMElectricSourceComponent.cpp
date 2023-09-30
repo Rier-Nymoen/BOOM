@@ -10,13 +10,14 @@
 
 UBOOMElectricSourceComponent::UBOOMElectricSourceComponent()
 {
-	Overlaps = 0;
 	RecalculateInterval = 0.3F;
 	bHiddenInGame = true;
 	SphereRadius = 250.F;
 	ShapeColor = FColor(0, 60, 255);
 	bCanBeRecalculated = true;
 	PrimaryComponentTick.bCanEverTick = false;
+
+	GraphNodes.Reserve(100);
 }
 
 void UBOOMElectricSourceComponent::BeginPlay()
@@ -25,18 +26,19 @@ void UBOOMElectricSourceComponent::BeginPlay()
 
 	UpdateOverlaps();
 	GetOverlappingComponents(OverlappedComponents);
+	OnComponentBeginOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnSphereBeginOverlap);
 
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Cyan, FString::FromInt(OverlappedComponents.Num()));
 
-	if (OverlappedComponents.Num() > 0)
+	if (GetOwner())
 	{
-		if (GetOwner())
-		{
-			GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true); //change bool after debugging.
-			GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
-		}
-		MST();
+		//GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true); //change bool after debugging.
+		GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true);
+
+		//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
 	}
+		MST();
+	
 }
 
 void UBOOMElectricSourceComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -55,20 +57,21 @@ Prim's Algorithm Implementation - Creates a Minimum Spanning Tree -  https://en.
 
 //Need to make sure actors using the component have level streaming enabled
 
-//NEED TO DO VALIDITY CHECKS FOR NODES IN THE TREE.
 void UBOOMElectricSourceComponent::MST()
 {
+	//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
+	Visited.Empty(Visited.Num());
+	GraphNodes.Empty(GraphNodes.Num());
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
 
 	GetOverlappingComponents(OverlappedComponents);
-	TSet<UPrimitiveComponent*> Visited;
+	//TSet<UPrimitiveComponent*> Visited;
 	TMap<UPrimitiveComponent*, float> DistanceMap;
 	TArray<FPriorityQueueNode> PriorityQueue;
-	TArray<FPriorityQueueNode> Path;
+	TArray<FPriorityQueueNode> MinimumSpanningTree;
 	FCollisionQueryParams TraceParams;
-	TSet<UPrimitiveComponent*> NodesToUnpower;
 
-	FPriorityQueueNode StartNode(this, 0, nullptr, this->GetComponentLocation());
+	FPriorityQueueNode StartNode(this, 0, nullptr, this->GetComponentLocation(), TArray<UPrimitiveComponent*>());
 	DistanceMap.Add(this, 0);
 	PriorityQueue.HeapPush(StartNode, FMinDistancePredicate());
 
@@ -85,14 +88,7 @@ void UBOOMElectricSourceComponent::MST()
 		}
 		else
 		{
-			if (NodesToUnpower.Find(CurrentNode.Component))
-			{
-				NodesToUnpower.Remove(CurrentNode.Component);
-			}
-			//this is where I would remove nodes that could have to be powered down.
-			
-			PoweredNodes.Add(CurrentNode.Component);
-			Path.Add(CurrentNode);
+			MinimumSpanningTree.Add(CurrentNode);
 		}
 		Visited.Add(CurrentNode.Component);
 
@@ -105,15 +101,8 @@ void UBOOMElectricSourceComponent::MST()
 
 			if (!GraphNodes.Find(Neighbor))
 			{
-				Neighbor->OnComponentEndOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnGraphNodeEndOverlap);
-				Neighbor->OnComponentBeginOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnGraphNodeBeginOverlap);
-			}
-			if (IsValid(Neighbor))
-			{
 				GraphNodes.Add(Neighbor, Neighbor->GetComponentLocation());
 			}
-
-			
 
 			FHitResult HitResult;
 			if (Neighbor->GetOwner())
@@ -130,11 +119,6 @@ void UBOOMElectricSourceComponent::MST()
 
 			if (bPathIsObstructed)
 			{
-				//Could Keep track of nodes that are overlapped but will may need to be removed. Essentially add a node to a pending list, and remove it at the end of the calculation if it doesn't make the cut.
-				if (PoweredNodes.Find(Neighbor))
-				{
-					NodesToUnpower.Add(Neighbor);
-				}
 				DrawDebugLine(GetWorld(), CurrentNode.Component->GetComponentLocation(), HitResult.Location, FColor::Red, false, RecalculateInterval, 1, 3.F);
 				continue;
 			}
@@ -147,176 +131,120 @@ void UBOOMElectricSourceComponent::MST()
 
 			if (!Visited.Find(Neighbor) && DistanceMap[Neighbor] > DistanceSquared)
 			{
-				FPriorityQueueNode NewNode(Neighbor, DistanceSquared, CurrentNode.Component, Neighbor->GetComponentLocation());
+				FPriorityQueueNode NewNode(Neighbor, DistanceSquared, CurrentNode.Component, Neighbor->GetComponentLocation(), TArray<UPrimitiveComponent*>());
 				DistanceMap[Neighbor] = DistanceSquared;
 				PriorityQueue.HeapPush(NewNode, FMinDistancePredicate());
 			}
 		}
 	}
 
-	//Check for nodes that are no longer powered (not in the result)
-
-	for (UPrimitiveComponent* Node : NodesToUnpower)
+	for (UPrimitiveComponent* PoweredNode : PoweredNodes)
 	{
-		if (!IsValid(Node))
+		if (!IsValid(PoweredNode))
 		{
+			PoweredNodes.Remove(PoweredNode);
 			continue;
 		}
-		RemoveNodePower(Node);
-	}
-
-	ConnectMST(Path);
-
-}
-
-void UBOOMElectricSourceComponent::ConnectMST(TArray<FPriorityQueueNode> MSTResult)
-{
-	if (GetOwner())
-	{
-		GetOwner()->GetWorldTimerManager().UnPauseTimer(TimerHandle_MST);
-	}
-
-
-	UPrimitiveComponent* CurrentNode;
-	UPrimitiveComponent* ParentNode;
-
-	for (int i = 0; i < MSTResult.Num(); i++)
-	{
-		CurrentNode = MSTResult[i].Component;
-		ParentNode = MSTResult[i].ParentComponent;
-		if (ParentNode != nullptr)
-		{
-			DrawDebugLine(GetWorld(), CurrentNode->GetComponentLocation(), MSTResult[i].ParentComponent->GetComponentLocation(), FColor::Blue, false, RecalculateInterval, 1, 3.F);
-			PowerNode(CurrentNode);
-		}
-	}
-	if (GetOwner())
-	{
-		GetOwner()->GetWorldTimerManager().UnPauseTimer(TimerHandle_MST);
-	}
-
-}
-
-void UBOOMElectricSourceComponent::RemoveNodePower(UPrimitiveComponent* NodeToRemove)
-{
-	PoweredNodes.Remove(NodeToRemove);
-	if (!IsValid(NodeToRemove))
-	{
-		return;
-	}
-	IElectricInterface* ElectricInterface = Cast<IElectricInterface>(NodeToRemove->GetOwner());
-	if (ElectricInterface)
-	{
-		ElectricInterface->OnDisconnectFromPower();
-	}
-}
-
-void UBOOMElectricSourceComponent::PowerNode(UPrimitiveComponent* Node)
-{
-	if (!IsValid(Node))
-	{
-		PoweredNodes.Remove(Node);
-	}
-
-	if (IElectricInterface* ElectricInterface = Cast<IElectricInterface>(Node->GetOwner()))
-	{
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Emerald, "OnConnectPower");
-		ElectricInterface->OnConnectToPower();
-	}
-
-}
-
-void UBOOMElectricSourceComponent::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (LastCheckedPosition.Find(OtherComp))
-	{
-		return;
-	}
-	MST();
-	//we need to do a recalculation of the tree.
-}
-
-
-void UBOOMElectricSourceComponent::OnGraphNodeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-
-	if (GraphNodes.Find(OtherComp))
-	{
-		return;
-	}
-	MST();
-	//we need to do a recalculation of the tree.
-
-}
-
-
-void UBOOMElectricSourceComponent::CheckForUpdates()
-{
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Red, "GraphNodes Size: " + FString::FromInt(GraphNodes.Num()));
-	for (TPair<UPrimitiveComponent*, FVector> Component : GraphNodes) //consider making it a const reference is what intellisense said?
-	{
-		if (Component.Key->GetComponentLocation() == Component.Value)
+		if (Visited.Find(PoweredNode))
 		{
 			continue;
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Cyan, "checking for updates caused mst call");
+			PoweredNodes.Remove(PoweredNode);
+
+			//powered node shouldnt be ours i guess??
+			PoweredNode->OnComponentBeginOverlap.Remove(this, "OnGraphNodeBeginOverlap");
+			if (IElectricInterface* ActiveObject = Cast<IElectricInterface>(PoweredNode->GetOwner()))
+			{
+				ActiveObject->OnDisconnectFromPower();
+				
+			}
+			
+		}
+	}
+
+	ConnectMST(MinimumSpanningTree);
+}
+
+
+void UBOOMElectricSourceComponent::CheckForUpdates()
+{
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Cyan, "GraphNodes.Num = " + FString::FromInt(GraphNodes.Num()));
+	for (TPair<UPrimitiveComponent*, FVector> Component : GraphNodes) //consider making it a const reference is what intellisense said?
+	{
+		if (IsValid(Component.Key) && Component.Key->GetComponentLocation() == Component.Value)
+		{
+			continue;
+		}
+		else
+		{
 			MST();
 			return;
 		}
 	}
+
+
 }
 
-/*
-When nodes apart of the graph generate an overlap event, we we need to check if the node is already in the graph or not. If it is, ignore it. If it isnt, its a new node and we want to calculate it.
-
-
-When we calculate the new MST result, thats when we want to take the old result, and we want to remove nodes that are not in the MST result, from being ignored by component collisions, and distance updates.
-*/
-
-
-void UBOOMElectricSourceComponent::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void UBOOMElectricSourceComponent::ConnectMST(TArray<FPriorityQueueNode> MinimumSpanningTree)
 {
-	TArray<UPrimitiveComponent*> Neighbors;
-	OverlappedComp->GetOverlappingComponents(Neighbors);
-	for (UPrimitiveComponent* Neighbor : Neighbors) //IsValid checks possibly
+	FPriorityQueueNode CurrentNode;
+
+	for (int i = 0; i < MinimumSpanningTree.Num(); i++) //assuming these nodes are valid.
 	{
-		if (GraphNodes.Find(Neighbor))
+
+		CurrentNode = MinimumSpanningTree[i];
+
+		if (CurrentNode.ParentComponent != nullptr)
 		{
-			return;
+			DrawDebugLine(GetWorld(), CurrentNode.Component->GetComponentLocation(), CurrentNode.ParentComponent->GetComponentLocation(), FColor::Blue, false, RecalculateInterval, 1, 3.F);
+			if (!PoweredNodes.Find(CurrentNode.Component))
+			{
+				if (!IsValid(CurrentNode.Component))
+				{
+					return;
+				}
+				PoweredNodes.Add(CurrentNode.Component);
+
+				CurrentNode.Component->OnComponentBeginOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnGraphNodeBeginOverlap);
+				if (IElectricInterface* ConductingObject = Cast<IElectricInterface>(CurrentNode.Component->GetOwner()))
+				{
+					ConductingObject->OnConnectToPower();
+				}
+			}
+			
 		}
 	}
-	OverlappedComp->OnComponentBeginOverlap.Clear();
-	OverlappedComp->OnComponentEndOverlap.Clear();
-
-	GraphNodes.Remove(OverlappedComp);
-	if (PoweredNodes.Find(OverlappedComp))
-	{
-		RemoveNodePower(OverlappedComp);
-	}
-	MST(); //Will remove anything not powered
+	//if (GetOwner())
+	//{
+	//	GetOwner()->GetWorldTimerManager().UnPauseTimer(TimerHandle_MST);
+	//}
 }
 
-void UBOOMElectricSourceComponent::OnGraphNodeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void UBOOMElectricSourceComponent::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	TArray<UPrimitiveComponent*> Neighbors;
-	OverlappedComp->GetOverlappingComponents(Neighbors);
-	for (UPrimitiveComponent* Neighbor : Neighbors) //IsValid checks possibly
+	if (PoweredNodes.Find(OtherComp))
 	{
-		if (GraphNodes.Find(Neighbor))
-		{
-			return;
-		}
-	}
-	OverlappedComp->OnComponentBeginOverlap.Clear();
-	OverlappedComp->OnComponentEndOverlap.Clear();
 
-	GraphNodes.Remove(OverlappedComp);
-	if (PoweredNodes.Find(OverlappedComp))
-	{
-		RemoveNodePower(OverlappedComp);
 	}
-	MST(); //Will remove anything not powered
+	else
+	{
+		MST();//really should just signal its fine to do a calculation.
+	}
+}
+
+
+void UBOOMElectricSourceComponent::OnGraphNodeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (PoweredNodes.Find(OtherComp))
+	{
+
+	}
+	else
+	{
+		MST();
+	}
+
 }
 
