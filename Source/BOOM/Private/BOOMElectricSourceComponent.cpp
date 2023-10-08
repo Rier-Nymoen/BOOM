@@ -7,6 +7,8 @@
 #include "Interfaces/ElectricInterface.h"
 #include "Math/UnitConversion.h"
 #include "Util/IndexPriorityQueue.h"
+#include "BOOMElectricArc.h"
+#include "Components/BoxComponent.h"
 
 UBOOMElectricSourceComponent::UBOOMElectricSourceComponent()
 {
@@ -33,7 +35,7 @@ void UBOOMElectricSourceComponent::BeginPlay()
 	if (GetOwner())
 	{
 		//GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true); //change bool after debugging.
-		GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true);
+		GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, false);
 
 		//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
 	}
@@ -62,13 +64,15 @@ void UBOOMElectricSourceComponent::MST()
 	//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
 	Visited.Empty(Visited.Num());
 	GraphNodes.Empty(GraphNodes.Num());
+	DistanceMap.Empty(DistanceMap.Num());
+	MinimumSpanningTree.Empty(MinimumSpanningTree.Num());
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
 
 	GetOverlappingComponents(OverlappedComponents);
 	//TSet<UPrimitiveComponent*> Visited;
-	TMap<UPrimitiveComponent*, float> DistanceMap;
-	TArray<FPriorityQueueNode> PriorityQueue;
-	TArray<FPriorityQueueNode> MinimumSpanningTree;
+	//TMap<UPrimitiveComponent*, float> DistanceMap;
+	//TArray<FPriorityQueueNode> PriorityQueue;
+	//TArray<FPriorityQueueNode> MinimumSpanningTree;
 	FCollisionQueryParams TraceParams;
 
 	FPriorityQueueNode StartNode(this, 0, nullptr, this->GetComponentLocation(), TArray<UPrimitiveComponent*>());
@@ -164,7 +168,7 @@ void UBOOMElectricSourceComponent::MST()
 		}
 	}
 
-	ConnectMST(MinimumSpanningTree);
+	ConnectMST(/*MinimumSpanningTree*/);
 }
 
 
@@ -187,7 +191,7 @@ void UBOOMElectricSourceComponent::CheckForUpdates()
 
 }
 
-void UBOOMElectricSourceComponent::ConnectMST(TArray<FPriorityQueueNode> MinimumSpanningTree)
+void UBOOMElectricSourceComponent::ConnectMST(/*TArray<FPriorityQueueNode> MinimumSpanningTree*/)
 {
 	FPriorityQueueNode CurrentNode;
 
@@ -198,6 +202,22 @@ void UBOOMElectricSourceComponent::ConnectMST(TArray<FPriorityQueueNode> Minimum
 
 		if (CurrentNode.ParentComponent != nullptr)
 		{
+
+			//Spawns a box collision in between two points
+			FActorSpawnParameters ActorSpawnParams;
+			FVector Midpoint = (CurrentNode.ParentComponent->GetComponentLocation() + CurrentNode.Component->GetComponentLocation() ) /2;
+			FVector Direction = CurrentNode.ParentComponent->GetComponentLocation() - CurrentNode.Component->GetComponentLocation();
+			ABOOMElectricArc* ElectricArc = GetWorld()->SpawnActor<ABOOMElectricArc>(Arc, Midpoint, Direction.Rotation(), ActorSpawnParams);
+			
+			UBoxComponent* ArcBoxVolume =  ElectricArc->GetBoxComponent();
+
+			float Distance = FMath::Sqrt(CurrentNode.Cost);
+			//Change magic numbers to electric arc thickness or something.
+			ArcBoxVolume->SetBoxExtent(FVector(Distance/2,5,5), true);
+
+
+			// GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.F, FColor::Blue, "Distance is : " + FString::SanitizeFloat(Distance));
+			
 			DrawDebugLine(GetWorld(), CurrentNode.Component->GetComponentLocation(), CurrentNode.ParentComponent->GetComponentLocation(), FColor::Blue, false, RecalculateInterval, 1, 3.F);
 			if (!PoweredNodes.Find(CurrentNode.Component))
 			{

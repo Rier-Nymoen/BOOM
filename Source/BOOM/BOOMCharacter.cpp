@@ -64,6 +64,7 @@ ABOOMCharacter::ABOOMCharacter()
 	//b crouch maintains place location could be used for crouch jumping
 	
 	BOOMCharacterMovementComp = Cast<UBOOMCharacterMovementComponent>(GetCharacterMovement());
+
 }
 
 void ABOOMCharacter::BeginPlay()
