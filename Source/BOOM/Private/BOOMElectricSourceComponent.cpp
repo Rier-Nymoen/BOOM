@@ -35,7 +35,7 @@ void UBOOMElectricSourceComponent::BeginPlay()
 	if (GetOwner())
 	{
 		//GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true); //change bool after debugging.
-		GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, false);
+		GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true);
 
 		//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
 	}
@@ -62,6 +62,14 @@ Prim's Algorithm Implementation - Creates a Minimum Spanning Tree -  https://en.
 void UBOOMElectricSourceComponent::MST()
 {
 	//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
+
+	for(ABOOMElectricArc* CurrentArc : ArcList)
+	{
+		ArcList.Remove(CurrentArc);
+
+		CurrentArc->Destroy();
+	}
+	
 	Visited.Empty(Visited.Num());
 	GraphNodes.Empty(GraphNodes.Num());
 	DistanceMap.Empty(DistanceMap.Num());
@@ -215,6 +223,7 @@ void UBOOMElectricSourceComponent::ConnectMST(/*TArray<FPriorityQueueNode> Minim
 			//Change magic numbers to electric arc thickness or something.
 			ArcBoxVolume->SetBoxExtent(FVector(Distance/2,5,5), true);
 
+			ArcList.Add(ElectricArc);
 
 			// GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.F, FColor::Blue, "Distance is : " + FString::SanitizeFloat(Distance));
 			

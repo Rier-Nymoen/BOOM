@@ -112,4 +112,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UObject> Arc;
+
+	UPROPERTY()
+	TSet<class ABOOMElectricArc*> ArcList;
+
 };
