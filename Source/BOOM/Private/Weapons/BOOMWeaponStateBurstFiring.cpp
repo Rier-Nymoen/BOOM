@@ -12,6 +12,7 @@ UBOOMWeaponStateBurstFiring::UBOOMWeaponStateBurstFiring()
 
 void UBOOMWeaponStateBurstFiring::BeginPlay()
 {
+	Super::BeginPlay();
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 
 	if (Weapon != nullptr)

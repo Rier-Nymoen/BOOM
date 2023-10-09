@@ -21,19 +21,17 @@ struct FPriorityQueueNode
 
 	}
 
-	FPriorityQueueNode(UPrimitiveComponent* InComponent, float InCost, UPrimitiveComponent* InParentComponent, FVector InPosition, TArray<UPrimitiveComponent*> InChildComponents)
+	FPriorityQueueNode(UPrimitiveComponent* InComponent, float InCost, UPrimitiveComponent* InParentComponent, FVector InPosition)
 	{
 		Component = InComponent;
 		Cost = InCost;
 		ParentComponent = InParentComponent;
 		Position = InPosition;
-		ChildComponents = InChildComponents;
 	}
 	UPrimitiveComponent* Component;
 	float Cost;
 	UPrimitiveComponent* ParentComponent;
 	FVector Position;
-	TArray<UPrimitiveComponent*> ChildComponents;
 };
 
 USTRUCT()

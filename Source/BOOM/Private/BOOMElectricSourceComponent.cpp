@@ -9,6 +9,7 @@
 #include "Util/IndexPriorityQueue.h"
 #include "BOOMElectricArc.h"
 #include "Components/BoxComponent.h"
+#include "BOOMObjectPoolingSubsystem.h"
 
 UBOOMElectricSourceComponent::UBOOMElectricSourceComponent()
 {
@@ -31,15 +32,16 @@ void UBOOMElectricSourceComponent::BeginPlay()
 	OnComponentBeginOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnSphereBeginOverlap);
 
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Cyan, FString::FromInt(OverlappedComponents.Num()));
+	UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
 
 	if (GetOwner())
 	{
 		//GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true); //change bool after debugging.
-		GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true);
+		GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, false);
 
 		//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
 	}
-		MST();
+		// MST();
 	
 }
 
@@ -63,12 +65,8 @@ void UBOOMElectricSourceComponent::MST()
 {
 	//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
 
-	for(ABOOMElectricArc* CurrentArc : ArcList)
-	{
-		ArcList.Remove(CurrentArc);
+	
 
-		CurrentArc->Destroy();
-	}
 	
 	Visited.Empty(Visited.Num());
 	GraphNodes.Empty(GraphNodes.Num());
@@ -83,7 +81,7 @@ void UBOOMElectricSourceComponent::MST()
 	//TArray<FPriorityQueueNode> MinimumSpanningTree;
 	FCollisionQueryParams TraceParams;
 
-	FPriorityQueueNode StartNode(this, 0, nullptr, this->GetComponentLocation(), TArray<UPrimitiveComponent*>());
+	FPriorityQueueNode StartNode(this, 0, nullptr, this->GetComponentLocation());
 	DistanceMap.Add(this, 0);
 	PriorityQueue.HeapPush(StartNode, FMinDistancePredicate());
 
@@ -143,7 +141,7 @@ void UBOOMElectricSourceComponent::MST()
 
 			if (!Visited.Find(Neighbor) && DistanceMap[Neighbor] > DistanceSquared)
 			{
-				FPriorityQueueNode NewNode(Neighbor, DistanceSquared, CurrentNode.Component, Neighbor->GetComponentLocation(), TArray<UPrimitiveComponent*>());
+				FPriorityQueueNode NewNode(Neighbor, DistanceSquared, CurrentNode.Component, Neighbor->GetComponentLocation());
 				DistanceMap[Neighbor] = DistanceSquared;
 				PriorityQueue.HeapPush(NewNode, FMinDistancePredicate());
 			}
@@ -202,6 +200,7 @@ void UBOOMElectricSourceComponent::CheckForUpdates()
 void UBOOMElectricSourceComponent::ConnectMST(/*TArray<FPriorityQueueNode> MinimumSpanningTree*/)
 {
 	FPriorityQueueNode CurrentNode;
+	FActorSpawnParameters ActorSpawnParams;
 
 	for (int i = 0; i < MinimumSpanningTree.Num(); i++) //assuming these nodes are valid.
 	{
@@ -212,7 +211,6 @@ void UBOOMElectricSourceComponent::ConnectMST(/*TArray<FPriorityQueueNode> Minim
 		{
 
 			//Spawns a box collision in between two points
-			FActorSpawnParameters ActorSpawnParams;
 			FVector Midpoint = (CurrentNode.ParentComponent->GetComponentLocation() + CurrentNode.Component->GetComponentLocation() ) /2;
 			FVector Direction = CurrentNode.ParentComponent->GetComponentLocation() - CurrentNode.Component->GetComponentLocation();
 			ABOOMElectricArc* ElectricArc = GetWorld()->SpawnActor<ABOOMElectricArc>(Arc, Midpoint, Direction.Rotation(), ActorSpawnParams);
@@ -221,7 +219,7 @@ void UBOOMElectricSourceComponent::ConnectMST(/*TArray<FPriorityQueueNode> Minim
 
 			float Distance = FMath::Sqrt(CurrentNode.Cost);
 			//Change magic numbers to electric arc thickness or something.
-			ArcBoxVolume->SetBoxExtent(FVector(Distance/2,5,5), true);
+			ArcBoxVolume->SetBoxExtent(FVector(Distance/2,5,5), false);
 
 			ArcList.Add(ElectricArc);
 
