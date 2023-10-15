@@ -79,12 +79,13 @@ ABOOMWeapon::ABOOMWeapon()
 // Called when the game starts or when spawned
 void ABOOMWeapon::BeginPlay()
 {
+	Super::BeginPlay();
+
 	if (Character == nullptr)
 	{
 		CurrentState = InactiveState;
 	}
 
-	Super::BeginPlay();
 	bGenerateOverlapEventsDuringLevelStreaming = true;
 }
 

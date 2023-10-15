@@ -17,6 +17,7 @@ UBOOMWeaponStateFiring::UBOOMWeaponStateFiring()
 
 void UBOOMWeaponStateFiring::BeginPlay()
 {
+	Super::BeginPlay();
 }
 
 void UBOOMWeaponStateFiring::EnterState()

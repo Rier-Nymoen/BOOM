@@ -19,7 +19,7 @@ UBOOMWeaponStateCharging::UBOOMWeaponStateCharging()
 
 void UBOOMWeaponStateCharging::BeginPlay()
 {
-
+	Super::BeginPlay();
 }
 
 void UBOOMWeaponStateCharging::EnterState()

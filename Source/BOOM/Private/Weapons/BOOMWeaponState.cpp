@@ -6,6 +6,7 @@
 
 void UBOOMWeaponState::BeginPlay()
 {
+	Super::BeginPlay();
 }
 
 void UBOOMWeaponState::EnterState()
