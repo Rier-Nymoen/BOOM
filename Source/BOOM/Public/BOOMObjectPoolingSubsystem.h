@@ -19,14 +19,14 @@ public:
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
-private:
-	//why UClass over TSubclassOf?
-	class TMap<TWeakObjectPtr<UClass>, TArray<TWeakObjectPtr<AActor>>> ActorPools;
 
-	//We only want to pool actors.
 	void InitializeActorPool(TSubclassOf<AActor> ActorClass, int PoolSize);
 
-	AActor* GetActor(TSubclassOf<AActor> ActorClass);
-			
-	//will use interface
+	AActor* GetActor(TSubclassOf<AActor> ActorClass); //O(N) retrieval
+
+	TArray<TWeakObjectPtr<AActor>>* GetActorPool(TWeakObjectPtr<UClass> ActorClass);
+
+private:
+
+	class TMap<TWeakObjectPtr<UClass>, TArray<TWeakObjectPtr<AActor>>> ActorPools;
 };

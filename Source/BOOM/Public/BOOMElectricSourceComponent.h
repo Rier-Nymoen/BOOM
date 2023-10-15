@@ -72,7 +72,7 @@ protected:
 	float RecalculateInterval;
 
 	UFUNCTION()
-	void ConnectMST(/*TArray<FPriorityQueueNode> MinimumSpanningTree*/);
+	void ConnectMST(TArray<FPriorityQueueNode> MinimumSpanningTree);
 
 	UFUNCTION()
 	void CheckForUpdates();
@@ -87,8 +87,8 @@ protected:
 	TSet<UPrimitiveComponent*> PoweredNodes;
 
 	//TMap<UPrimitiveComponent*, UPrimitiveComponent*> PredecessorMap;
-	UPROPERTY()
-	TSet<UPrimitiveComponent*> Visited;
+	//UPROPERTY()
+	//TSet<UPrimitiveComponent*> Visited;
 
 	UFUNCTION()
 	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -96,12 +96,12 @@ protected:
 	UFUNCTION()
 	void OnGraphNodeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UPROPERTY()
-	TMap<UPrimitiveComponent*, float> DistanceMap;
-	UPROPERTY()
-	TArray<FPriorityQueueNode> PriorityQueue;
-	UPROPERTY()
-	TArray<FPriorityQueueNode> MinimumSpanningTree;
+	//UPROPERTY()
+	//TMap<UPrimitiveComponent*, float> DistanceMap;
+	//UPROPERTY()
+	//TArray<FPriorityQueueNode> PriorityQueue;
+	//UPROPERTY()
+	//TArray<FPriorityQueueNode> MinimumSpanningTree;
 	UPROPERTY()
 	TMap<UPrimitiveComponent*, FVector> GraphNodes;
 
@@ -112,6 +112,5 @@ protected:
 	TSubclassOf<UObject> Arc;
 
 	UPROPERTY()
-	TSet<class ABOOMElectricArc*> ArcList;
-
+	TArray<class ABOOMElectricArc*> ArcList;
 };

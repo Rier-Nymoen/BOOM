@@ -9,6 +9,7 @@ ABOOMElectricArc::ABOOMElectricArc()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	DamageBox = CreateDefaultSubobject<UBoxComponent>("DamageBox");
+	DamageBox->SetupAttachment(RootComponent);
 	DamageBox->SetHiddenInGame(false);
 	DamageBox->ShapeColor = FColor(10, 70, 255);
 
@@ -17,6 +18,16 @@ ABOOMElectricArc::ABOOMElectricArc()
 UBoxComponent* ABOOMElectricArc::GetBoxComponent()
 {
 	return DamageBox;
+}
+
+void ABOOMElectricArc::InitActor()
+{
+	DamageBox->SetHiddenInGame(false);
+	DamageBox->ShapeColor = FColor(10, 70, 255);
+}
+
+void ABOOMElectricArc::ReturnActorToPool()
+{
 }
 
 // Called when the game starts or when spawned

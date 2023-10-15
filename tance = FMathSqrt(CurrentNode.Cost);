@@ -1,0 +1,705 @@
+[1mdiff --git a/Config/DefaultEngine.ini b/Config/DefaultEngine.ini[m
+[1mindex 0cd1e0a..f47b4e9 100644[m
+[1m--- a/Config/DefaultEngine.ini[m
+[1m+++ b/Config/DefaultEngine.ini[m
+[36m@@ -114,8 +114,6 @@[m [mCompressionQualityModifier=1.000000[m
+ AutoStreamingThreshold=0.000000[m
+ SoundCueCookQualityIndex=-1[m
+ [m
+[31m-[m
+[31m-[m
+ [/Script/HardwareTargeting.HardwareTargetingSettings][m
+ TargetedHardwareClass=Desktop[m
+ AppliedTargetedHardwareClass=Desktop[m
+[1mdiff --git a/Content/Boom/WIP_Features/GenericActorSource.uasset b/Content/Boom/WIP_Features/GenericActorSource.uasset[m
+[1mindex 4de3109..7ce1c26 100644[m
+Binary files a/Content/Boom/WIP_Features/GenericActorSource.uasset and b/Content/Boom/WIP_Features/GenericActorSource.uasset differ
+[1mdiff --git a/Content/Boom/WIP_Features/WIP_Source.uasset b/Content/Boom/WIP_Features/WIP_Source.uasset[m
+[1mindex 679727a..387767b 100644[m
+Binary files a/Content/Boom/WIP_Features/WIP_Source.uasset and b/Content/Boom/WIP_Features/WIP_Source.uasset differ
+[1mdiff --git a/Content/StarterContent/Blueprints/Blueprint_CeilingLight.uasset b/Content/StarterContent/Blueprints/Blueprint_CeilingLight.uasset[m
+[1mindex 90d7d31..b5b40a2 100644[m
+Binary files a/Content/StarterContent/Blueprints/Blueprint_CeilingLight.uasset and b/Content/StarterContent/Blueprints/Blueprint_CeilingLight.uasset differ
+[1mdiff --git a/Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset b/Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset[m
+[1mindex 9b1f1be..eb67841 100644[m
+Binary files a/Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset and b/Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset differ
+[1mdiff --git a/Content/StarterContent/Materials/M_Ground_Gravel.uasset b/Content/StarterContent/Materials/M_Ground_Gravel.uasset[m
+[1mindex 6b502af..7d3d68f 100644[m
+Binary files a/Content/StarterContent/Materials/M_Ground_Gravel.uasset and b/Content/StarterContent/Materials/M_Ground_Gravel.uasset differ
+[1mdiff --git a/Content/StarterContent/Materials/M_Metal_Steel.uasset b/Content/StarterContent/Materials/M_Metal_Steel.uasset[m
+[1mindex 13dfede..7ab69af 100644[m
+Binary files a/Content/StarterContent/Materials/M_Metal_Steel.uasset and b/Content/StarterContent/Materials/M_Metal_Steel.uasset differ
+[1mdiff --git a/Content/StarterContent/Materials/M_Tech_Hex_Tile.uasset b/Content/StarterContent/Materials/M_Tech_Hex_Tile.uasset[m
+[1mindex 7de1560..f102368 100644[m
+Binary files a/Content/StarterContent/Materials/M_Tech_Hex_Tile.uasset and b/Content/StarterContent/Materials/M_Tech_Hex_Tile.uasset differ
+[1mdiff --git a/Content/StarterContent/Materials/M_Tech_Hex_Tile_Pulse.uasset b/Content/StarterContent/Materials/M_Tech_Hex_Tile_Pulse.uasset[m
+[1mindex 8ae217d..f7b8658 100644[m
+Binary files a/Content/StarterContent/Materials/M_Tech_Hex_Tile_Pulse.uasset and b/Content/StarterContent/Materials/M_Tech_Hex_Tile_Pulse.uasset differ
+[1mdiff --git a/Content/StarterContent/Materials/M_Water_Lake.uasset b/Content/StarterContent/Materials/M_Water_Lake.uasset[m
+[1mindex 584f753..f797b84 100644[m
+Binary files a/Content/StarterContent/Materials/M_Water_Lake.uasset and b/Content/StarterContent/Materials/M_Water_Lake.uasset differ
+[1mdiff --git a/Content/StarterContent/Props/Materials/M_Frame.uasset b/Content/StarterContent/Props/Materials/M_Frame.uasset[m
+[1mindex e2a076c..2a2dff8 100644[m
+Binary files a/Content/StarterContent/Props/Materials/M_Frame.uasset and b/Content/StarterContent/Props/Materials/M_Frame.uasset differ
+[1mdiff --git a/Content/StarterContent/Props/Materials/M_Rock.uasset b/Content/StarterContent/Props/Materials/M_Rock.uasset[m
+[1mindex 5f9ce5e..635f994 100644[m
+Binary files a/Content/StarterContent/Props/Materials/M_Rock.uasset and b/Content/StarterContent/Props/Materials/M_Rock.uasset differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/0/45/7IBE4B7IZKJNHOOC8E5TFM.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/0/45/7IBE4B7IZKJNHOOC8E5TFM.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 7249d0f..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/0/45/7IBE4B7IZKJNHOOC8E5TFM.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/0/VC/CCINW5QRD0XPK9P15DAFD0.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/0/VC/CCINW5QRD0XPK9P15DAFD0.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 5244807..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/0/VC/CCINW5QRD0XPK9P15DAFD0.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/1/U1/FEW8UVNPX661LAS8D241DX.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/1/U1/FEW8UVNPX661LAS8D241DX.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 54f322a..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/1/U1/FEW8UVNPX661LAS8D241DX.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/2/62/R4KGEYYMOC39Y6E48F6VTR.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/2/62/R4KGEYYMOC39Y6E48F6VTR.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex a7bc49b..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/2/62/R4KGEYYMOC39Y6E48F6VTR.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/4/3R/81F58I65K732T4STVPEMX8.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/4/3R/81F58I65K732T4STVPEMX8.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 4ffbc34..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/4/3R/81F58I65K732T4STVPEMX8.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/4/5U/7HQUS7Q6T0LCRFKQ4E9P7S.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/4/5U/7HQUS7Q6T0LCRFKQ4E9P7S.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 67e8e78..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/4/5U/7HQUS7Q6T0LCRFKQ4E9P7S.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/4/IJ/HFPS7Y5MQJ2D7LPON9K0QS.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/4/IJ/HFPS7Y5MQJ2D7LPON9K0QS.uasset[m
+[1mindex 9dae192..4fb5238 100644[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/4/IJ/HFPS7Y5MQJ2D7LPON9K0QS.uasset and b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/4/IJ/HFPS7Y5MQJ2D7LPON9K0QS.uasset differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/5/2Y/61GOWNQV34IHO88PBKDV7B.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/5/2Y/61GOWNQV34IHO88PBKDV7B.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 2b0c57a..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/5/2Y/61GOWNQV34IHO88PBKDV7B.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/5/6C/J19M0H4H6WXCXN8WLQZ9Q5.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/5/6C/J19M0H4H6WXCXN8WLQZ9Q5.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 0efa2f6..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/5/6C/J19M0H4H6WXCXN8WLQZ9Q5.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/6/AW/IDSJ81CWIUHIJ0M933Y2AR.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/6/AW/IDSJ81CWIUHIJ0M933Y2AR.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 7679733..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/6/AW/IDSJ81CWIUHIJ0M933Y2AR.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/6/N2/VD0BWFMCKVAMZMJPRHP57N.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/6/N2/VD0BWFMCKVAMZMJPRHP57N.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex e54c96a..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/6/N2/VD0BWFMCKVAMZMJPRHP57N.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/7/F8/O4PBKBS57J6HJLX3NAJ6U8.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/7/F8/O4PBKBS57J6HJLX3NAJ6U8.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 96c1b04..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/7/F8/O4PBKBS57J6HJLX3NAJ6U8.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/2C/DX22N5CM0PDERRLWWRDCWD.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/2C/DX22N5CM0PDERRLWWRDCWD.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex ece6ebe..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/2C/DX22N5CM0PDERRLWWRDCWD.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/5N/QLNJ907MVMSYL1SO8MINMQ.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/5N/QLNJ907MVMSYL1SO8MINMQ.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex a8ef34e..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/5N/QLNJ907MVMSYL1SO8MINMQ.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/8L/FWEIFECRVVF7MG09PY06PM.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/8L/FWEIFECRVVF7MG09PY06PM.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 4c2a104..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/8L/FWEIFECRVVF7MG09PY06PM.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/BM/VERFY568RF4S6FL5P5Y3M0.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/BM/VERFY568RF4S6FL5P5Y3M0.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex ddc1de6..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/BM/VERFY568RF4S6FL5P5Y3M0.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/HP/SI9H9KOLI34P6NVWIVG20Z.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/HP/SI9H9KOLI34P6NVWIVG20Z.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 423b34e..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/HP/SI9H9KOLI34P6NVWIVG20Z.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/P4/87OA74V21HZJBUO96IMERH.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/P4/87OA74V21HZJBUO96IMERH.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 870e752..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/P4/87OA74V21HZJBUO96IMERH.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/UJ/5D8XAUQX7K53SEHXGJX6N1.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/UJ/5D8XAUQX7K53SEHXGJX6N1.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 48bb397..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/8/UJ/5D8XAUQX7K53SEHXGJX6N1.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/9/MS/E8XBXTIDSBJXOI2RG2NHNP.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/9/MS/E8XBXTIDSBJXOI2RG2NHNP.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 4ce34f0..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/9/MS/E8XBXTIDSBJXOI2RG2NHNP.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/9/UB/XD6EIRNLD2NH2JMW37M9DX.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/9/UB/XD6EIRNLD2NH2JMW37M9DX.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 7aa7f6e..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/9/UB/XD6EIRNLD2NH2JMW37M9DX.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/A/4R/IAB21KF0P4UXX79G3T4NTW.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/A/4R/IAB21KF0P4UXX79G3T4NTW.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 29ad370..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/A/4R/IAB21KF0P4UXX79G3T4NTW.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/C/AL/JZLBD5UZDTTCTQ7WU0O4W9.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/C/AL/JZLBD5UZDTTCTQ7WU0O4W9.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex c2aa960..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/C/AL/JZLBD5UZDTTCTQ7WU0O4W9.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/C/JD/7CKYWEONC6T5THVFB6CIOS.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/C/JD/7CKYWEONC6T5THVFB6CIOS.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 8fa0ce5..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/C/JD/7CKYWEONC6T5THVFB6CIOS.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/C/KV/NPYI394H9B3MQET5P7M3UI.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/C/KV/NPYI394H9B3MQET5P7M3UI.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 145a515..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/C/KV/NPYI394H9B3MQET5P7M3UI.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/D/7F/CGKM5ENL41392MHT5PRHE4.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/D/7F/CGKM5ENL41392MHT5PRHE4.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex a14eb03..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/D/7F/CGKM5ENL41392MHT5PRHE4.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/D/BR/PUQ0OCFW5735ZQCJGUK7UI.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/D/BR/PUQ0OCFW5735ZQCJGUK7UI.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 320d8eb..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/D/BR/PUQ0OCFW5735ZQCJGUK7UI.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/E/OJ/HOL8J3PXMBQLM7EQSHBRA8.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/E/OJ/HOL8J3PXMBQLM7EQSHBRA8.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 5d8ab0b..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/E/OJ/HOL8J3PXMBQLM7EQSHBRA8.uasset and /dev/null differ
+[1mdiff --git a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/E/PO/TTPH05ODQKKHPCHJT4BC8V.uasset b/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/E/PO/TTPH05ODQKKHPCHJT4BC8V.uasset[m
+[1mdeleted file mode 100644[m
+[1mindex 46c1d27..0000000[m
+Binary files a/Content/__ExternalActors__/FirstPerson/Maps/FirstPersonMap_2/E/PO/TTPH05ODQKKHPCHJT4BC8V.uasset and /dev/null differ
+[1mdiff --git a/Source/BOOM/Private/BOOMElectricArc.cpp b/Source/BOOM/Private/BOOMElectricArc.cpp[m
+[1mindex cec64f8..7f224e8 100644[m
+[1m--- a/Source/BOOM/Private/BOOMElectricArc.cpp[m
+[1m+++ b/Source/BOOM/Private/BOOMElectricArc.cpp[m
+[36m@@ -9,6 +9,7 @@[m [mABOOMElectricArc::ABOOMElectricArc()[m
+  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.[m
+ 	PrimaryActorTick.bCanEverTick = false;[m
+ 	DamageBox = CreateDefaultSubobject<UBoxComponent>("DamageBox");[m
+[32m+[m	[32mDamageBox->SetupAttachment(RootComponent);[m[41m[m
+ 	DamageBox->SetHiddenInGame(false);[m
+ 	DamageBox->ShapeColor = FColor(10, 70, 255);[m
+ [m
+[36m@@ -19,6 +20,16 @@[m [mUBoxComponent* ABOOMElectricArc::GetBoxComponent()[m
+ 	return DamageBox;[m
+ }[m
+ [m
+[32m+[m[32mvoid ABOOMElectricArc::InitActor()[m[41m[m
+[32m+[m[32m{[m[41m[m
+[32m+[m	[32mDamageBox->SetHiddenInGame(false);[m[41m[m
+[32m+[m	[32mDamageBox->ShapeColor = FColor(10, 70, 255);[m[41m[m
+[32m+[m[32m}[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mvoid ABOOMElectricArc::ReturnActorToPool()[m[41m[m
+[32m+[m[32m{[m[41m[m
+[32m+[m[32m}[m[41m[m
+[32m+[m[41m[m
+ // Called when the game starts or when spawned[m
+ void ABOOMElectricArc::BeginPlay()[m
+ {[m
+[1mdiff --git a/Source/BOOM/Private/BOOMElectricSourceComponent.cpp b/Source/BOOM/Private/BOOMElectricSourceComponent.cpp[m
+[1mindex 07f55d1..3053298 100644[m
+[1m--- a/Source/BOOM/Private/BOOMElectricSourceComponent.cpp[m
+[1m+++ b/Source/BOOM/Private/BOOMElectricSourceComponent.cpp[m
+[36m@@ -5,12 +5,27 @@[m
+ [m
+ #include "BOOMElectricRadiusComponent.h"[m
+ #include "Interfaces/ElectricInterface.h"[m
+[32m+[m[32m#include "Interfaces/PoolableObjectInterface.h"[m[41m[m
+ #include "Math/UnitConversion.h"[m
+ #include "Util/IndexPriorityQueue.h"[m
+ #include "BOOMElectricArc.h"[m
+ #include "Components/BoxComponent.h"[m
+ #include "BOOMObjectPoolingSubsystem.h"[m
+ [m
+[32m+[m[41m[m
+[32m+[m[32m/*[m[41m[m
+[32m+[m[32mMost of this code is experimental and terribly unoptimized.[m[41m[m
+[32m+[m[32m*/[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m/*[m[41m[m
+[32m+[m[32mOptimizations Ideas:[m[41m [m
+[32m+[m[41m[m
+[32m+[m	[32m- I don't have to recalculate all distances or  arcs in the ArcLists[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m*/[m[41m[m
+[32m+[m[41m[m
+ UBOOMElectricSourceComponent::UBOOMElectricSourceComponent()[m
+ {[m
+ 	RecalculateInterval = 0.3F;[m
+[36m@@ -32,53 +47,54 @@[m [mvoid UBOOMElectricSourceComponent::BeginPlay()[m
+ 	OnComponentBeginOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnSphereBeginOverlap);[m
+ [m
+ 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Cyan, FString::FromInt(OverlappedComponents.Num()));[m
+[31m-	UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();[m
+[32m+[m	[32m//UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();[m[41m[m
+[32m+[m	[32m//ObjectPoolingSubsystem->InitializeActorPool(ABOOMElectricArc::StaticClass(), 20);[m[41m[m
+ [m
+ 	if (GetOwner())[m
+ 	{[m
+[31m-		//GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true); //change bool after debugging.[m
+[31m-		GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, false);[m
+[31m-[m
+[31m-		//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);[m
+[32m+[m		[32mGetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true);[m[41m[m
+ 	}[m
+[31m-		// MST();[m
+[32m+[m		[32m MST();[m[41m[m
+ 	[m
+ }[m
+ [m
+ void UBOOMElectricSourceComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)[m
+ {[m
+ 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);[m
+[31m-	GetOverlappingComponents(OverlappedComponents);[m
+[31m-[m
+[31m-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Green, "Overlapped actors: " +  FString::FromInt(OverlappedComponents.Num()));[m
+ }[m
+ [m
+ /*	[m
+ Prim's Algorithm Implementation - Creates a Minimum Spanning Tree -  https://en.wikipedia.org/wiki/Minimum_spanning_tree#:~:text=A%20minimum%20spanning%20tree%20(MST,minimum%20possible%20total%20edge%20weight.[m
+ */[m
+ [m
+[31m-//@TODO Object pooling for spawning in electric effects and hitboxes when connecting the MST.[m
+ [m
+[31m-//Need to make sure actors using the component have level streaming enabled[m
+[32m+[m[32m//NOTE: Need to make sure actors using the component have level streaming enabled[m[41m[m
+ [m
+ void UBOOMElectricSourceComponent::MST()[m
+ {[m
+[31m-	//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);[m
+[31m-[m
+[31m-	[m
+[31m-[m
+[31m-	[m
+[31m-	Visited.Empty(Visited.Num());[m
+[32m+[m	[32mTRACE_CPUPROFILER_EVENT_SCOPE("MST")[m[41m[m
+ 	GraphNodes.Empty(GraphNodes.Num());[m
+[31m-	DistanceMap.Empty(DistanceMap.Num());[m
+[31m-	MinimumSpanningTree.Empty(MinimumSpanningTree.Num());[m
+[32m+[m[41m[m
+ 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");[m
+ [m
+[32m+[m	[32m//UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();[m[41m[m
+[32m+[m[41m[m
+[32m+[m	[32m//for (int i = 0; i < ArcList.Num(); i++)[m[41m[m
+[32m+[m	[32m//{[m[41m[m
+[32m+[m[41m[m
+[32m+[m	[32m//	TRACE_CPUPROFILER_EVENT_SCOPE("Restoring back to pool")[m[41m[m
+[32m+[m	[32m//	//TWeakObjectPtr<AActor> ToActor = Cast<AActor>(ArcList[i]);[m[41m[m
+[32m+[m[41m[m
+[32m+[m	[32m//	/*@TODO: properly defined interface and options for sending to pool.*/[m[41m[m
+[32m+[m	[32m//	//ObjectPoolingSubsystem->GetActorPool(ABOOMElectricArc::StaticClass())->Add(ToActor);[m[41m[m
+[32m+[m	[32m//	//ArcList.RemoveAtSwap(i, 1, false);[m[41m[m
+[32m+[m	[32m//}[m[41m[m
+[32m+[m[41m[m
+ 	GetOverlappingComponents(OverlappedComponents);[m
+[31m-	//TSet<UPrimitiveComponent*> Visited;[m
+[31m-	//TMap<UPrimitiveComponent*, float> DistanceMap;[m
+[31m-	//TArray<FPriorityQueueNode> PriorityQueue;[m
+[31m-	//TArray<FPriorityQueueNode> MinimumSpanningTree;[m
+[32m+[m	[32mTSet<UPrimitiveComponent*> Visited;[m[41m[m
+[32m+[m	[32mTMap<UPrimitiveComponent*, float> DistanceMap;[m[41m[m
+[32m+[m	[32mTArray<FPriorityQueueNode> PriorityQueue;[m[41m[m
+[32m+[m	[32mTArray<FPriorityQueueNode> MinimumSpanningTree;[m[41m[m
+ 	FCollisionQueryParams TraceParams;[m
+ [m
+ 	FPriorityQueueNode StartNode(this, 0, nullptr, this->GetComponentLocation());[m
+[36m@@ -89,6 +105,8 @@[m [mvoid UBOOMElectricSourceComponent::MST()[m
+ [m
+ 	while (PriorityQueue.Num() != 0)[m
+ 	{[m
+[32m+[m		[32mTRACE_CPUPROFILER_EVENT_SCOPE("Minheap Pop")[m[41m[m
+[32m+[m[41m[m
+ 		FPriorityQueueNode CurrentNode;[m
+ 		PriorityQueue.HeapPop(CurrentNode, FMinDistancePredicate());[m
+ [m
+[36m@@ -103,9 +121,12 @@[m [mvoid UBOOMElectricSourceComponent::MST()[m
+ 		Visited.Add(CurrentNode.Component);[m
+ [m
+ 		TArray<UPrimitiveComponent*> Neighbors;[m
+[32m+[m		[32mTRACE_CPUPROFILER_EVENT_SCOPE("GetOverlappingComponents")[m[41m[m
+ [m
+ 		CurrentNode.Component->GetOverlappingComponents(Neighbors);[m
+ [m
+[32m+[m		[32mTRACE_CPUPROFILER_EVENT_SCOPE("Processing all neighbors")[m[41m[m
+[32m+[m[41m[m
+ 		for (UPrimitiveComponent* Neighbor : Neighbors)[m
+ 		{[m
+ [m
+[36m@@ -117,6 +138,8 @@[m [mvoid UBOOMElectricSourceComponent::MST()[m
+ 			FHitResult HitResult;[m
+ 			if (Neighbor->GetOwner())[m
+ 			{[m
+[32m+[m				[32mTRACE_CPUPROFILER_EVENT_SCOPE("AddIgnoreActor")[m[41m[m
+[32m+[m[41m[m
+ 				TraceParams.AddIgnoredActor(CurrentNode.Component->GetOwner());[m
+ [m
+ 				TraceParams.AddIgnoredActor(Neighbor->GetOwner());[m
+[36m@@ -132,26 +155,33 @@[m [mvoid UBOOMElectricSourceComponent::MST()[m
+ 				DrawDebugLine(GetWorld(), CurrentNode.Component->GetComponentLocation(), HitResult.Location, FColor::Red, false, RecalculateInterval, 1, 3.F);[m
+ 				continue;[m
+ 			}[m
+[32m+[m[41m[m
+ 			float DistanceSquared = FVector::DistSquared(CurrentNode.Component->GetComponentLocation(), Neighbor->GetComponentLocation());[m
+ [m
+ 			if (!DistanceMap.Find(Neighbor))[m
+ 			{[m
+[32m+[m[41m[m
+ 				DistanceMap.Add(Neighbor, Infinity);[m
+ 			}[m
+ [m
+ 			if (!Visited.Find(Neighbor) && DistanceMap[Neighbor] > DistanceSquared)[m
+ 			{[m
+[32m+[m				[32mTRACE_CPUPROFILER_EVENT_SCOPE("HeapPush")[m[41m[m
+ 				FPriorityQueueNode NewNode(Neighbor, DistanceSquared, CurrentNode.Component, Neighbor->GetComponentLocation());[m
+ 				DistanceMap[Neighbor] = DistanceSquared;[m
+[32m+[m[41m[m
+ 				PriorityQueue.HeapPush(NewNode, FMinDistancePredicate());[m
+ 			}[m
+ 		}[m
+ 	}[m
+[32m+[m	[32mTRACE_CPUPROFILER_EVENT_SCOPE("AfterMSTCalculated")[m[41m[m
+ [m
+[31m-	for (UPrimitiveComponent* PoweredNode : PoweredNodes)[m
+[32m+[m	[32mfor(auto it = PoweredNodes.CreateConstIterator(); it; ++it)[m[41m[m
+ 	{[m
+[32m+[m		[32mUPrimitiveComponent* PoweredNode = *it;[m[41m[m
+ 		if (!IsValid(PoweredNode))[m
+ 		{[m
+[32m+[m[41m[m
+ 			PoweredNodes.Remove(PoweredNode);[m
+ 			continue;[m
+ 		}[m
+[36m@@ -161,9 +191,9 @@[m [mvoid UBOOMElectricSourceComponent::MST()[m
+ 		}[m
+ 		else[m
+ 		{[m
+[32m+[m[41m[m
+ 			PoweredNodes.Remove(PoweredNode);[m
+ [m
+[31m-			//powered node shouldnt be ours i guess??[m
+ 			PoweredNode->OnComponentBeginOverlap.Remove(this, "OnGraphNodeBeginOverlap");[m
+ 			if (IElectricInterface* ActiveObject = Cast<IElectricInterface>(PoweredNode->GetOwner()))[m
+ 			{[m
+[36m@@ -173,22 +203,25 @@[m [mvoid UBOOMElectricSourceComponent::MST()[m
+ 			[m
+ 		}[m
+ 	}[m
+[31m-[m
+[31m-	ConnectMST(/*MinimumSpanningTree*/);[m
+[32m+[m	[32mConnectMST(MinimumSpanningTree);[m[41m[m
+ }[m
+ [m
+ [m
+ void UBOOMElectricSourceComponent::CheckForUpdates()[m
+ {[m
+[31m-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Cyan, "GraphNodes.Num = " + FString::FromInt(GraphNodes.Num()));[m
+[31m-	for (TPair<UPrimitiveComponent*, FVector> Component : GraphNodes) //consider making it a const reference is what intellisense said?[m
+[32m+[m	[32mTRACE_CPUPROFILER_EVENT_SCOPE("CheckForUpdates")[m[41m[m
+[32m+[m[41m[m
+[32m+[m	[32m//GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Cyan, "GraphNodes.Num = " + FString::FromInt(GraphNodes.Num()));[m[41m[m
+[32m+[m	[32mfor (TPair<UPrimitiveComponent*, FVector> Component : GraphNodes)[m[41m[m
+ 	{[m
+[32m+[m[41m[m
+ 		if (IsValid(Component.Key) && Component.Key->GetComponentLocation() == Component.Value)[m
+ 		{[m
+ 			continue;[m
+ 		}[m
+ 		else[m
+ 		{[m
+[32m+[m[41m[m
+ 			MST();[m
+ 			return;[m
+ 		}[m
+[36m@@ -197,8 +230,9 @@[m [mvoid UBOOMElectricSourceComponent::CheckForUpdates()[m
+ [m
+ }[m
+ [m
+[31m-void UBOOMElectricSourceComponent::ConnectMST(/*TArray<FPriorityQueueNode> MinimumSpanningTree*/)[m
+[32m+[m[32mvoid UBOOMElectricSourceComponent::ConnectMST(TArray<FPriorityQueueNode> MinimumSpanningTree)[m[41m[m
+ {[m
+[32m+[m	[32mTRACE_CPUPROFILER_EVENT_SCOPE("ConnectMST")[m[41m[m
+ 	FPriorityQueueNode CurrentNode;[m
+ 	FActorSpawnParameters ActorSpawnParams;[m
+ [m
+[36m@@ -213,21 +247,36 @@[m [mvoid UBOOMElectricSourceComponent::ConnectMST(/*TArray<FPriorityQueueNode> Minim[m
+ 			//Spawns a box collision in between two points[m
+ 			FVector Midpoint = (CurrentNode.ParentComponent->GetComponentLocation() + CurrentNode.Component->GetComponentLocation() ) /2;[m
+ 			FVector Direction = CurrentNode.ParentComponent->GetComponentLocation() - CurrentNode.Component->GetComponentLocation();[m
+[31m-			ABOOMElectricArc* ElectricArc = GetWorld()->SpawnActor<ABOOMElectricArc>(Arc, Midpoint, Direction.Rotation(), ActorSpawnParams);[m
+[31m-			[m
+[31m-			UBoxComponent* ArcBoxVolume =  ElectricArc->GetBoxComponent();[m
+ [m
+ 			float Distance = FMath::Sqrt(CurrentNode.Cost);[m
+[31m-			//Change magic numbers to electric arc thickness or something.[m
+[31m-			ArcBoxVolume->SetBoxExtent(FVector(Distance/2,5,5), false);[m
+ [m
+[31m-			ArcList.Add(ElectricArc);[m
+[32m+[m			[32m//UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();[m[41m[m
+ [m
+[31m-			// GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.F, FColor::Blue, "Distance is : " + FString::SanitizeFloat(Distance));[m
+[31m-			[m
+[32m+[m[41m[m
+[32m+[m			[32m////ABOOMElectricArc* ElectricArc = GetWorld()->SpawnActor<ABOOMElectricArc>(Arc, Midpoint, Direction.Rotation(), ActorSpawnParams);[m[41m[m
+[32m+[m			[32m//[m[41m[m
+[32m+[m			[32m//if (ABOOMElectricArc* ElectricArc = Cast<ABOOMElectricArc>(ObjectPoolingSubsystem->GetActor(ABOOMElectricArc::StaticClass())))[m[41m[m
+[32m+[m			[32m//{[m[41m[m
+[32m+[m			[32m//	TRACE_CPUPROFILER_EVENT_SCOPE("SquareRootOperation")[m[41m[m
+[32m+[m[41m[m
+[32m+[m			[32m//	//ElectricArc->SetActorLocation(Midpoint);[m[41m[m
+[32m+[m			[32m//	//ElectricArc->SetActorRotation(Direction.Rotation());[m[41m[m
+[32m+[m			[32m//	//UBoxComponent* ArcBoxVolume = ElectricArc->GetBoxComponent();[m[41m[m
+[32m+[m			[32m//	//TRACE_CPUPROFILER_EVENT_SCOPE("SquareRootTimeStart")[m[41m[m
+[32m+[m[41m[m
+[32m+[m			[32m//[m[41m	[m
+[32m+[m			[32m//	//TRACE_CPUPROFILER_EVENT_SCOPE("SquareRootTimeEnd")[m[41m[m
+[32m+[m[41m[m
+[32m+[m			[32m//	////Change magic numbers to electric arc thickness or something.[m[41m[m
+[32m+[m			[32m//	//ArcBoxVolume->SetBoxExtent(FVector(Distance / 2, 5, 5), false);[m[41m[m
+[32m+[m[41m[m
+[32m+[m			[32m//	//ArcList.Add(ElectricArc);[m[41m[m
+[32m+[m			[32m//}[m[41m			[m
+ 			DrawDebugLine(GetWorld(), CurrentNode.Component->GetComponentLocation(), CurrentNode.ParentComponent->GetComponentLocation(), FColor::Blue, false, RecalculateInterval, 1, 3.F);[m
+ 			if (!PoweredNodes.Find(CurrentNode.Component))[m
+ 			{[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+ 				if (!IsValid(CurrentNode.Component))[m
+ 				{[m
+ 					return;[m
+[36m@@ -243,14 +292,12 @@[m [mvoid UBOOMElectricSourceComponent::ConnectMST(/*TArray<FPriorityQueueNode> Minim[m
+ 			[m
+ 		}[m
+ 	}[m
+[31m-	//if (GetOwner())[m
+[31m-	//{[m
+[31m-	//	GetOwner()->GetWorldTimerManager().UnPauseTimer(TimerHandle_MST);[m
+[31m-	//}[m
+ }[m
+ [m
+ void UBOOMElectricSourceComponent::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)[m
+ {[m
+[32m+[m	[32mTRACE_CPUPROFILER_EVENT_SCOPE("OnSphereNodeBeginOverlap")[m[41m[m
+[32m+[m[41m[m
+ 	if (PoweredNodes.Find(OtherComp))[m
+ 	{[m
+ [m
+[36m@@ -264,6 +311,9 @@[m [mvoid UBOOMElectricSourceComponent::OnSphereBeginOverlap(UPrimitiveComponent* Ove[m
+ [m
+ void UBOOMElectricSourceComponent::OnGraphNodeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)[m
+ {[m
+[32m+[m[41m[m
+[32m+[m	[32mTRACE_CPUPROFILER_EVENT_SCOPE("OnGraphNodeBeginOverlap")[m[41m[m
+[32m+[m[41m[m
+ 	if (PoweredNodes.Find(OtherComp))[m
+ 	{[m
+ [m
+[1mdiff --git a/Source/BOOM/Private/BOOMObjectPoolingSubsystem.cpp b/Source/BOOM/Private/BOOMObjectPoolingSubsystem.cpp[m
+[1mindex 438f258..61b8f91 100644[m
+[1m--- a/Source/BOOM/Private/BOOMObjectPoolingSubsystem.cpp[m
+[1m+++ b/Source/BOOM/Private/BOOMObjectPoolingSubsystem.cpp[m
+[36m@@ -10,6 +10,8 @@[m [mUBOOMObjectPoolingSubsystem::UBOOMObjectPoolingSubsystem()[m
+ void UBOOMObjectPoolingSubsystem::Initialize(FSubsystemCollectionBase& Collection)[m
+ {[m
+ 	Super::Initialize(Collection);[m
+[32m+[m	[32mUE_LOG(LogTemp, Warning, TEXT("UBOOMObjectPoolingSubsystem::Initialize"));[m[41m[m
+[32m+[m[41m[m
+ }[m
+ [m
+ void UBOOMObjectPoolingSubsystem::Deinitialize()[m
+[36m@@ -19,13 +21,14 @@[m [mvoid UBOOMObjectPoolingSubsystem::Deinitialize()[m
+ [m
+ void UBOOMObjectPoolingSubsystem::InitializeActorPool(TSubclassOf<AActor> ActorClass, int PoolSize)[m
+ {[m
+[32m+[m	[32mUE_LOG(LogTemp, Warning, TEXT("Attempting to create pool"));[m[41m[m
+ [m
+[31m-	if(ActorPools.Find(ActorClass->StaticClass()))[m
+[32m+[m	[32mif(ActorPools.Find(ActorClass.Get()))[m[41m[m
+ 	{[m
+[31m-		UE_LOG(LogTemp, Warning, TEXT("Pool already exists for ActorClass: %s"), FString(ActorClass->GetName()));[m
+[32m+[m		[32mUE_LOG(LogTemp, Warning, TEXT("Pool already exists for ActorClass:"));[m[41m[m
+ 		return;[m
+ 	}[m
+[31m-	[m
+[32m+[m[41m[m
+ 	[m
+ 	TArray<TWeakObjectPtr<AActor>> ActorPool;[m
+ 	[m
+[36m@@ -41,18 +44,44 @@[m [mvoid UBOOMObjectPoolingSubsystem::InitializeActorPool(TSubclassOf<AActor> ActorC[m
+ 		}		[m
+ 	}[m
+ 	//dont copy the array, add to pool set.[m
+[31m-	ActorPools.Add(ActorClass->StaticClass(), ActorPool);[m
+[31m-	UE_LOG(LogTemp, Warning, TEXT("Pool created for ActorClass: %s"), FString(ActorClass->GetName()));[m
+[32m+[m	[32mActorPools.Add(ActorClass.Get(), ActorPool);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m	[32mUE_LOG(LogTemp, Warning, TEXT("Pool created for ActorClass:"));[m[41m[m
+ [m
+ }[m
+ [m
+ AActor* UBOOMObjectPoolingSubsystem::GetActor(TSubclassOf<AActor> ActorClass)[m
+ {[m
+[31m-	if(!ActorPools.Find(ActorClass))[m
+[32m+[m[41m[m
+[32m+[m	[32mTArray<TWeakObjectPtr<AActor>>* const SelectedPool = ActorPools.Find(ActorClass.Get());[m[41m[m
+[32m+[m[41m[m
+[32m+[m	[32mif(SelectedPool == nullptr)[m[41m[m
+ 	{[m
+[32m+[m		[32mUE_LOG(LogTemp, Warning, TEXT("Inside UBOOMObjectPoolingSubsystem::GetActor couldn't find classtype" ));[m[41m[m
+ 		return nullptr;[m
+ 	}[m
+[32m+[m	[32mfor (int i = 0; i < SelectedPool->Num(); i++)[m[41m[m
+[32m+[m	[32m{[m[41m[m
+[32m+[m		[32mAActor* ActorToSpawn = (*SelectedPool)[i].Get();[m[41m[m
+ [m
+[31m-	[m
+[31m-	[m
+[32m+[m		[32mif (ActorToSpawn != nullptr)[m[41m[m
+[32m+[m		[32m{[m[41m[m
+[32m+[m			[32mUE_LOG(LogTemp, Warning, TEXT("Free Actor Found"))[m[41m[m
+[32m+[m			[32mSelectedPool->RemoveAtSwap(i, 1, false);[m[41m[m
+[32m+[m			[32mreturn ActorToSpawn;[m[41m[m
+[32m+[m		[32m}[m[41m[m
+[32m+[m	[32m}[m[41m[m
+[32m+[m	[32mUE_LOG(LogTemp, Warning, TEXT("Free actor not found."))[m[41m[m
+[32m+[m	[32mreturn nullptr;[m[41m	[m
+[32m+[m[32m}[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mTArray<TWeakObjectPtr<AActor>>* UBOOMObjectPoolingSubsystem::GetActorPool(TWeakObjectPtr<UClass> ActorClass)[m[41m[m
+[32m+[m[32m{[m[41m[m
+[32m+[m	[32mTArray<TWeakObjectPtr<AActor>>* ActorPool = ActorPools.Find(ActorClass);[m[41m[m
+[32m+[m	[32mif (ActorPool)[m[41m[m
+[32m+[m	[32m{[m[41m[m
+[32m+[m		[32mreturn ActorPool;[m[41m[m
+[32m+[m	[32m}[m[41m[m
+[32m+[m	[32mreturn nullptr;[m[41m[m
+ }[m
+[1mdiff --git a/Source/BOOM/Private/Weapons/BOOMWeaponStateSingleShotFiring.cpp b/Source/BOOM/Private/Weapons/BOOMWeaponStateSingleShotFiring.cpp[m
+[1mindex 2f1d6f2..0fd98c4 100644[m
+[1m--- a/Source/BOOM/Private/Weapons/BOOMWeaponStateSingleShotFiring.cpp[m
+[1m+++ b/Source/BOOM/Private/Weapons/BOOMWeaponStateSingleShotFiring.cpp[m
+[36m@@ -10,6 +10,7 @@[m [mUBOOMWeaponStateSingleShotFiring::UBOOMWeaponStateSingleShotFiring()[m
+ [m
+ void UBOOMWeaponStateSingleShotFiring::BeginPlay()[m
+ {[m
+[32m+[m	[32mSuper::BeginPlay();[m
+ }[m
+ [m
+ void UBOOMWeaponStateSingleShotFiring::EnterState()[m
+[1mdiff --git a/Source/BOOM/Public/BOOMElectricArc.h b/Source/BOOM/Public/BOOMElectricArc.h[m
+[1mindex 7b55528..07672bf 100644[m
+[1m--- a/Source/BOOM/Public/BOOMElectricArc.h[m
+[1m+++ b/Source/BOOM/Public/BOOMElectricArc.h[m
+[36m@@ -2,12 +2,14 @@[m
+ [m
+ #pragma once[m
+ [m
+[32m+[m[32m#include "Interfaces/PoolableObjectInterface.h"[m[41m[m
+[32m+[m[41m[m
+ #include "CoreMinimal.h"[m
+ #include "GameFramework/Actor.h"[m
+ #include "BOOMElectricArc.generated.h"[m
+ [m
+ UCLASS()[m
+[31m-class BOOM_API ABOOMElectricArc : public AActor[m
+[32m+[m[32mclass BOOM_API ABOOMElectricArc : public AActor, public IPoolableObjectInterface[m[41m[m
+ {[m
+ 	GENERATED_BODY()[m
+ 	[m
+[36m@@ -21,6 +23,10 @@[m [mpublic:[m
+ [m
+ 	UBoxComponent* GetBoxComponent();[m
+ [m
+[32m+[m	[32mvirtual void InitActor() override;[m[41m[m
+[32m+[m[41m	[m
+[32m+[m	[32mvirtual void ReturnActorToPool() override;[m[41m[m
+[32m+[m[41m[m
+ protected:[m
+ 	// Called when the game starts or when spawned[m
+ 	virtual void BeginPlay() override;[m
+[1mdiff --git a/Source/BOOM/Public/BOOMElectricSourceComponent.h b/Source/BOOM/Public/BOOMElectricSourceComponent.h[m
+[1mindex 24cdd00..b38567a 100644[m
+[1m--- a/Source/BOOM/Public/BOOMElectricSourceComponent.h[m
+[1m+++ b/Source/BOOM/Public/BOOMElectricSourceComponent.h[m
+[36m@@ -72,7 +72,7 @@[m [mprotected:[m
+ 	float RecalculateInterval;[m
+ [m
+ 	UFUNCTION()[m
+[31m-	void ConnectMST(/*TArray<FPriorityQueueNode> MinimumSpanningTree*/);[m
+[32m+[m	[32mvoid ConnectMST(TArray<FPriorityQueueNode> MinimumSpanningTree);[m[41m[m
+ [m
+ 	UFUNCTION()[m
+ 	void CheckForUpdates();[m
+[36m@@ -87,8 +87,8 @@[m [mprotected:[m
+ 	TSet<UPrimitiveComponent*> PoweredNodes;[m
+ [m
+ 	//TMap<UPrimitiveComponent*, UPrimitiveComponent*> PredecessorMap;[m
+[31m-	UPROPERTY()[m
+[31m-	TSet<UPrimitiveComponent*> Visited;[m
+[32m+[m	[32m//UPROPERTY()[m[41m[m
+[32m+[m	[32m//TSet<UPrimitiveComponent*> Visited;[m[41m[m
+ [m
+ 	UFUNCTION()[m
+ 	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);[m
+[36m@@ -96,12 +96,12 @@[m [mprotected:[m
+ 	UFUNCTION()[m
+ 	void OnGraphNodeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);[m
+ [m
+[31m-	UPROPERTY()[m
+[31m-	TMap<UPrimitiveComponent*, float> DistanceMap;[m
+[31m-	UPROPERTY()[m
+[31m-	TArray<FPriorityQueueNode> PriorityQueue;[m
+[31m-	UPROPERTY()[m
+[31m-	TArray<FPriorityQueueNode> MinimumSpanningTree;[m
+[32m+[m	[32m//UPROPERTY()[m[41m[m
+[32m+[m	[32m//TMap<UPrimitiveComponent*, float> DistanceMap;[m[41m[m
+[32m+[m	[32m//UPROPERTY()[m[41m[m
+[32m+[m	[32m//TArray<FPriorityQueueNode> PriorityQueue;[m[41m[m
+[32m+[m	[32m//UPROPERTY()[m[41m[m
+[32m+[m	[32m//TArray<FPriorityQueueNode> MinimumSpanningTree;[m[41m[m
+ 	UPROPERTY()[m
+ 	TMap<UPrimitiveComponent*, FVector> GraphNodes;[m
+ [m
+[36m@@ -112,6 +112,5 @@[m [mprotected:[m
+ 	TSubclassOf<UObject> Arc;[m
+ [m
+ 	UPROPERTY()[m
+[31m-	TSet<class ABOOMElectricArc*> ArcList;[m
+[31m-[m
+[32m+[m	[32mTArray<class ABOOMElectricArc*> ArcList;[m[41m[m
+ };[m
+[1mdiff --git a/Source/BOOM/Public/BOOMObjectPoolingSubsystem.h b/Source/BOOM/Public/BOOMObjectPoolingSubsystem.h[m
+[1mindex 65df1db..66244bc 100644[m
+[1m--- a/Source/BOOM/Public/BOOMObjectPoolingSubsystem.h[m
+[1m+++ b/Source/BOOM/Public/BOOMObjectPoolingSubsystem.h[m
+[36m@@ -19,14 +19,14 @@[m [mpublic:[m
+ [m
+ 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;[m
+ 	virtual void Deinitialize() override;[m
+[31m-private:[m
+[31m-	//why UClass over TSubclassOf?[m
+[31m-	class TMap<TWeakObjectPtr<UClass>, TArray<TWeakObjectPtr<AActor>>> ActorPools;[m
+ [m
+[31m-	//We only want to pool actors.[m
+ 	void InitializeActorPool(TSubclassOf<AActor> ActorClass, int PoolSize);[m
+ [m
+[31m-	AActor* GetActor(TSubclassOf<AActor> ActorClass);[m
+[31m-			[m
+[31m-	//will use interface[m
+[32m+[m	[32mAActor* GetActor(TSubclassOf<AActor> ActorClass); //O(N) retrieval[m[41m[m
+[32m+[m[41m[m
+[32m+[m	[32mTArray<TWeakObjectPtr<AActor>>* GetActorPool(TWeakObjectPtr<UClass> ActorClass);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mprivate:[m[41m[m
+[32m+[m[41m[m
+[32m+[m	[32mclass TMap<TWeakObjectPtr<UClass>, TArray<TWeakObjectPtr<AActor>>> ActorPools;[m[41m[m
+ };[m
+[1mdiff --git a/Source/BOOM/Public/Interfaces/PoolableObjectInterface.h b/Source/BOOM/Public/Interfaces/PoolableObjectInterface.h[m
+[1mindex dd7c4ab..6de0d0c 100644[m
+[1m--- a/Source/BOOM/Public/Interfaces/PoolableObjectInterface.h[m
+[1m+++ b/Source/BOOM/Public/Interfaces/PoolableObjectInterface.h[m
+[36m@@ -19,6 +19,9 @@[m [mclass UPoolableObjectInterface : public UInterface[m
+ class BOOM_API IPoolableObjectInterface[m
+ {[m
+ 	GENERATED_BODY()[m
+[32m+[m[41m[m
+[32m+[m	[32mvirtual void InitActor() = 0;[m[41m[m
+[32m+[m	[32mvirtual void ReturnActorToPool() = 0;[m[41m[m
+ 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.[m
+ public:[m
+ };[m

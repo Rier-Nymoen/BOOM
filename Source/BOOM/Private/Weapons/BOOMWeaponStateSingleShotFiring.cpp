@@ -10,6 +10,7 @@ UBOOMWeaponStateSingleShotFiring::UBOOMWeaponStateSingleShotFiring()
 
 void UBOOMWeaponStateSingleShotFiring::BeginPlay()
 {
+	Super::BeginPlay();
 }
 
 void UBOOMWeaponStateSingleShotFiring::EnterState()

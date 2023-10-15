@@ -5,11 +5,26 @@
 
 #include "BOOMElectricRadiusComponent.h"
 #include "Interfaces/ElectricInterface.h"
+#include "Interfaces/PoolableObjectInterface.h"
 #include "Math/UnitConversion.h"
 #include "Util/IndexPriorityQueue.h"
 #include "BOOMElectricArc.h"
 #include "Components/BoxComponent.h"
 #include "BOOMObjectPoolingSubsystem.h"
+
+
+/*
+Most of this code is experimental and terribly unoptimized.
+*/
+
+
+/*
+Optimizations Ideas: 
+
+	- I don't have to recalculate all distances or  arcs in the ArcLists
+
+
+*/
 
 UBOOMElectricSourceComponent::UBOOMElectricSourceComponent()
 {
@@ -32,53 +47,54 @@ void UBOOMElectricSourceComponent::BeginPlay()
 	OnComponentBeginOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnSphereBeginOverlap);
 
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Cyan, FString::FromInt(OverlappedComponents.Num()));
-	UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
+	//UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
+	//ObjectPoolingSubsystem->InitializeActorPool(ABOOMElectricArc::StaticClass(), 20);
 
 	if (GetOwner())
 	{
-		//GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true); //change bool after debugging.
-		GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, false);
-
-		//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
+		GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true);
 	}
-		// MST();
+		 MST();
 	
 }
 
 void UBOOMElectricSourceComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	GetOverlappingComponents(OverlappedComponents);
-
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Green, "Overlapped actors: " +  FString::FromInt(OverlappedComponents.Num()));
 }
 
 /*	
 Prim's Algorithm Implementation - Creates a Minimum Spanning Tree -  https://en.wikipedia.org/wiki/Minimum_spanning_tree#:~:text=A%20minimum%20spanning%20tree%20(MST,minimum%20possible%20total%20edge%20weight.
 */
 
-//@TODO Object pooling for spawning in electric effects and hitboxes when connecting the MST.
 
-//Need to make sure actors using the component have level streaming enabled
+//NOTE: Need to make sure actors using the component have level streaming enabled
 
 void UBOOMElectricSourceComponent::MST()
 {
-	//GetOwner()->GetWorldTimerManager().PauseTimer(TimerHandle_MST);
-
-	
-
-	
-	Visited.Empty(Visited.Num());
+	TRACE_CPUPROFILER_EVENT_SCOPE("MST")
 	GraphNodes.Empty(GraphNodes.Num());
-	DistanceMap.Empty(DistanceMap.Num());
-	MinimumSpanningTree.Empty(MinimumSpanningTree.Num());
+
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
 
+	//UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
+
+	//for (int i = 0; i < ArcList.Num(); i++)
+	//{
+
+	//	TRACE_CPUPROFILER_EVENT_SCOPE("Restoring back to pool")
+	//	//TWeakObjectPtr<AActor> ToActor = Cast<AActor>(ArcList[i]);
+
+	//	/*@TODO: properly defined interface and options for sending to pool.*/
+	//	//ObjectPoolingSubsystem->GetActorPool(ABOOMElectricArc::StaticClass())->Add(ToActor);
+	//	//ArcList.RemoveAtSwap(i, 1, false);
+	//}
+
 	GetOverlappingComponents(OverlappedComponents);
-	//TSet<UPrimitiveComponent*> Visited;
-	//TMap<UPrimitiveComponent*, float> DistanceMap;
-	//TArray<FPriorityQueueNode> PriorityQueue;
-	//TArray<FPriorityQueueNode> MinimumSpanningTree;
+	TSet<UPrimitiveComponent*> Visited;
+	TMap<UPrimitiveComponent*, float> DistanceMap;
+	TArray<FPriorityQueueNode> PriorityQueue;
+	TArray<FPriorityQueueNode> MinimumSpanningTree;
 	FCollisionQueryParams TraceParams;
 
 	FPriorityQueueNode StartNode(this, 0, nullptr, this->GetComponentLocation());
@@ -89,6 +105,8 @@ void UBOOMElectricSourceComponent::MST()
 
 	while (PriorityQueue.Num() != 0)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE("Minheap Pop")
+
 		FPriorityQueueNode CurrentNode;
 		PriorityQueue.HeapPop(CurrentNode, FMinDistancePredicate());
 
@@ -103,8 +121,11 @@ void UBOOMElectricSourceComponent::MST()
 		Visited.Add(CurrentNode.Component);
 
 		TArray<UPrimitiveComponent*> Neighbors;
+		TRACE_CPUPROFILER_EVENT_SCOPE("GetOverlappingComponents")
 
 		CurrentNode.Component->GetOverlappingComponents(Neighbors);
+
+		TRACE_CPUPROFILER_EVENT_SCOPE("Processing all neighbors")
 
 		for (UPrimitiveComponent* Neighbor : Neighbors)
 		{
@@ -117,6 +138,8 @@ void UBOOMElectricSourceComponent::MST()
 			FHitResult HitResult;
 			if (Neighbor->GetOwner())
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE("AddIgnoreActor")
+
 				TraceParams.AddIgnoredActor(CurrentNode.Component->GetOwner());
 
 				TraceParams.AddIgnoredActor(Neighbor->GetOwner());
@@ -132,26 +155,33 @@ void UBOOMElectricSourceComponent::MST()
 				DrawDebugLine(GetWorld(), CurrentNode.Component->GetComponentLocation(), HitResult.Location, FColor::Red, false, RecalculateInterval, 1, 3.F);
 				continue;
 			}
+
 			float DistanceSquared = FVector::DistSquared(CurrentNode.Component->GetComponentLocation(), Neighbor->GetComponentLocation());
 
 			if (!DistanceMap.Find(Neighbor))
 			{
+
 				DistanceMap.Add(Neighbor, Infinity);
 			}
 
 			if (!Visited.Find(Neighbor) && DistanceMap[Neighbor] > DistanceSquared)
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE("HeapPush")
 				FPriorityQueueNode NewNode(Neighbor, DistanceSquared, CurrentNode.Component, Neighbor->GetComponentLocation());
 				DistanceMap[Neighbor] = DistanceSquared;
+
 				PriorityQueue.HeapPush(NewNode, FMinDistancePredicate());
 			}
 		}
 	}
+	TRACE_CPUPROFILER_EVENT_SCOPE("AfterMSTCalculated")
 
-	for (UPrimitiveComponent* PoweredNode : PoweredNodes)
+	for(auto it = PoweredNodes.CreateConstIterator(); it; ++it)
 	{
+		UPrimitiveComponent* PoweredNode = *it;
 		if (!IsValid(PoweredNode))
 		{
+
 			PoweredNodes.Remove(PoweredNode);
 			continue;
 		}
@@ -161,9 +191,9 @@ void UBOOMElectricSourceComponent::MST()
 		}
 		else
 		{
+
 			PoweredNodes.Remove(PoweredNode);
 
-			//powered node shouldnt be ours i guess??
 			PoweredNode->OnComponentBeginOverlap.Remove(this, "OnGraphNodeBeginOverlap");
 			if (IElectricInterface* ActiveObject = Cast<IElectricInterface>(PoweredNode->GetOwner()))
 			{
@@ -173,22 +203,25 @@ void UBOOMElectricSourceComponent::MST()
 			
 		}
 	}
-
-	ConnectMST(/*MinimumSpanningTree*/);
+	ConnectMST(MinimumSpanningTree);
 }
 
 
 void UBOOMElectricSourceComponent::CheckForUpdates()
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Cyan, "GraphNodes.Num = " + FString::FromInt(GraphNodes.Num()));
-	for (TPair<UPrimitiveComponent*, FVector> Component : GraphNodes) //consider making it a const reference is what intellisense said?
+	TRACE_CPUPROFILER_EVENT_SCOPE("CheckForUpdates")
+
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Cyan, "GraphNodes.Num = " + FString::FromInt(GraphNodes.Num()));
+	for (TPair<UPrimitiveComponent*, FVector> Component : GraphNodes)
 	{
+
 		if (IsValid(Component.Key) && Component.Key->GetComponentLocation() == Component.Value)
 		{
 			continue;
 		}
 		else
 		{
+
 			MST();
 			return;
 		}
@@ -197,8 +230,9 @@ void UBOOMElectricSourceComponent::CheckForUpdates()
 
 }
 
-void UBOOMElectricSourceComponent::ConnectMST(/*TArray<FPriorityQueueNode> MinimumSpanningTree*/)
+void UBOOMElectricSourceComponent::ConnectMST(TArray<FPriorityQueueNode> MinimumSpanningTree)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE("ConnectMST")
 	FPriorityQueueNode CurrentNode;
 	FActorSpawnParameters ActorSpawnParams;
 
@@ -213,21 +247,35 @@ void UBOOMElectricSourceComponent::ConnectMST(/*TArray<FPriorityQueueNode> Minim
 			//Spawns a box collision in between two points
 			FVector Midpoint = (CurrentNode.ParentComponent->GetComponentLocation() + CurrentNode.Component->GetComponentLocation() ) /2;
 			FVector Direction = CurrentNode.ParentComponent->GetComponentLocation() - CurrentNode.Component->GetComponentLocation();
-			ABOOMElectricArc* ElectricArc = GetWorld()->SpawnActor<ABOOMElectricArc>(Arc, Midpoint, Direction.Rotation(), ActorSpawnParams);
-			
-			UBoxComponent* ArcBoxVolume =  ElectricArc->GetBoxComponent();
 
 			float Distance = FMath::Sqrt(CurrentNode.Cost);
-			//Change magic numbers to electric arc thickness or something.
-			ArcBoxVolume->SetBoxExtent(FVector(Distance/2,5,5), false);
 
-			ArcList.Add(ElectricArc);
+			//UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
 
-			// GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2.F, FColor::Blue, "Distance is : " + FString::SanitizeFloat(Distance));
-			
+
+			////ABOOMElectricArc* ElectricArc = GetWorld()->SpawnActor<ABOOMElectricArc>(Arc, Midpoint, Direction.Rotation(), ActorSpawnParams);
+			//
+			//if (ABOOMElectricArc* ElectricArc = Cast<ABOOMElectricArc>(ObjectPoolingSubsystem->GetActor(ABOOMElectricArc::StaticClass())))
+			//{
+			//	TRACE_CPUPROFILER_EVENT_SCOPE("SquareRootOperation")
+
+			//	//ElectricArc->SetActorLocation(Midpoint);
+			//	//ElectricArc->SetActorRotation(Direction.Rotation());
+			//	//UBoxComponent* ArcBoxVolume = ElectricArc->GetBoxComponent();
+
+			//			float Distance = FMath::Sqrt(CurrentNode.Cost);
+
+
+			//	////Change magic numbers to electric arc thickness or something.
+			//	//ArcBoxVolume->SetBoxExtent(FVector(Distance / 2, 5, 5), false);
+
+			//	//ArcList.Add(ElectricArc);
+			//}			
 			DrawDebugLine(GetWorld(), CurrentNode.Component->GetComponentLocation(), CurrentNode.ParentComponent->GetComponentLocation(), FColor::Blue, false, RecalculateInterval, 1, 3.F);
 			if (!PoweredNodes.Find(CurrentNode.Component))
 			{
+
+
 				if (!IsValid(CurrentNode.Component))
 				{
 					return;
@@ -243,14 +291,12 @@ void UBOOMElectricSourceComponent::ConnectMST(/*TArray<FPriorityQueueNode> Minim
 			
 		}
 	}
-	//if (GetOwner())
-	//{
-	//	GetOwner()->GetWorldTimerManager().UnPauseTimer(TimerHandle_MST);
-	//}
 }
 
 void UBOOMElectricSourceComponent::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE("OnSphereNodeBeginOverlap")
+
 	if (PoweredNodes.Find(OtherComp))
 	{
 
@@ -264,6 +310,9 @@ void UBOOMElectricSourceComponent::OnSphereBeginOverlap(UPrimitiveComponent* Ove
 
 void UBOOMElectricSourceComponent::OnGraphNodeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+
+	TRACE_CPUPROFILER_EVENT_SCOPE("OnGraphNodeBeginOverlap")
+
 	if (PoweredNodes.Find(OtherComp))
 	{
 
