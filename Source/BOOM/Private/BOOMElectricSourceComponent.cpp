@@ -23,7 +23,6 @@ Optimizations Ideas:
 
 	- I don't have to recalculate all distances or  arcs in the ArcLists
 
-
 */
 
 UBOOMElectricSourceComponent::UBOOMElectricSourceComponent()
@@ -48,7 +47,7 @@ void UBOOMElectricSourceComponent::BeginPlay()
 
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Cyan, FString::FromInt(OverlappedComponents.Num()));
 	//UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
-	//ObjectPoolingSubsystem->InitializeActorPool(ABOOMElectricArc::StaticClass(), 20);
+	//ObjectPoolingSubsystem->InitializeActorPool(ABOOMElectricArc::StaticClass(), 100);
 
 	if (GetOwner())
 	{
@@ -77,17 +76,18 @@ void UBOOMElectricSourceComponent::MST()
 
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
 
-	//UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
+	UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
 
 	//for (int i = 0; i < ArcList.Num(); i++)
 	//{
 
 	//	TRACE_CPUPROFILER_EVENT_SCOPE("Restoring back to pool")
-	//	//TWeakObjectPtr<AActor> ToActor = Cast<AActor>(ArcList[i]);
-
+	//	ArcList[i]->GetBoxComponent()->SetHiddenInGame(true);
+	//	ArcList[i]->GetBoxComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//	TWeakObjectPtr<AActor> ToActor = Cast<AActor>(ArcList[i]);
 	//	/*@TODO: properly defined interface and options for sending to pool.*/
-	//	//ObjectPoolingSubsystem->GetActorPool(ABOOMElectricArc::StaticClass())->Add(ToActor);
-	//	//ArcList.RemoveAtSwap(i, 1, false);
+	//	ObjectPoolingSubsystem->GetActorPool(ABOOMElectricArc::StaticClass())->Add(ToActor);
+	//	ArcList.RemoveAtSwap(i, 1, false);
 	//}
 
 	GetOverlappingComponents(OverlappedComponents);
@@ -191,21 +191,17 @@ void UBOOMElectricSourceComponent::MST()
 		}
 		else
 		{
-
 			PoweredNodes.Remove(PoweredNode);
 
 			PoweredNode->OnComponentBeginOverlap.Remove(this, "OnGraphNodeBeginOverlap");
 			if (IElectricInterface* ActiveObject = Cast<IElectricInterface>(PoweredNode->GetOwner()))
 			{
 				ActiveObject->OnDisconnectFromPower();
-				
 			}
-			
 		}
 	}
 	ConnectMST(MinimumSpanningTree);
 }
-
 
 void UBOOMElectricSourceComponent::CheckForUpdates()
 {
@@ -214,19 +210,16 @@ void UBOOMElectricSourceComponent::CheckForUpdates()
 	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Cyan, "GraphNodes.Num = " + FString::FromInt(GraphNodes.Num()));
 	for (TPair<UPrimitiveComponent*, FVector> Component : GraphNodes)
 	{
-
 		if (IsValid(Component.Key) && Component.Key->GetComponentLocation() == Component.Value)
 		{
 			continue;
 		}
 		else
 		{
-
 			MST();
 			return;
 		}
 	}
-
 
 }
 
@@ -253,29 +246,27 @@ void UBOOMElectricSourceComponent::ConnectMST(TArray<FPriorityQueueNode> Minimum
 			//UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
 
 
-			////ABOOMElectricArc* ElectricArc = GetWorld()->SpawnActor<ABOOMElectricArc>(Arc, Midpoint, Direction.Rotation(), ActorSpawnParams);
-			//
+			//ABOOMElectricArc* ElectricArc = GetWorld()->SpawnActor<ABOOMElectricArc>(Arc, Midpoint, Direction.Rotation(), ActorSpawnParams);
+			
 			//if (ABOOMElectricArc* ElectricArc = Cast<ABOOMElectricArc>(ObjectPoolingSubsystem->GetActor(ABOOMElectricArc::StaticClass())))
 			//{
 			//	TRACE_CPUPROFILER_EVENT_SCOPE("SquareRootOperation")
 
-			//	//ElectricArc->SetActorLocation(Midpoint);
-			//	//ElectricArc->SetActorRotation(Direction.Rotation());
-			//	//UBoxComponent* ArcBoxVolume = ElectricArc->GetBoxComponent();
+			//	ElectricArc->SetActorLocation(Midpoint);
+			//	ElectricArc->SetActorRotation(Direction.Rotation());
+			//	UBoxComponent* ArcBoxVolume = ElectricArc->GetBoxComponent();
 
-			//			float Distance = FMath::Sqrt(CurrentNode.Cost);
+			//	float Distance = FMath::Sqrt(CurrentNode.Cost);
 
 
-			//	////Change magic numbers to electric arc thickness or something.
-			//	//ArcBoxVolume->SetBoxExtent(FVector(Distance / 2, 5, 5), false);
+			//	//Change magic numbers to electric arc thickness or something.
+			//	ArcBoxVolume->SetBoxExtent(FVector(Distance / 2, 5, 5), false);
 
-			//	//ArcList.Add(ElectricArc);
+			//	ArcList.Add(ElectricArc);
 			//}			
 			DrawDebugLine(GetWorld(), CurrentNode.Component->GetComponentLocation(), CurrentNode.ParentComponent->GetComponentLocation(), FColor::Blue, false, RecalculateInterval, 1, 3.F);
 			if (!PoweredNodes.Find(CurrentNode.Component))
 			{
-
-
 				if (!IsValid(CurrentNode.Component))
 				{
 					return;

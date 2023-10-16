@@ -10,8 +10,9 @@ ABOOMElectricArc::ABOOMElectricArc()
 	PrimaryActorTick.bCanEverTick = false;
 	DamageBox = CreateDefaultSubobject<UBoxComponent>("DamageBox");
 	DamageBox->SetupAttachment(RootComponent);
-	DamageBox->SetHiddenInGame(false);
+	DamageBox->SetHiddenInGame(true);
 	DamageBox->ShapeColor = FColor(10, 70, 255);
+	DamageBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 }
 
