@@ -18,6 +18,7 @@
 #include "BOOMHealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "BOOMCharacterMovementComponent.h"
+#include "AbilitySystemComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ABOOMCharacter
@@ -64,6 +65,10 @@ ABOOMCharacter::ABOOMCharacter()
 	//b crouch maintains place location could be used for crouch jumping
 	
 	BOOMCharacterMovementComp = Cast<UBOOMCharacterMovementComponent>(GetCharacterMovement());
+
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
+	AbilitySystemComponent->SetIsReplicated(true);
+
 
 }
 

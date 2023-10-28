@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Engine/DataTable.h"
+//
+#include "AbilitySystemInterface.h"
 
 #include "BOOMCharacter.generated.h"
 class UBOOMCharacterMovementComponent;
@@ -15,7 +17,7 @@ class USceneComponent;
 class UCameraComponent;
 class UAnimMontage;
 class USoundBase;
-
+class UAbilitySystemComponent;
 
 //want to use Data table since its stored on disk. 
 USTRUCT(BlueprintType)
@@ -30,7 +32,7 @@ public:
 };
 
 UCLASS(config = Game)
-class ABOOMCharacter : public ACharacter 
+class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -82,7 +84,7 @@ public:
 
 	/** Getter for the bool */
 	UFUNCTION(BlueprintCallable, Category = Weapon)
-	bool GetHasRifle() ;
+	bool GetHasRifle();
 	 
 	UPROPERTY()
 	bool bIsOverlappingWeapon;
@@ -168,6 +170,14 @@ protected:
 
 
 public:
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	UAbilitySystemComponent* AbilitySystemComponent;
+
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
+
+	class UBOOMAttributeSetBase* AttributeBase;
+
 
 	UFUNCTION()
 	void DropCurrentWeapon();

@@ -8,9 +8,8 @@ public class BOOM : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay"});
 
-        PublicDependencyModuleNames.AddRange(new string[] {"AIModule", "NavigationSystem", "GameplayTasks"});
-
+        PublicDependencyModuleNames.AddRange(new string[] {"AIModule", "EnhancedInput", "NavigationSystem", "GameplayAbilities", "GameplayTags", "GameplayTasks" });
     }
 }
