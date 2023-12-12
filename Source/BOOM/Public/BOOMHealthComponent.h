@@ -31,12 +31,6 @@ public:
 	float MaxHealth;
 
 
-		//has very basic logic suited just for this component.
-
-		//shield logic would have the same thing.
-
-	//only has things to manipulate the object!!!!
-
 	/*
 	ROOT CLASS HOLDS SPECIFIC LOGIC
 

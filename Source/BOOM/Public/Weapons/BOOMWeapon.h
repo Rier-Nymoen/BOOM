@@ -4,11 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "AbilitySystemInterface.h"
 #include "Interfaces/InteractableInterface.h"
 #include "BOOMWeapon.generated.h"
 
 class UBOOMPickUpComponent;
 class ABOOMCharacter;
+class UAbilitySystemComponent;
+
 //class UBOOMWeaponReloadComponent;
 
 UENUM()
@@ -28,13 +31,20 @@ struct FFireInput
 };
 
 UCLASS()
-class BOOM_API ABOOMWeapon : public AActor, public IInteractableInterface
+class BOOM_API ABOOMWeapon : public AActor, public IInteractableInterface, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
 	ABOOMWeapon();
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	UAbilitySystemComponent* AbilitySystemComponent;
+
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
+
+
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* Weapon1P;
 
@@ -306,5 +316,9 @@ public:
 	//Affects how likely shots are to group towards the center. From the center, a random value is picked and raised to the power of SpreadGroupingExponent
 	UPROPERTY(EditAnywhere, Category = Spread)
 	float SpreadGroupingExponent;
+
+
+	UPROPERTY(EditAnywhere, Category = GameplayEffects)
+	TSubclassOf<class UGameplayEffect> DamageEffect;
 	
 };

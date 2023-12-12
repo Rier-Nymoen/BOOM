@@ -18,15 +18,15 @@
 #include "BOOMHealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "BOOMCharacterMovementComponent.h"
+
 #include "AbilitySystemComponent.h"
+#include "BOOMAttributeSetBase.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ABOOMCharacter
 
 ABOOMCharacter::ABOOMCharacter()
-{
-	//Could put in object initializer list if I really want to
-	
+{	
 	PrimaryActorTick.bCanEverTick = true;
 	// Character doesnt have a rifle at start
 	bHasRifle = false;
@@ -70,6 +70,9 @@ ABOOMCharacter::ABOOMCharacter()
 	AbilitySystemComponent->SetIsReplicated(true);
 
 
+	AttributeSetBase = CreateDefaultSubobject<UBOOMAttributeSetBase>("AttributeSetBase");
+	AttributeSetBase->InitHealth(100.F);
+	AttributeSetBase->InitMaxHealth(100.F);
 }
 
 void ABOOMCharacter::BeginPlay()

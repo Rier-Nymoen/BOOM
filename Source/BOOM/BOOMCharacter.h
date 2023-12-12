@@ -176,7 +176,8 @@ public:
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
 
-	class UBOOMAttributeSetBase* AttributeBase;
+	UPROPERTY()
+	class UBOOMAttributeSetBase* AttributeSetBase;
 
 
 	UFUNCTION()

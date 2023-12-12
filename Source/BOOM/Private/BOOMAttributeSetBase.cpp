@@ -5,7 +5,6 @@
 
 UBOOMAttributeSetBase::UBOOMAttributeSetBase()
 {
-	InitHealth(100.F);
 }
 
 void UBOOMAttributeSetBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -18,6 +17,7 @@ void UBOOMAttributeSetBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 void UBOOMAttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
+	UE_LOG(LogTemp, Warning, TEXT("UBOOMAttributeSetBase::PreAttributeChange. New value is: %f"), NewValue)
 	if (Attribute == GetHealthAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.F, GetMaxHealth());
