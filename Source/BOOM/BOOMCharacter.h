@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Engine/DataTable.h"
+#include "GameplayEffectTypes.h"
+
 //
 #include "AbilitySystemInterface.h"
 
@@ -50,7 +52,6 @@ public:
 	FName SocketNameGripPoint;
 	FName SocketNameHolsterPoint;
 
-	
 protected:
 	virtual void BeginPlay();
 
@@ -64,16 +65,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Character")
 	UBOOMCharacterMovementComponent* BOOMCharacterMovementComp;
 
-	
 private:
 	UPROPERTY()
 	TArray< AActor* > OverlappedActors;
 
 	UPROPERTY()
 	int Overlaps;
-
 public:
-
 	/** Bool for AnimBP to switch to another animation set */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
 	bool bHasRifle;
@@ -116,7 +114,6 @@ protected:
 
 	//void StartFire(const FInputActionValue& Value);
 
-
 	UFUNCTION()
 	void Reload();
 
@@ -127,50 +124,45 @@ protected:
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputMappingContext* DefaultMappingContext;
+	class UInputMappingContext* DefaultMappingContext;
 
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* JumpAction;
+	class UInputAction* JumpAction;
 
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* MoveAction;
+	class UInputAction* MoveAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* InteractAction;
+	class UInputAction* InteractAction;
 
 	/** Weapon Swap Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* WeaponSwapAction;
+	class UInputAction* WeaponSwapAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* FireAction;
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* StopFireAction;
 
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* LookAction;
+	class UInputAction* LookAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* ReloadAction;
-
+	class UInputAction* ReloadAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* ZoomAction;
+	class UInputAction* ZoomAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* CrouchAction;
 
 protected:
 
-
-
 public:
-
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
 	UAbilitySystemComponent* AbilitySystemComponent;
 
@@ -178,7 +170,6 @@ public:
 
 	UPROPERTY()
 	class UBOOMAttributeSetBase* AttributeSetBase;
-
 
 	UFUNCTION()
 	void DropCurrentWeapon();
@@ -203,7 +194,6 @@ public:
 	UPROPERTY()
 	float InteractionRange;
 
-
 	UFUNCTION()
 	AActor* GetNearestInteractable();
 
@@ -223,7 +213,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory", meta=(ArrayClamp="2"))
 	TArray<TSubclassOf<ABOOMWeapon>> WeaponsToSpawn;
 
-
 	void SpawnWeapons();
 
 	TArray<class ABOOMWeapon*> Weapons;
@@ -238,6 +227,12 @@ public:
 
 	UFUNCTION()
 	bool HasEmptyWeaponSlots();
+
+	UFUNCTION()
+	float GetHealth();
+
+	UFUNCTION()
+	bool IsAlive();
 	
 protected:
 
@@ -248,13 +243,9 @@ protected:
 	virtual void OnDeath();
 
 	virtual void ThrowInventory();
-
-	UFUNCTION()
-	virtual void OnTakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
-
-	UFUNCTION()
-		virtual void TakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser);
 	
+	virtual void OnHealthChanged(const FOnAttributeChangeData& Data);
+
 	bool bIsDead;
 
 	UFUNCTION()
@@ -262,5 +253,9 @@ protected:
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Input)
 	bool bIsFocalLengthScalingEnabled;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UAnimMontage* DeathMontage;
+
 
 };

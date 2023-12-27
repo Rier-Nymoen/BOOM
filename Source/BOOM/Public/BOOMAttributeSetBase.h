@@ -26,23 +26,36 @@ class BOOM_API UBOOMAttributeSetBase : public UAttributeSet
 public:
 	UBOOMAttributeSetBase();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+	void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+
 	UPROPERTY(BlueprintReadOnly, Category = "Health"/*, ReplicatedUsing = OnRep_Health*/)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UBOOMAttributeSetBase, Health)
-
 
 	UPROPERTY(BlueprintReadOnly, Category = "Health"/*, ReplicatedUsing = OnRep_MaxHealth*/)
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UBOOMAttributeSetBase, MaxHealth)
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	UPROPERTY(BlueprintReadOnly, Category = "Health")
+	FGameplayAttributeData ShieldStrength;
+	ATTRIBUTE_ACCESSORS(UBOOMAttributeSetBase, ShieldStrength)
 
-	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	UPROPERTY(BlueprintReadOnly, Category = "Health")
+	FGameplayAttributeData MaxShieldStrength;
+	ATTRIBUTE_ACCESSORS(UBOOMAttributeSetBase, MaxShieldStrength)
+
+
+	//Meta Attributes
+	UPROPERTY(BlueprintReadOnly, Category = "Damage")
+	FGameplayAttributeData Damage;
+	ATTRIBUTE_ACCESSORS(UBOOMAttributeSetBase, Damage)
 
 
 	//UFUNCTION()
 	//virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
-
-
-
 };

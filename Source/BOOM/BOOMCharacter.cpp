@@ -4,6 +4,8 @@
 
 #include "BOOMProjectile.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Weapons/BOOMWeapon.h"
@@ -69,10 +71,16 @@ ABOOMCharacter::ABOOMCharacter()
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 
-
 	AttributeSetBase = CreateDefaultSubobject<UBOOMAttributeSetBase>("AttributeSetBase");
 	AttributeSetBase->InitHealth(100.F);
 	AttributeSetBase->InitMaxHealth(100.F);
+	AttributeSetBase->InitShieldStrength(100.F);
+	AttributeSetBase->InitMaxShieldStrength(100.F);
+
+	//Can always get handles to delegates if needed.
+
+	//working on figuring out why this doesn't work...
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABOOMCharacter::OnHealthChanged);
 }
 
 void ABOOMCharacter::BeginPlay()
@@ -80,8 +88,6 @@ void ABOOMCharacter::BeginPlay()
 	Super::BeginPlay();
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
-	OnTakeAnyDamage.AddDynamic(this, &ABOOMCharacter::OnTakeDamage);
-	OnTakePointDamage.AddDynamic(this, &ABOOMCharacter::TakePointDamage);
 
 	/*
 	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
@@ -401,6 +407,10 @@ void ABOOMCharacter::OnDeath()
 	{
 		PlayerHUD->RemoveFromParent();
 	}
+	if (DeathMontage)
+	{
+		PlayAnimMontage(DeathMontage);
+	}
 }
 
 void ABOOMCharacter::ThrowInventory()
@@ -413,45 +423,12 @@ void ABOOMCharacter::ThrowInventory()
 	Weapons.Empty();
 }
 
-void ABOOMCharacter::OnTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+void ABOOMCharacter::OnHealthChanged(const FOnAttributeChangeData& Data)
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "any damage");
-
-	if (HealthComponent)
+	if (!IsAlive())
 	{
-		HealthComponent->AddHealth(-Damage);
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Health: " + FString::SanitizeFloat(HealthComponent->Health));
-		//Regen health logic, updates about health component
-		if (HealthComponent->Health <= 0)
-		{
-			OnDeath();
-		}
+		OnDeath();
 	}
-}
-
-void ABOOMCharacter::TakePointDamage(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser)
-{
-	float HeadshotDamageMultiplier = 1;
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "point damage");
-
-	if (BoneName == "head")
-	{
-		HeadshotDamageMultiplier = 200.F;
-	}
-
-		if (HealthComponent)
-		{
-			HealthComponent->AddHealth(-Damage * HeadshotDamageMultiplier);
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, "Health: " + FString::SanitizeFloat(HealthComponent->Health));
-			//Regen health logic, updates about health component
-			if (HealthComponent->Health <= 0)
-			{
-				OnDeath();
-			}
-		}
-	/*
-	Could map bone names to damage modifier values. For now only differentiate headshots
-	*/
 }
 
 void ABOOMCharacter::Zoom()
@@ -461,6 +438,21 @@ void ABOOMCharacter::Zoom()
 		Weapons[CurrentWeaponSlot]->Zoom();
 	}
 
+}
+
+float ABOOMCharacter::GetHealth()
+{
+	if (IsValid(AttributeSetBase))
+	{
+		return AttributeSetBase->GetHealth();
+	}
+	
+	return 0.0F;
+}
+
+bool ABOOMCharacter::IsAlive()
+{
+	return GetHealth() > 0.0F;
 }
 
 

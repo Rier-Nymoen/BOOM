@@ -13,10 +13,9 @@ struct FDamageStatics
 
 	FDamageStatics()
 	{
-		//Careful incase called on self causes bug
 		//DEFINE_ATTRIBUTE_CAPTUREDEF(UBOOMAttributeSetBase, Health, Target, false);
 
-	}
+	} 
 
 	//FGameplayEffectAttributeCaptureDefinition
 };
@@ -30,7 +29,6 @@ void UBOOMDamageExecCalculation::Execute_Implementation(const FGameplayEffectCus
 	UE_LOG(LogTemp, Warning, TEXT("DamageExecCalculationCalled"))
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
 	/*
-	* TODO: 
+	* TODO: For things like damage mitigation calculation, damage buff application, debuffs, etc.	
 	*/
-	
 }

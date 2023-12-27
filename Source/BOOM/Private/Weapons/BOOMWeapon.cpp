@@ -236,23 +236,22 @@ void ABOOMWeapon::FireHitscan()
 		if (AbilitySystemComponent)
 		{
 			FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+			EffectContext.AddHitResult(HitResult);
+
 			FPredictionKey PredictionKey;
 			if (DamageEffect)
 			{
 				const FGameplayEffectSpecHandle DamageEffectSpec = TargetAbilitySystemComponent->MakeOutgoingSpec(DamageEffect, 0.F, EffectContext);
-
+				
 				TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*DamageEffectSpec.Data, PredictionKey);
 				UE_LOG(LogTemp, Warning, TEXT("DamageEffect Applied to HitObject"))
 			}
 		}
-
-
 	}
 }
 
 void ABOOMWeapon::FireProjectile()
 {
-	//thought i could const before  but it seems not...
 	UWorld* const World = GetWorld();
 	if (World)
 	{
@@ -275,13 +274,12 @@ void ABOOMWeapon::FireProjectile()
 			ProjectileSpawnLocation = MuzzleLocation;
 			ProjectileSpawnRotation = MuzzleRotation;
 		}
-		//spread goes heres
+
 		FActorSpawnParameters ProjectileSpawnParams;
 
 		ProjectileSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		ProjectileSpawnRotation = CalculateBulletSpreadDir(ProjectileSpawnRotation).Rotation();
 		
-		//ABOOMProjectile* SpawnedProjectile = World->SpawnActor<ABOOMProjectile>(Projectile, ProjectileSpawnLocation, ProjectileSpawnRotation, ProjectileSpawnParams);
 		FTransform ProjectileTransform(ProjectileSpawnRotation, ProjectileSpawnLocation);
 		ABOOMProjectile* SpawnedProjectile = Cast<ABOOMProjectile>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, Projectile, ProjectileTransform));
 

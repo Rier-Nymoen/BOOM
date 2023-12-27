@@ -317,7 +317,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = Spread)
 	float SpreadGroupingExponent;
 
-
+	//could change to hit effect (could have equipment that doesn't necessarily do damage, but has some other effect).
 	UPROPERTY(EditAnywhere, Category = GameplayEffects)
 	TSubclassOf<class UGameplayEffect> DamageEffect;
 	

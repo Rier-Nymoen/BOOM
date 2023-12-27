@@ -36,5 +36,8 @@ public:
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }
 	/** Returns ProjectileMovement subobject **/
 	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
+
+	UPROPERTY(EditAnywhere, Category = GameplayEffects)
+	TSubclassOf<class UGameplayEffect> DamageEffect;
 };
 
