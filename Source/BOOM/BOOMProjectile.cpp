@@ -45,5 +45,6 @@ void ABOOMProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 	//	//OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 	//	Destroy();
 	//}
+
 	Destroy();
 }

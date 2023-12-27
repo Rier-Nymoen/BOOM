@@ -23,6 +23,10 @@
 #include "Components/DecalComponent.h"
 #include "Components/CapsuleComponent.h"
 
+
+#include "AbilitySystemComponent.h"
+#include"AbilitySystemInterface.h"
+
 // Sets default values
 ABOOMWeapon::ABOOMWeapon()
 {
@@ -70,10 +74,11 @@ ABOOMWeapon::ABOOMWeapon()
 	bHeatAffectsSpread = false;
 	CurrentHeat = 0;
 
-	SpreadGroupingExponent = 2;
+	SpreadGroupingExponent = 1;
 
 	WeaponCoolingStartSeconds = 2.F;
-	
+
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
 }
 
 // Called when the game starts or when spawned
@@ -109,14 +114,12 @@ void ABOOMWeapon::Fire()
 		//need object pooling solution before implementing multiple projectiles per shot.
 		if (Projectile)
 		{
-
 			FireProjectile();
 		}
 		else
 		{
 			FireHitscan();
 		}	
-	
 	
 	if (Character->GetPlayerHUD())
 	{
@@ -160,7 +163,7 @@ bool ABOOMWeapon::IsIntendingToRefire()
 ABOOMCharacter* ABOOMWeapon::GetCharacter()
 {
 	checkSlow(Character)
-		return Character;
+	return Character;
 }
 
 /*
@@ -206,24 +209,49 @@ void ABOOMWeapon::FireHitscan()
 	
 	if (bHit)
 	{
-		UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), WeaponDamage, StartTrace, HitResult, Character->GetController(), this, DamageType);
-		//UGameplayStatics::ApplyDamage(HitResult.GetActor(), WeaponDamage, Character->GetController(), Character, DamageType);
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0F, FColor::Cyan, HitResult.BoneName.ToString());
+		/*
+		Should use targeting maybe?
+		*/
 
 		if (ImpactDecal)
 		{
 			UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), ImpactDecal, FVector(5, 5, 5), HitResult.Location);
 			Decal->SetFadeScreenSize(0.F);
 		}
-		/*
-		Use map of bone names to damage?
-		*/
+
+		AActor* HitActor = HitResult.GetActor();
+		IAbilitySystemInterface* AbilitySystemInterface = Cast<IAbilitySystemInterface>(HitActor);
+
+		if (!AbilitySystemInterface)
+		{
+			return;
+		}
+
+		UAbilitySystemComponent* TargetAbilitySystemComponent = AbilitySystemInterface->GetAbilitySystemComponent();
+		if (!TargetAbilitySystemComponent)
+		{
+			return;
+		}
+
+		if (AbilitySystemComponent)
+		{
+			FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+			EffectContext.AddHitResult(HitResult);
+
+			FPredictionKey PredictionKey;
+			if (DamageEffect)
+			{
+				const FGameplayEffectSpecHandle DamageEffectSpec = TargetAbilitySystemComponent->MakeOutgoingSpec(DamageEffect, 0.F, EffectContext);
+				
+				TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*DamageEffectSpec.Data, PredictionKey);
+				UE_LOG(LogTemp, Warning, TEXT("DamageEffect Applied to HitObject"))
+			}
+		}
 	}
 }
 
 void ABOOMWeapon::FireProjectile()
 {
-	//thought i could const before  but it seems not...
 	UWorld* const World = GetWorld();
 	if (World)
 	{
@@ -246,13 +274,12 @@ void ABOOMWeapon::FireProjectile()
 			ProjectileSpawnLocation = MuzzleLocation;
 			ProjectileSpawnRotation = MuzzleRotation;
 		}
-		//spread goes heres
+
 		FActorSpawnParameters ProjectileSpawnParams;
 
 		ProjectileSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		ProjectileSpawnRotation = CalculateBulletSpreadDir(ProjectileSpawnRotation).Rotation();
 		
-		//ABOOMProjectile* SpawnedProjectile = World->SpawnActor<ABOOMProjectile>(Projectile, ProjectileSpawnLocation, ProjectileSpawnRotation, ProjectileSpawnParams);
 		FTransform ProjectileTransform(ProjectileSpawnRotation, ProjectileSpawnLocation);
 		ABOOMProjectile* SpawnedProjectile = Cast<ABOOMProjectile>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, Projectile, ProjectileTransform));
 
@@ -327,7 +354,7 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 	const  FString cont(TEXT("cont"));
 
 	check(TargetCharacter)
-	FItemInformation* WeaponData = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, true);
+	FItemInformation* WeaponData = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, false);
 
 	if(TargetCharacter->GetPlayerHUD())
 	{
