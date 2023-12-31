@@ -80,7 +80,11 @@ ABOOMCharacter::ABOOMCharacter()
 	//Can always get handles to delegates if needed.
 
 	//working on figuring out why this doesn't work...
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABOOMCharacter::OnHealthChanged);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABOOMCharacter::HandleHealthChanged);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetShieldStrengthAttribute()).AddUObject(this, &ABOOMCharacter::HandleShieldStrengthChanged);
+	ShieldRechargeInterpSeconds = 0.01f;
+	ShieldFullRechargeDurationSeconds = 2.f;
+	ShieldRechargeDelaySeconds = 5.F;
 }
 
 void ABOOMCharacter::BeginPlay()
@@ -423,13 +427,65 @@ void ABOOMCharacter::ThrowInventory()
 	Weapons.Empty();
 }
 
-void ABOOMCharacter::OnHealthChanged(const FOnAttributeChangeData& Data)
+void ABOOMCharacter::InterpShieldRegen()
 {
+	UE_LOG(LogTemp, Warning, TEXT("RegenInterval"))
+
+	float ShieldStrengthFloat = AttributeSetBase->GetShieldStrength();
+
+	float ShieldMax = AttributeSetBase->GetMaxShieldStrength();
+	UE_LOG(LogTemp, Warning, TEXT("Shield Max: %f"), ShieldMax)
+
+	
+
+	float UpdateVal = ShieldStrengthFloat + ((ShieldMax /ShieldFullRechargeDurationSeconds) * ShieldRechargeInterpSeconds);
+
+	UE_LOG(LogTemp, Warning, TEXT("Update Val: %f"), UpdateVal)
+
+	AttributeSetBase->SetShieldStrength(UpdateVal);
+}
+
+
+void ABOOMCharacter::RegenerateShields()
+{
+	//local for testing
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRecharge, this, &ABOOMCharacter::InterpShieldRegen, ShieldRechargeInterpSeconds, true);
+}
+
+void ABOOMCharacter::HandleShieldStrengthChanged(const FOnAttributeChangeData& Data)
+{
+ 
+	if (FMath::IsNearlyEqual(Data.OldValue, Data.NewValue))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecharge);
+	}
+
+	if (Data.OldValue > Data.NewValue)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecharge);
+
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
+	}
+			
+
+}
+
+
+void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
+{
+	if (Data.OldValue > Data.NewValue)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecharge);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
+	}
+
 	if (!IsAlive())
 	{
 		OnDeath();
+		return;
 	}
 }
+
 
 void ABOOMCharacter::Zoom()
 {

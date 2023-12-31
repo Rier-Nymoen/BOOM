@@ -233,7 +233,8 @@ public:
 
 	UFUNCTION()
 	bool IsAlive();
-	
+
+
 protected:
 
 	UPROPERTY()
@@ -244,7 +245,24 @@ protected:
 
 	virtual void ThrowInventory();
 	
-	virtual void OnHealthChanged(const FOnAttributeChangeData& Data);
+	//move into a Health Component eventually
+	FTimerHandle TimerHandle_ShieldRechargeDelay;
+	FTimerHandle TimerHandle_ShieldRecharge;
+
+	float ShieldFullRechargeDurationSeconds;
+
+	float ShieldRechargeInterpSeconds;
+	float ShieldRechargeDelaySeconds;
+
+	UFUNCTION()
+	virtual void InterpShieldRegen();
+	UFUNCTION()
+	virtual void RegenerateShields();
+
+	virtual void HandleShieldStrengthChanged(const FOnAttributeChangeData& Data);
+
+
+	virtual void HandleHealthChanged(const FOnAttributeChangeData& Data);
 
 	bool bIsDead;
 

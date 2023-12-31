@@ -9,8 +9,6 @@ UBOOMHealthComponent::UBOOMHealthComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
-	Health = 1000.0F;
-	// ...
 }
 
 
@@ -19,11 +17,9 @@ void UBOOMHealthComponent::BeginPlay()
 	Super::BeginPlay();
 
 	AActor* Owner = GetOwner();
-	//minimum set of reusuable functionality.
 	if (Owner)
 	{
 	}
-	// ...
 	
 }
 
@@ -33,12 +29,6 @@ void UBOOMHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
-}
-
-void UBOOMHealthComponent::AddHealth(int Amount)
-{
-	Health += Amount;
 }
 
 

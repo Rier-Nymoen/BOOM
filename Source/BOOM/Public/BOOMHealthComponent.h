@@ -20,28 +20,20 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	//figure out health and shield interactions
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UPROPERTY(BlueprintReadWrite)
-	float Health;
-
-	UPROPERTY(BlueprintReadWrite)
-	float MaxHealth;
-
-
 	/*
 	ROOT CLASS HOLDS SPECIFIC LOGIC
 
-	MINIMUM SET OF REUSABLE CODE THAT IS GUARANTEED TO BE reused.
+	MINIMUM SET OF REUSABLE CODE
 
 
 	dont want to be super granular.
 	*/
-
-	UFUNCTION()
-	void AddHealth(int Amount);
 private:
 		
 };

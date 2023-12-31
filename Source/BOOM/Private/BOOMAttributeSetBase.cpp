@@ -32,7 +32,7 @@ void UBOOMAttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attribu
 		NewValue = FMath::Clamp(NewValue, 0.F, GetMaxShieldStrength());
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("UBOOMAttributeSetBase::PreAttributeChange. New value is: %f"), NewValue)
+	//UE_LOG(LogTemp, Warning, TEXT("UBOOMAttributeSetBase::PreAttributeChange. New value is: %f"), NewValue)
 
 }
 
@@ -75,19 +75,30 @@ void UBOOMAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 		float LocalDamage = GetDamage();
 		SetDamage(0.F);
 		UE_LOG(LogTemp, Warning, TEXT("LocalDmg: %f"), LocalDamage)
+		float LocalHealth = GetHealth();
 
+			//need to convert remaining damage to health damage.
 		if (LocalDamage > 0.0F)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Damage value is: %f"), LocalDamage)
 
 			float LocalShieldStrength = GetShieldStrength();
+
+			float RemainingDamage = 0.0f;
 			if (LocalShieldStrength > 0.0F)
 			{
-				SetShieldStrength(LocalShieldStrength - LocalDamage);
+				float ShieldDamageTaken = LocalShieldStrength - LocalDamage;
+				SetShieldStrength(ShieldDamageTaken);
+				//@TODO - for shield/health damage differences, figure out proper way within framework to control remainder damage.
+				if (FMath::IsNegative(ShieldDamageTaken))
+				{
+					RemainingDamage = FMath::Abs(ShieldDamageTaken);
+					SetHealth(LocalHealth - RemainingDamage);
+				}
+
 			}
 			else
 			{
-				float LocalHealth = GetHealth();
 				SetHealth(LocalHealth - LocalDamage); 
 			}
 			UE_LOG(LogTemp, Warning, TEXT("Shield strength: %f"), GetShieldStrength())
