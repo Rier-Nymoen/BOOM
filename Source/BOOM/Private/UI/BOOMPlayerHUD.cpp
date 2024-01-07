@@ -12,3 +12,8 @@ UBOOMWeaponInformation* UBOOMPlayerHUD::GetWeaponInformationElement()
 {
 	return WeaponInformation;
 }
+
+UBOOMHealthInformation* UBOOMPlayerHUD::GetHealthInformationElement()
+{
+	return HealthInformation;
+}

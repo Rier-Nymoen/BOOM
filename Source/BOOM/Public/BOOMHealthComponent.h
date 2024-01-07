@@ -19,8 +19,11 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-
+	UPROPERTY()
+	class UAbilitySystemComponent* AbilitySystemComponent;
 	//figure out health and shield interactions
+	UPROPERTY()
+	class UBOOMAttributeSetBase* AttributeSetBase;
 
 public:	
 	// Called every frame

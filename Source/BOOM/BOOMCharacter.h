@@ -42,6 +42,10 @@ class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* Mesh1P;
 
+	///*3rd person view, seen by other observers*/
+	//UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	//USkeletalMeshComponent* Mesh3P;
+
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
@@ -49,8 +53,12 @@ class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface
 public:
 	ABOOMCharacter();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName SocketNameGripPoint;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName SocketNameHolsterPoint;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName SocketNameGripPoint3P;
 
 protected:
 	virtual void BeginPlay();

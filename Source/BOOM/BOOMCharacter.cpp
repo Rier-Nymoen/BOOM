@@ -1,11 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "BOOMCharacter.h"
-
 #include "BOOMProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
-
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Weapons/BOOMWeapon.h"
@@ -20,7 +18,6 @@
 #include "BOOMHealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "BOOMCharacterMovementComponent.h"
-
 #include "AbilitySystemComponent.h"
 #include "BOOMAttributeSetBase.h"
 
@@ -34,6 +31,7 @@ ABOOMCharacter::ABOOMCharacter()
 	bHasRifle = false;
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
+
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>("FirstPersonCamera");
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
@@ -46,13 +44,23 @@ ABOOMCharacter::ABOOMCharacter()
 	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
 	Mesh1P->bCastDynamicShadow = false;
 	Mesh1P->CastShadow = false;
+	GetMesh()->CastShadow = true;
+	GetMesh()->bCastDynamicShadow = true;
+
+	GetMesh()->SetOnlyOwnerSee(true);
+	//Debating on own 3P mesh, or just using the mesh class as the 3p mesh.
+	//Mesh3P = CreateDefaultSubobject<USkeletalMeshComponent>("CharacterMesh3P");
+	//Mesh3P->SetOnlyOwnerSee(false);
+	//Mesh3P->SetupAttachment(FirstPersonCameraComponent);
+	//Mesh3P->bCastDynamicShadow = true;
+	//Mesh3P->CastShadow = true;
 
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
 	SocketNameGripPoint = "GripPoint";
 	SocketNameHolsterPoint = "spine_01";
-	
+	SocketNameGripPoint3P = "hand_r";
 	InteractionRange = 250.0F;
 	Overlaps = 0;
 	bGenerateOverlapEventsDuringLevelStreaming = true;
@@ -83,7 +91,7 @@ ABOOMCharacter::ABOOMCharacter()
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABOOMCharacter::HandleHealthChanged);
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetShieldStrengthAttribute()).AddUObject(this, &ABOOMCharacter::HandleShieldStrengthChanged);
 	ShieldRechargeInterpSeconds = 0.01f;
-	ShieldFullRechargeDurationSeconds = 2.f;
+	ShieldFullRechargeDurationSeconds = 3.f;
 	ShieldRechargeDelaySeconds = 5.F;
 }
 
@@ -248,9 +256,7 @@ AActor* ABOOMCharacter::GetNearestInteractable()
 	return NearestActor;
 }
 
-//@TODO - Consider using Dot Product as an alternative for pickup intent
-/* Potential optimization not requiring timer, but overlap event behavior makes it odd.
-* It could be better than having to look exactly at the collision point for the weapon*/
+
 void ABOOMCharacter::CheckPlayerLook()
 {
 	/*
@@ -347,8 +353,16 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 	{
 		Weapons.Add(TargetWeapon);
 
+
 		TargetWeapon->GotoStateEquipping();
-		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+
+		//jank placeholder
+		if (GetMesh1P())
+		{
+			TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+		}
+
+		
 		if (PlayerHUD)
 		{
 			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
@@ -429,18 +443,18 @@ void ABOOMCharacter::ThrowInventory()
 
 void ABOOMCharacter::InterpShieldRegen()
 {
-	UE_LOG(LogTemp, Warning, TEXT("RegenInterval"))
+	//UE_LOG(LogTemp, Warning, TEXT("RegenInterval"))
 
 	float ShieldStrengthFloat = AttributeSetBase->GetShieldStrength();
 
 	float ShieldMax = AttributeSetBase->GetMaxShieldStrength();
-	UE_LOG(LogTemp, Warning, TEXT("Shield Max: %f"), ShieldMax)
+	//UE_LOG(LogTemp, Warning, TEXT("Shield Max: %f"), ShieldMax)
 
 	
 
 	float UpdateVal = ShieldStrengthFloat + ((ShieldMax /ShieldFullRechargeDurationSeconds) * ShieldRechargeInterpSeconds);
 
-	UE_LOG(LogTemp, Warning, TEXT("Update Val: %f"), UpdateVal)
+	//UE_LOG(LogTemp, Warning, TEXT("Update Val: %f"), UpdateVal)
 
 	AttributeSetBase->SetShieldStrength(UpdateVal);
 }
@@ -466,7 +480,14 @@ void ABOOMCharacter::HandleShieldStrengthChanged(const FOnAttributeChangeData& D
 
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
 	}
-			
+	
+	if (PlayerHUD)
+	{
+		//move to shield component
+		PlayerHUD->GetHealthInformationElement()->SetShieldBar(Data.NewValue / AttributeSetBase->GetMaxShieldStrength());
+	}
+
+	
 
 }
 
@@ -478,6 +499,13 @@ void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecharge);
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
 	}
+
+	if (PlayerHUD)
+	{
+		//move to health components	
+		PlayerHUD->GetHealthInformationElement()->SetHealthBar(Data.NewValue/AttributeSetBase->GetMaxHealth());
+	}
+
 
 	if (!IsAlive())
 	{

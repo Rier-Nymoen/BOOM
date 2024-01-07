@@ -126,7 +126,6 @@ void ABOOMWeapon::Fire()
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
 	}
 
-	//TODO if weapon spread changes based on heat level
 	
 	//Should clamp the values around the ranges of the curves incase we get an X value that is out of range of the curve it will be used as an input to.
 	if(bHeatAffectsSpread)
@@ -140,6 +139,8 @@ void ABOOMWeapon::Fire()
 		CurrentSpreadAngle = FMath::Clamp(CurrentSpreadAngle, MinSpreadAngle, MaxSpreadAngle);
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_WeaponCooldown, this, &ABOOMWeapon::Cooldown, WeaponCoolingStartSeconds, true);
 	}
+
+
 }
 
 bool ABOOMWeapon::IsIntendingToRefire()
