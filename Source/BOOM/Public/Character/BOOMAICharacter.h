@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BOOM/BOOMCharacter.h"
+#include "Character/BOOMCharacter.h"
 #include "BOOMAICharacter.generated.h"
 
 /**

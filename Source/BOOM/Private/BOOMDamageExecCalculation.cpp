@@ -3,7 +3,7 @@
 
 #include "BOOMDamageExecCalculation.h"
 
-#include "BOOMAttributeSetBase.h"
+#include "Character/BOOMAttributeSetBase.h"
 
 
 struct FDamageStatics

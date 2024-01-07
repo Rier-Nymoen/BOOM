@@ -2,7 +2,7 @@
 
 #include "Weapons/BOOMWeapon.h"
 #include "BOOMPickUpComponent.h"
-#include "BOOM/BOOMCharacter.h"
+#include "Character/BOOMCharacter.h"
 #include "UI/BOOMPlayerHUD.h"
 #include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"

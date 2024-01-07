@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "BOOMGameMode.h"
-#include "BOOMCharacter.h"
+#include "Character/BOOMCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 ABOOMGameMode::ABOOMGameMode()

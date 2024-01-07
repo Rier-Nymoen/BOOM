@@ -3,7 +3,7 @@
 
 #include "AI/BOOMBTTask_ShootWeapon.h"
 #include "AIController.h"
-#include "BOOMAICharacter.h"
+#include "Character/BOOMAICharacter.h"
 
 UBOOMBTTask_ShootWeapon::UBOOMBTTask_ShootWeapon()
 {

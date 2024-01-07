@@ -2,7 +2,7 @@
 
 
 #include "TP_WeaponComponent.h"
-#include "BOOMCharacter.h"
+#include "Character/BOOMCharacter.h"
 #include "BOOMProjectile.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"

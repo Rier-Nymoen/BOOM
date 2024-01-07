@@ -10,7 +10,7 @@
 #include "Util/IndexPriorityQueue.h"
 #include "BOOMElectricArc.h"
 #include "Components/BoxComponent.h"
-#include "BOOMObjectPoolingSubsystem.h"
+#include "System/BOOMObjectPoolingSubsystem.h"
 
 
 /*
