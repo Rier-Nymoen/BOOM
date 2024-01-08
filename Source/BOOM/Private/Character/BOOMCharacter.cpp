@@ -33,15 +33,15 @@ ABOOMCharacter::ABOOMCharacter()
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 
 	// Create a CameraComponent	
-	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>("FirstPersonCamera");
-	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
-	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
-	FirstPersonCameraComponent->bUsePawnControlRotation = true;
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>("FirstPersonCamera");
+	CameraComponent->SetupAttachment(GetCapsuleComponent());
+	CameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
+	CameraComponent->bUsePawnControlRotation = true;
 	
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>("CharacterMesh1P");
 	Mesh1P->SetOnlyOwnerSee(true);
-	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
+	Mesh1P->SetupAttachment(CameraComponent);
 	Mesh1P->bCastDynamicShadow = false;
 	Mesh1P->CastShadow = false;
 	GetMesh()->CastShadow = true;
@@ -417,10 +417,11 @@ void ABOOMCharacter::OnDeath()
 	}
 	//todo - specify function
 	//otherwise could cause bug hard to find
-	OnTakePointDamage.RemoveAll(this);
 
-	OnTakeAnyDamage.RemoveAll(this);
 	ThrowInventory();
+
+	GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRechargeDelay);
+
 	if (PlayerHUD)
 	{
 		PlayerHUD->RemoveFromParent();
@@ -487,8 +488,6 @@ void ABOOMCharacter::HandleShieldStrengthChanged(const FOnAttributeChangeData& D
 		PlayerHUD->GetHealthInformationElement()->SetShieldBar(Data.NewValue / AttributeSetBase->GetMaxShieldStrength());
 	}
 
-	
-
 }
 
 
@@ -506,7 +505,6 @@ void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
 		PlayerHUD->GetHealthInformationElement()->SetHealthBar(Data.NewValue/AttributeSetBase->GetMaxHealth());
 	}
 
-
 	if (!IsAlive())
 	{
 		OnDeath();
@@ -514,14 +512,12 @@ void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
 	}
 }
 
-
 void ABOOMCharacter::Zoom()
 {
 	if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
 	{
 		Weapons[CurrentWeaponSlot]->Zoom();
 	}
-
 }
 
 float ABOOMCharacter::GetHealth()
@@ -538,7 +534,6 @@ bool ABOOMCharacter::IsAlive()
 {
 	return GetHealth() > 0.0F;
 }
-
 
 void ABOOMCharacter::Move(const FInputActionValue& Value)
 {

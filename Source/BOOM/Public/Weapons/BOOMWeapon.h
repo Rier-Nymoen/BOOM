@@ -22,6 +22,14 @@ enum class EZoom : int8
 
 };
 
+UENUM()
+enum class EFiringSource : int8
+{
+	Camera,
+	WeaponMuzzle,
+	OwnerCenter
+};
+
 USTRUCT()
 struct FFireInput
 {

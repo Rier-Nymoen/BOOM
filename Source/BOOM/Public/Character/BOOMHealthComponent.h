@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayEffectTypes.h"
+
 #include "BOOMHealthComponent.generated.h"
 
 
@@ -23,20 +25,19 @@ protected:
 	class UAbilitySystemComponent* AbilitySystemComponent;
 	//figure out health and shield interactions
 	UPROPERTY()
-	class UBOOMAttributeSetBase* AttributeSetBase;
+	const class UBOOMAttributeSetBase* AttributeSetBase;
+
+	
 
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	/*
-	ROOT CLASS HOLDS SPECIFIC LOGIC
+	virtual void InitializeComponentWithOwningActor(class UAbilitySystemComponent* InAbilitySystemComponent);
 
-	MINIMUM SET OF REUSABLE CODE
+	//UFUNCTION()
+	void HandleHealthChanged(const FOnAttributeChangeData& Data);
 
-
-	dont want to be super granular.
-	*/
 private:
 		
 };

@@ -90,7 +90,7 @@ void UBOOMAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 				float ShieldDamageTaken = LocalShieldStrength - LocalDamage;
 				SetShieldStrength(ShieldDamageTaken);
 				//@TODO - for shield/health damage differences, figure out proper way within framework to control remainder damage.
-				if (FMath::IsNegative(ShieldDamageTaken))
+				if (ShieldDamageTaken < 0)
 				{
 					RemainingDamage = FMath::Abs(ShieldDamageTaken);
 					SetHealth(LocalHealth - RemainingDamage);

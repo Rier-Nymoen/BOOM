@@ -48,7 +48,7 @@ class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FirstPersonCameraComponent;
+	UCameraComponent* CameraComponent;
 
 public:
 	ABOOMCharacter();
@@ -187,7 +187,7 @@ public:
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
-	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+	UCameraComponent* GetCameraComponent() const { return CameraComponent; }
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
 	TSubclassOf<class UBOOMPlayerHUD> PlayerHUDClass;
