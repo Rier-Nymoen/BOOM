@@ -270,8 +270,10 @@ protected:
 	virtual void HandleShieldStrengthChanged(const FOnAttributeChangeData& Data);
 
 
-	virtual void HandleHealthChanged(const FOnAttributeChangeData& Data);
+	//virtual void HandleHealthChanged(const FOnAttributeChangeData& Data);
 
+	virtual void HandleHealthChanged(float OldValue, float NewValue);
+	
 	bool bIsDead;
 
 	UFUNCTION()

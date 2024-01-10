@@ -9,6 +9,8 @@
 #include "BOOMHealthComponent.generated.h"
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBOOMOnHealthChanged, float, OldValue, float, NewValue);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BOOM_API UBOOMHealthComponent : public UActorComponent
 {
@@ -18,6 +20,10 @@ public:
 	// Sets default values for this component's properties
 	UBOOMHealthComponent();
 
+
+	UPROPERTY()
+	FBOOMOnHealthChanged OnHealthChanged;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -26,6 +32,7 @@ protected:
 	//figure out health and shield interactions
 	UPROPERTY()
 	const class UBOOMAttributeSetBase* AttributeSetBase;
+	
 
 	
 

@@ -68,7 +68,6 @@ ABOOMCharacter::ABOOMCharacter()
 	MaxWeaponsEquipped = 2;
 	bIsPendingFiring = false;
 
-	HealthComponent = CreateDefaultSubobject<UBOOMHealthComponent>("HealthComponent");
 
 	bIsFocalLengthScalingEnabled = false;
 
@@ -87,12 +86,17 @@ ABOOMCharacter::ABOOMCharacter()
 
 	//Can always get handles to delegates if needed.
 
-	//working on figuring out why this doesn't work...
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABOOMCharacter::HandleHealthChanged);
+	//AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABOOMCharacter::HandleHealthChanged);
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetShieldStrengthAttribute()).AddUObject(this, &ABOOMCharacter::HandleShieldStrengthChanged);
 	ShieldRechargeInterpSeconds = 0.01f;
 	ShieldFullRechargeDurationSeconds = 3.f;
 	ShieldRechargeDelaySeconds = 5.F;
+
+	HealthComponent = CreateDefaultSubobject<UBOOMHealthComponent>("HealthComponent");
+	HealthComponent->InitializeComponentWithOwningActor(AbilitySystemComponent);
+
+
+
 }
 
 void ABOOMCharacter::BeginPlay()
@@ -101,6 +105,7 @@ void ABOOMCharacter::BeginPlay()
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
 
+	HealthComponent->OnHealthChanged.AddDynamic(this, &ABOOMCharacter::HandleHealthChanged);
 	/*
 	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
 	*/
@@ -490,10 +495,33 @@ void ABOOMCharacter::HandleShieldStrengthChanged(const FOnAttributeChangeData& D
 
 }
 
+//
+//void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
+//{
+//	if (Data.OldValue > Data.NewValue)
+//	{
+//		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecharge);
+//		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
+//	}
+//
+//	if (PlayerHUD)
+//	{
+//		//move to health components	
+//		PlayerHUD->GetHealthInformationElement()->SetHealthBar(Data.NewValue/AttributeSetBase->GetMaxHealth());
+//	}
+//
+//	if (!IsAlive())
+//	{
+//		OnDeath();
+//		return;
+//	}
+//}
 
-void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
+void ABOOMCharacter::HandleHealthChanged(float OldValue, float NewValue)
 {
-	if (Data.OldValue > Data.NewValue)
+	check(HealthComponent)
+
+	if (OldValue > NewValue)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecharge);
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
@@ -502,7 +530,7 @@ void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
 	if (PlayerHUD)
 	{
 		//move to health components	
-		PlayerHUD->GetHealthInformationElement()->SetHealthBar(Data.NewValue/AttributeSetBase->GetMaxHealth());
+		PlayerHUD->GetHealthInformationElement()->SetHealthBar(NewValue/AttributeSetBase->GetMaxHealth());
 	}
 
 	if (!IsAlive())

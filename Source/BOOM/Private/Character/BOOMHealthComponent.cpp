@@ -40,7 +40,6 @@ void UBOOMHealthComponent::InitializeComponentWithOwningActor(UAbilitySystemComp
 {
 	AActor* Owner = GetOwner();
 
-
 	check(Owner)
 	
 	if (AbilitySystemComponent)
@@ -48,17 +47,16 @@ void UBOOMHealthComponent::InitializeComponentWithOwningActor(UAbilitySystemComp
 		UE_LOG(LogTemp, Warning, TEXT("[%s]: already is already initialized with an AbilitySystemComponent with [%s]."), *GetName(), *Owner->GetName());
 	}
 	AbilitySystemComponent = InAbilitySystemComponent;
-	UE_LOG(LogTemp, Warning, TEXT("[%s]: name test UELOG[%s]."), *GetName(), *Owner->GetName());
 
 	AttributeSetBase = AbilitySystemComponent->GetSet<UBOOMAttributeSetBase>();
 
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &UBOOMHealthComponent::HandleHealthChanged);
-
 }
 
 void UBOOMHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& Data)
 {
-
+	UE_LOG(LogTemp, Warning, TEXT("UBOOMHealthComponent::HandleHealthChanged()."), *GetName());
+	OnHealthChanged.Broadcast(Data.OldValue, Data.NewValue);
 }
 
 
