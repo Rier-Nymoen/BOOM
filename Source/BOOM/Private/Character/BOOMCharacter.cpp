@@ -7,6 +7,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Weapons/BOOMWeapon.h"
+#include "Weapons/BOOMGrenade.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Blueprint/UserWidget.h"
@@ -14,12 +15,11 @@
 #include "UI/BOOMPlayerHUD.h"
 #include "Containers/Array.h"
 #include "Math/NumericLimits.h"
-#include "AI/BOOMAIController.h"
 #include "Character/BOOMHealthComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Character/BOOMCharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "Character/BOOMAttributeSetBase.h"
+#include "Kismet/GameplayStatics.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ABOOMCharacter
@@ -188,6 +188,8 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		//Reload Weapon
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMCharacter::Reload);
 
+		EnhancedInputComponent->BindAction(GrenadeThrowAction, ETriggerEvent::Started, this, &ABOOMCharacter::ThrowGrenade);
+
 	}
 }
 
@@ -343,6 +345,27 @@ void ABOOMCharacter::SpawnWeapons()
 		}
 		EquipWeapon(SpawnedWeapon);
 	}
+
+}
+
+void ABOOMCharacter::ThrowGrenade()
+{
+	//plays animation for throwing and spawns the thrown projectile. That should be about it.
+	ABOOMGrenade* SpawnedGrenade = Cast<ABOOMGrenade>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, GrenadeType, CameraComponent->GetComponentTransform()));
+	/*
+	What's a better way I can accomplish this?
+	*/
+	if (SpawnedGrenade)
+	{
+		SpawnedGrenade->SetInstigator(this);
+		GetCapsuleComponent()->MoveIgnoreActors.Add(SpawnedGrenade);
+		//still need to add velocity of moving person?
+		FVector ThrowDirection = CameraComponent->GetForwardVector();
+		SpawnedGrenade->ApplyThrownVelocity(ThrowDirection);
+		//SpawnedGrenade->GetCollisionComp()->MoveIgnoreActors.Add(this);
+		UGameplayStatics::FinishSpawningActor(SpawnedGrenade, CameraComponent->GetComponentTransform());
+	}
+
 
 }
 
@@ -504,7 +527,7 @@ void ABOOMCharacter::HandleShieldStrengthChanged(const FOnAttributeChangeData& D
 //		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
 //	}
 //
-//	if (PlayerHUD)
+//	if (PlayerHUD)	
 //	{
 //		//move to health components	
 //		PlayerHUD->GetHealthInformationElement()->SetHealthBar(Data.NewValue/AttributeSetBase->GetMaxHealth());
@@ -521,8 +544,10 @@ void ABOOMCharacter::HandleHealthChanged(float OldValue, float NewValue)
 {
 	check(HealthComponent)
 
+
 	if (OldValue > NewValue)
 	{
+
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecharge);
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
 	}
@@ -531,10 +556,12 @@ void ABOOMCharacter::HandleHealthChanged(float OldValue, float NewValue)
 	{
 		//move to health components	
 		PlayerHUD->GetHealthInformationElement()->SetHealthBar(NewValue/AttributeSetBase->GetMaxHealth());
+
 	}
 
 	if (!IsAlive())
 	{
+
 		OnDeath();
 		return;
 	}
@@ -560,6 +587,8 @@ float ABOOMCharacter::GetHealth()
 
 bool ABOOMCharacter::IsAlive()
 {
+	UE_LOG(LogTemp, Warning, TEXT("GetHealth IsAlive Check: %f"), GetHealth())
+
 	return GetHealth() > 0.0F;
 }
 

@@ -18,8 +18,8 @@ ABOOMProjectile::ABOOMProjectile()
 	CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
 	CollisionComp->CanCharacterStepUpOn = ECB_No;
 
-	//Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	//Mesh->SetupAttachment(CollisionComp);
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	Mesh->SetupAttachment(CollisionComp);
 
 
 	// Set as root component
@@ -34,7 +34,7 @@ ABOOMProjectile::ABOOMProjectile()
 	ProjectileMovement->bShouldBounce = true;
 
 	// Die after 3 seconds by default
-	InitialLifeSpan = 10.0f;
+	InitialLifeSpan = 5.0f;
 }
 
 void ABOOMProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -45,6 +45,12 @@ void ABOOMProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 	//	//OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 	//	Destroy();
 	//}
+	
 
 	Destroy();
+}
+
+void ABOOMProjectile::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
 }

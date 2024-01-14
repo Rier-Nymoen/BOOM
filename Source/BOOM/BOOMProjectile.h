@@ -13,24 +13,27 @@ UCLASS(config=Game)
 class ABOOMProjectile : public AActor
 {
 	GENERATED_BODY()
+public:
+
+
+	ABOOMProjectile();
 
 	/** Sphere collision component */
 	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
 	USphereComponent* CollisionComp;
 
+	
+
 	/** Projectile movement component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	UProjectileMovementComponent* ProjectileMovement;
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh, meta = (AllowPrivateAccess = "true"))
-	//class UStaticMeshComponent* Mesh;
-
-public:
-	ABOOMProjectile();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh, meta = (AllowPrivateAccess = "true"))
+	class UStaticMeshComponent* Mesh;
 
 	/** called when projectile hits something */
 	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	/** Returns CollisionComp subobject **/
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }
@@ -39,5 +42,10 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = GameplayEffects)
 	TSubclassOf<class UGameplayEffect> DamageEffect;
+
+	
+	virtual void PostInitializeComponents() override;
+
+
 };
 

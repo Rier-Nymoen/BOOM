@@ -32,7 +32,7 @@ void UBOOMAttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attribu
 		NewValue = FMath::Clamp(NewValue, 0.F, GetMaxShieldStrength());
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("UBOOMAttributeSetBase::PreAttributeChange. New value is: %f"), NewValue)
+	//UE_LOG(LogTemp, Warning, TEXT("UBOOMAttributeSetBase::PreAttributeChange. New value is: %f"), NewValue)
 
 }
 
@@ -70,11 +70,11 @@ void UBOOMAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 
 	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DamageAttr"));
+		//UE_LOG(LogTemp, Warning, TEXT("DamageAttr"));
 
 		float LocalDamage = GetDamage();
 		SetDamage(0.F);
-		UE_LOG(LogTemp, Warning, TEXT("LocalDmg: %f"), LocalDamage)
+		//UE_LOG(LogTemp, Warning, TEXT("LocalDmg: %f"), LocalDamage)
 		float LocalHealth = GetHealth();
 
 			//need to convert remaining damage to health damage.
@@ -94,8 +94,8 @@ void UBOOMAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 				{
 					RemainingDamage = FMath::Abs(ShieldDamageTaken);
 					SetHealth(LocalHealth - RemainingDamage);
+					UE_LOG(LogTemp, Warning, TEXT("Damage Carried over: %f"), RemainingDamage)
 				}
-
 			}
 			else
 			{
@@ -104,13 +104,9 @@ void UBOOMAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 			UE_LOG(LogTemp, Warning, TEXT("Shield strength: %f"), GetShieldStrength())
 			UE_LOG(LogTemp, Warning, TEXT("Health: %f"), GetHealth())
 
-			if (TargetCharacter && !TargetCharacter->IsAlive())
-			{
-
-
-			}
-
-
+			//if (TargetCharacter && !TargetCharacter->IsAlive())
+			//{
+			//}
 		}
 	}
 

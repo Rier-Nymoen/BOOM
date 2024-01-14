@@ -168,6 +168,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* CrouchAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* GrenadeThrowAction;
+
 protected:
 
 public:
@@ -221,11 +224,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory", meta=(ArrayClamp="2"))
 	TArray<TSubclassOf<ABOOMWeapon>> WeaponsToSpawn;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class ABOOMGrenade> GrenadeType;
+
 	void SpawnWeapons();
 
 	TArray<class ABOOMWeapon*> Weapons;
 
 	class ABOOMWeapon* Weapon;
+
+	void ThrowGrenade();
 
 	UFUNCTION()
 	virtual void EquipWeapon(ABOOMWeapon* TargetWeapon);
@@ -271,7 +279,7 @@ protected:
 
 
 	//virtual void HandleHealthChanged(const FOnAttributeChangeData& Data);
-
+	UFUNCTION()
 	virtual void HandleHealthChanged(float OldValue, float NewValue);
 	
 	bool bIsDead;

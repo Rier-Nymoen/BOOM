@@ -55,7 +55,7 @@ void UBOOMHealthComponent::InitializeComponentWithOwningActor(UAbilitySystemComp
 
 void UBOOMHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& Data)
 {
-	UE_LOG(LogTemp, Warning, TEXT("UBOOMHealthComponent::HandleHealthChanged()."), *GetName());
+	UE_LOG(LogTemp, Warning, TEXT("Broadcasting OnHealthChanged inside UBOOMHealthComponent::HandleHealthChanged()."), *GetName());
 	OnHealthChanged.Broadcast(Data.OldValue, Data.NewValue);
 }
 
