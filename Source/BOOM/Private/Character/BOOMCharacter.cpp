@@ -1,5 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
+//too many headers
 #include "Character/BOOMCharacter.h"
 #include "BOOM/BOOMProjectile.h"
 #include "Animation/AnimInstance.h"
@@ -20,7 +19,9 @@
 #include "AbilitySystemComponent.h"
 #include "Character/BOOMAttributeSetBase.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "BOOMGameplayAbility.h"
+#include "GameplayEffect.h"
+#include "GameplayEffectTypes.h"
 //////////////////////////////////////////////////////////////////////////
 // ABOOMCharacter
 
@@ -84,6 +85,8 @@ ABOOMCharacter::ABOOMCharacter()
 	AttributeSetBase->InitShieldStrength(100.F);
 	AttributeSetBase->InitMaxShieldStrength(100.F);
 
+
+
 	//Can always get handles to delegates if needed.
 
 	//AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABOOMCharacter::HandleHealthChanged);
@@ -105,6 +108,17 @@ void ABOOMCharacter::BeginPlay()
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
 
+	check(AttributeSetBase) //sanity check cause of potential corrupted asset bug
+	//if (AttributeSetBase)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is set"))
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is not set"))
+
+	//}
+
 	HealthComponent->OnHealthChanged.AddDynamic(this, &ABOOMCharacter::HandleHealthChanged);
 	/*
 	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
@@ -119,9 +133,16 @@ void ABOOMCharacter::BeginPlay()
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
-		PlayerHUD = CreateWidget<UBOOMPlayerHUD>(PlayerController, PlayerHUDClass);
-		check(PlayerHUD);
-		PlayerHUD->AddToPlayerScreen();
+		if (PlayerHUDClass)
+		{
+			PlayerHUD = CreateWidget<UBOOMPlayerHUD>(PlayerController, PlayerHUDClass);
+		}
+		
+		if (PlayerHUD)
+		{
+			PlayerHUD->AddToPlayerScreen();
+		}
+
 
 		FTimerHandle InteractionHandle;
 		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
@@ -512,10 +533,30 @@ void ABOOMCharacter::HandleShieldStrengthChanged(const FOnAttributeChangeData& D
 	
 	if (PlayerHUD)
 	{
+		if (AttributeSetBase)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is set"))
+			PlayerHUD->GetHealthInformationElement()->SetShieldBar(Data.NewValue / AttributeSetBase->GetMaxShieldStrength());
+
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is not set"))
+
+		}
 		//move to shield component
-		PlayerHUD->GetHealthInformationElement()->SetShieldBar(Data.NewValue / AttributeSetBase->GetMaxShieldStrength());
 	}
 
+}
+
+void ABOOMCharacter::SetupCharacterAbilities()
+{
+	for (TSubclassOf<UBOOMGameplayAbility>& InitialAbility: CharacterAbilities)
+	{
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(InitialAbility, 1, 1, this);
+
+		AbilitySystemComponent->GiveAbility(AbilitySpec);
+	}
 }
 
 //
@@ -554,8 +595,19 @@ void ABOOMCharacter::HandleHealthChanged(float OldValue, float NewValue)
 
 	if (PlayerHUD)
 	{
+
+		if (AttributeSetBase)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is set"))
+			PlayerHUD->GetHealthInformationElement()->SetHealthBar(NewValue / AttributeSetBase->GetMaxHealth());
+
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is not set"))
+
+		}
 		//move to health components	
-		PlayerHUD->GetHealthInformationElement()->SetHealthBar(NewValue/AttributeSetBase->GetMaxHealth());
 
 	}
 

@@ -277,6 +277,10 @@ protected:
 
 	virtual void HandleShieldStrengthChanged(const FOnAttributeChangeData& Data);
 
+	void SetupCharacterAbilities();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Abilities")
+	TArray<TSubclassOf<class UBOOMGameplayAbility>> CharacterAbilities;
+
 
 	//virtual void HandleHealthChanged(const FOnAttributeChangeData& Data);
 	UFUNCTION()

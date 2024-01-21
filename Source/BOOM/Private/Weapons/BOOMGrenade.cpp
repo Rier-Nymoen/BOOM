@@ -4,13 +4,17 @@
 #include "Weapons/BOOMGrenade.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/PrimitiveComponent.h"
 
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "AbilitySystemComponent.h"
+#include"AbilitySystemInterface.h"
+
 
 ABOOMGrenade::ABOOMGrenade()
 {
 	ExplosionRadius = 510.f;
-	GrenadeFuseTimeSeconds = 7.f;
+	GrenadeFuseTimeSeconds = 2.f;
 	InitialLifeSpan = GrenadeFuseTimeSeconds;
 
 }
@@ -43,10 +47,8 @@ void ABOOMGrenade::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrim
 {
 	TArray<FHitResult> OutHitResults;
 
-	UE_LOG(LogTemp, Warning, TEXT("oH"))
-
 	const FCollisionShape SphereShape = FCollisionShape::MakeSphere(ExplosionRadius);
-	const bool bHit = GetWorld()->SweepMultiByChannel(OutHitResults, Hit.Location, Hit.Location, FQuat::Identity, ECC_Camera, SphereShape);
+	const bool bHit = GetWorld()->SweepMultiByChannel(OutHitResults, Hit.Location, Hit.Location, FQuat::Identity, ECC_Visibility, SphereShape);
 
 	DrawDebugSphere(GetWorld(), Hit.Location, ExplosionRadius, 50, FColor::Red, false, 1.f);
 
@@ -54,13 +56,11 @@ void ABOOMGrenade::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrim
 	{
 		for (FHitResult& HitResult : OutHitResults)
 		{
-
 			UStaticMeshComponent* MeshComponent = Cast<UStaticMeshComponent>(HitResult.GetActor()->GetRootComponent());
-
+			
 			if (MeshComponent)
 			{
 				MeshComponent->AddRadialImpulse(Hit.Location, ExplosionRadius, 10000.f, ERadialImpulseFalloff::RIF_Linear, true);
-				//apply ges etc
 			}
 
 		}

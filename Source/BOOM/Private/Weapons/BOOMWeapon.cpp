@@ -355,10 +355,16 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 	const  FString cont(TEXT("cont"));
 
 	check(TargetCharacter)
-	FItemInformation* WeaponData = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, false);
+
 
 	if(TargetCharacter->GetPlayerHUD())
 	{
+		FItemInformation* WeaponData = nullptr;
+		if (TargetCharacter->WeaponTable)
+		{
+			WeaponData = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, false);
+		}
+
 		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptText(Name);
 		if(WeaponData)
 		{
