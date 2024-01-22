@@ -4,7 +4,7 @@
 #include "Weapons/BOOMWeaponStateActive.h"
 #include "Kismet/GameplayStatics.h"
 #include "Weapons/BOOMWeapon.h"
-#include "BOOM/BOOMCharacter.h"
+#include "Character/BOOMCharacter.h"
 #include "CoreMinimal.h"
 
 /*

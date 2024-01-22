@@ -4,7 +4,7 @@
 #include "AI/BOOMBTTask_GetPatrolPoint.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "BOOMAICharacter.h"
+#include "Character/BOOMAICharacter.h"
 #include "AI/BOOMPatrolRoute.h"
 
 UBOOMBTTask_GetPatrolPoint::UBOOMBTTask_GetPatrolPoint()

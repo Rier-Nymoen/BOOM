@@ -2,7 +2,7 @@
 
 #include "Weapons/BOOMWeapon.h"
 #include "BOOMPickUpComponent.h"
-#include "BOOM/BOOMCharacter.h"
+#include "Character/BOOMCharacter.h"
 #include "UI/BOOMPlayerHUD.h"
 #include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"
@@ -121,12 +121,11 @@ void ABOOMWeapon::Fire()
 			FireHitscan();
 		}	
 	
-	if (Character->GetPlayerHUD())
+	if (Character && Character->GetPlayerHUD()) //it was possible for the character to be set to null when collision settings allowed for self inflcited damage and dies.
 	{
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
 	}
 
-	//TODO if weapon spread changes based on heat level
 	
 	//Should clamp the values around the ranges of the curves incase we get an X value that is out of range of the curve it will be used as an input to.
 	if(bHeatAffectsSpread)
@@ -140,6 +139,8 @@ void ABOOMWeapon::Fire()
 		CurrentSpreadAngle = FMath::Clamp(CurrentSpreadAngle, MinSpreadAngle, MaxSpreadAngle);
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_WeaponCooldown, this, &ABOOMWeapon::Cooldown, WeaponCoolingStartSeconds, true);
 	}
+
+
 }
 
 bool ABOOMWeapon::IsIntendingToRefire()
@@ -169,7 +170,7 @@ ABOOMCharacter* ABOOMWeapon::GetCharacter()
 /*
 Fire Hitscan/Projectile: Can choose between firing from actual muzzle of weapon, or camera. On AI, the firing would look weird coming from some camera. 
 */
-
+//@todo add code to reasonably prevent some self inflicted damage
 void ABOOMWeapon::FireHitscan()
 {
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
@@ -200,8 +201,9 @@ void ABOOMWeapon::FireHitscan()
 	}
 	FHitResult HitResult;
 	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(Character); //maybe instigator could be a better choice?
 	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_Visibility, TraceParams);
-
+	//@TODO - Character can accidentally shoot themselves in their invisible 3P mesh. This can cause a crash trying to reference an empty playerhud variable
 	if (bVisualizeHitscanTraces)
 	{
 		DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
@@ -286,7 +288,7 @@ void ABOOMWeapon::FireProjectile()
 		if (SpawnedProjectile)
 		{
 			SpawnedProjectile->SetOwner(this);
-			SetInstigator(Character);
+			SetInstigator(Character); //@TODO - instigators arent managed properly in this class
 			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(Character);
 			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(GetInstigator());
 			Character->GetCapsuleComponent()->MoveIgnoreActors.Add(SpawnedProjectile);
@@ -354,10 +356,16 @@ void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 	const  FString cont(TEXT("cont"));
 
 	check(TargetCharacter)
-	FItemInformation* WeaponData = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, false);
+
 
 	if(TargetCharacter->GetPlayerHUD())
 	{
+		FItemInformation* WeaponData = nullptr;
+		if (TargetCharacter->WeaponTable)
+		{
+			WeaponData = TargetCharacter->WeaponTable->FindRow<FItemInformation>(Name, cont, false);
+		}
+
 		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetPromptText(Name);
 		if(WeaponData)
 		{

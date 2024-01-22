@@ -4,7 +4,7 @@
 #include "Weapons/BOOMWeaponStateActive.h"
 #include "Weapons/BOOMWeaponStateFiring.h"
 #include "Weapons/BOOMWeapon.h"
-#include "BOOM/BOOMCharacter.h"
+#include "Character/BOOMCharacter.h"
 
 void UBOOMWeaponStateActive::EnterState()
 {

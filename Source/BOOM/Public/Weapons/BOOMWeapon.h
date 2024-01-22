@@ -22,6 +22,14 @@ enum class EZoom : int8
 
 };
 
+UENUM()
+enum class EFiringSource : int8
+{
+	Camera,
+	WeaponMuzzle,
+	OwnerCenter
+};
+
 USTRUCT()
 struct FFireInput
 {
@@ -48,7 +56,7 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* Weapon1P;
 
-	UPROPERTY(EditAnywhere, Category = Component)
+	UPROPERTY(VisibleAnywhere, Category = Component)
 	UBOOMPickUpComponent* BOOMPickUp;
 
 	UPROPERTY(EditAnywhere, Category = Name)
@@ -154,15 +162,15 @@ public:
 
 	class UBOOMWeaponState* InactiveState;
 	class UBOOMWeaponState* ActiveState;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UBOOMWeaponState* CurrentState;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UBOOMWeaponState* EquippingState;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UBOOMWeaponState* FiringState;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UBOOMWeaponState* ReloadingState;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UBOOMWeaponState* UnequippingState;
 
 	//The time it takes to reload

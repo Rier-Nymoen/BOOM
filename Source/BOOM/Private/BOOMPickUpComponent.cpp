@@ -2,7 +2,7 @@
 
 
 #include "BOOMPickUpComponent.h"
-#include "BOOM/BOOMCharacter.h"
+#include "Character/BOOMCharacter.h"
 // Sets default values for this component's properties
 UBOOMPickUpComponent::UBOOMPickUpComponent()
 {
