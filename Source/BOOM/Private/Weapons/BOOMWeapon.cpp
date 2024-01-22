@@ -288,7 +288,7 @@ void ABOOMWeapon::FireProjectile()
 		if (SpawnedProjectile)
 		{
 			SpawnedProjectile->SetOwner(this);
-			SetInstigator(Character);
+			SetInstigator(Character); //@TODO - instigators arent managed properly in this class
 			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(Character);
 			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(GetInstigator());
 			Character->GetCapsuleComponent()->MoveIgnoreActors.Add(SpawnedProjectile);

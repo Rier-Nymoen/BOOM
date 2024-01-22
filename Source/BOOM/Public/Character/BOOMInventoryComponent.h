@@ -26,22 +26,25 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 
-	//UFUNCTION()
-	//bool HasNoWeapons();
+	UFUNCTION()
+	bool HasNoWeapons();
 
-	//UFUNCTION()
-	//bool HasEmptyWeaponSlots();
+	UFUNCTION()
+	bool HasEmptyWeaponSlots();
 
-	//int MaxWeaponSlots;
-	//TArray<class ABOOMWeapon*> WeaponSlots;
-	//	
+	void AddWeapon(class ABOOMWeapon* NewWeapon);
 
-	// 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class ABOOMGrenade> GrenadeType;
+
+	int MaxWeaponSlots;
+	int CurrentWeaponSlot;
+
+	TArray<class ABOOMWeapon*> Weapons;
+
 
 	//virtual bool CanEquip();
 	//
 	//virtual bool CanUnequip();
-
-	//virtual void ThrowInventory();
-
 };

@@ -80,13 +80,11 @@ ABOOMCharacter::ABOOMCharacter()
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 
-	AttributeSetBase = CreateDefaultSubobject<UBOOMAttributeSetBase>("AttributeSetBase");
+	AttributeSetBase = CreateDefaultSubobject<UBOOMAttributeSetBase>("AttributeSetBase"); /*There is a known bug (not on my end) with child blueprints and attribute sets*/
 	AttributeSetBase->InitHealth(100.F);
 	AttributeSetBase->InitMaxHealth(100.F);
 	AttributeSetBase->InitShieldStrength(100.F);
 	AttributeSetBase->InitMaxShieldStrength(100.F);
-
-
 
 	//Can always get handles to delegates if needed.
 
@@ -98,9 +96,6 @@ ABOOMCharacter::ABOOMCharacter()
 
 	HealthComponent = CreateDefaultSubobject<UBOOMHealthComponent>("HealthComponent");
 	HealthComponent->InitializeComponentWithOwningActor(AbilitySystemComponent);
-
-
-
 }
 
 void ABOOMCharacter::BeginPlay()
@@ -477,6 +472,7 @@ void ABOOMCharacter::OnDeath()
 	}
 	if (DeathMontage)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Montage Executed"))
 		PlayAnimMontage(DeathMontage);
 	}
 }
