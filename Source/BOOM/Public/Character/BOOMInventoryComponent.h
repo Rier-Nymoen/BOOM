@@ -7,6 +7,7 @@
 #include "BOOMInventoryComponent.generated.h"
 
 
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BOOM_API UBOOMInventoryComponent : public UActorComponent
 {
@@ -25,5 +26,22 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 
-		
+	//UFUNCTION()
+	//bool HasNoWeapons();
+
+	//UFUNCTION()
+	//bool HasEmptyWeaponSlots();
+
+	//int MaxWeaponSlots;
+	//TArray<class ABOOMWeapon*> WeaponSlots;
+	//	
+
+	// 
+
+	//virtual bool CanEquip();
+	//
+	//virtual bool CanUnequip();
+
+	//virtual void ThrowInventory();
+
 };

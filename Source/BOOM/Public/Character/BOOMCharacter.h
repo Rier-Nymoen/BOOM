@@ -27,7 +27,7 @@ struct FItemInformation : public FTableRowBase
 {
 	GENERATED_BODY()
 public:
-		UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		class UTexture2D* ItemImage;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		FString Description;
@@ -95,7 +95,7 @@ public:
 	UPROPERTY()
 	bool bIsOverlappingWeapon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DataTable)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = DataTable)
 	class UDataTable* WeaponTable;
 
 	void StartFire();

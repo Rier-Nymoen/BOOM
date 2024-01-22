@@ -18,6 +18,8 @@ public:
 
 	ABOOMGrenade();
 
+	virtual void BeginPlay() override;
+
 
 	struct FTimerHandle TimerHandle_GrenadeFuse;
 

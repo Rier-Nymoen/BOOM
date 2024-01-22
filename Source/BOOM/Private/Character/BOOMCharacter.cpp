@@ -69,6 +69,7 @@ ABOOMCharacter::ABOOMCharacter()
 	MaxWeaponsEquipped = 2;
 	bIsPendingFiring = false;
 
+	PlayerHUD = nullptr;
 
 	bIsFocalLengthScalingEnabled = false;
 
@@ -108,15 +109,15 @@ void ABOOMCharacter::BeginPlay()
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
 
-	check(AttributeSetBase) //sanity check cause of potential corrupted asset bug
-	//if (AttributeSetBase)
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is set"))
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is not set"))
-
+	//check(AttributeSetBase) //sanity check cause of potential corrupted asset bug
+	if (AttributeSetBase)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is set"))
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is not set"))
+	}
 	//}
 
 	HealthComponent->OnHealthChanged.AddDynamic(this, &ABOOMCharacter::HandleHealthChanged);
@@ -147,7 +148,6 @@ void ABOOMCharacter::BeginPlay()
 		FTimerHandle InteractionHandle;
 		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
 	}
-	//@TODO Can cause game to crash when a PlayerHUD is expected and we have non-player characters
 	SpawnWeapons();
 
 }
@@ -559,27 +559,6 @@ void ABOOMCharacter::SetupCharacterAbilities()
 	}
 }
 
-//
-//void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
-//{
-//	if (Data.OldValue > Data.NewValue)
-//	{
-//		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecharge);
-//		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
-//	}
-//
-//	if (PlayerHUD)	
-//	{
-//		//move to health components	
-//		PlayerHUD->GetHealthInformationElement()->SetHealthBar(Data.NewValue/AttributeSetBase->GetMaxHealth());
-//	}
-//
-//	if (!IsAlive())
-//	{
-//		OnDeath();
-//		return;
-//	}
-//}
 
 void ABOOMCharacter::HandleHealthChanged(float OldValue, float NewValue)
 {

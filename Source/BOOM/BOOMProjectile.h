@@ -18,6 +18,8 @@ public:
 
 	ABOOMProjectile();
 
+	virtual void BeginPlay() override;
+
 	/** Sphere collision component */
 	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
 	USphereComponent* CollisionComp;

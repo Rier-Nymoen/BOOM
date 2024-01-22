@@ -121,7 +121,7 @@ void ABOOMWeapon::Fire()
 			FireHitscan();
 		}	
 	
-	if (Character->GetPlayerHUD())
+	if (Character && Character->GetPlayerHUD()) //it was possible for the character to be set to null when collision settings allowed for self inflcited damage and dies.
 	{
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
 	}
@@ -170,7 +170,7 @@ ABOOMCharacter* ABOOMWeapon::GetCharacter()
 /*
 Fire Hitscan/Projectile: Can choose between firing from actual muzzle of weapon, or camera. On AI, the firing would look weird coming from some camera. 
 */
-
+//@todo add code to reasonably prevent some self inflicted damage
 void ABOOMWeapon::FireHitscan()
 {
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
@@ -201,8 +201,9 @@ void ABOOMWeapon::FireHitscan()
 	}
 	FHitResult HitResult;
 	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(Character); //maybe instigator could be a better choice?
 	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_Visibility, TraceParams);
-
+	//@TODO - Character can accidentally shoot themselves in their invisible 3P mesh. This can cause a crash trying to reference an empty playerhud variable
 	if (bVisualizeHitscanTraces)
 	{
 		DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
