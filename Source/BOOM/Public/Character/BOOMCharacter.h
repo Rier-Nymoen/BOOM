@@ -33,6 +33,8 @@ public:
 		FString Description;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+
 UCLASS(config = Game)
 class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface
 {
@@ -127,7 +129,8 @@ protected:
 
 	UFUNCTION()
 	virtual void Fire();
-	
+
+
 	void Interact(const FInputActionValue& Value);
 
 	/** MappingContext */
@@ -189,6 +192,7 @@ public:
 
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetCameraComponent() const { return CameraComponent; }
 
@@ -255,9 +259,12 @@ protected:
 
 	UPROPERTY()
 	class UBOOMHealthComponent* HealthComponent;
-	 
+	//experimenting, remove its specifier potentialy
+	UPROPERTY(BlueprintAssignable)
+	FOnDeath OnDeath;
+
 	UFUNCTION()
-	virtual void OnDeath();
+	void HandleDeath();
 
 	virtual void ThrowInventory();
 	
