@@ -56,6 +56,13 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* Weapon1P;
 
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	USkeletalMeshComponent* Weapon3P;
+
+	USkeletalMeshComponent* GetMeshWeapon1P() const { return Weapon1P; }
+	USkeletalMeshComponent* GetMeshWeapon3P() const { return Weapon3P; }
+
+
 	UPROPERTY(VisibleAnywhere, Category = Component)
 	UBOOMPickUpComponent* BOOMPickUp;
 
@@ -68,6 +75,9 @@ public:
 	FFireInput* FireInput;
 
 	EZoom ZoomMode;
+
+	UPROPERTY(EditAnywhere)
+	EFiringSource FiringSource;
 
 protected:
 	// Called when the game starts or when spawned
@@ -137,9 +147,6 @@ public:
 
 	virtual void HandleUnequipping();
 
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UDamageType> DamageType;
-
 	UFUNCTION()
 	virtual void Fire();
 
@@ -154,8 +161,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TSubclassOf<class ABOOMProjectile> Projectile;
-
-	float WeaponDamage;
 
 	//
 	virtual void GotoState(class UBOOMWeaponState* NewState);

@@ -34,6 +34,10 @@ ABOOMWeapon::ABOOMWeapon()
 	PrimaryActorTick.bCanEverTick = false;
 
 	Weapon1P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh1P");
+	Weapon1P->bOnlyOwnerSee = true;
+	Weapon3P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh3P");
+	Weapon3P->bOwnerNoSee = true;
+
 
 	BOOMPickUp = CreateDefaultSubobject<UBOOMPickUpComponent>("PickUpComponent");
 	BOOMPickUp->SetupAttachment(Weapon1P);
@@ -60,9 +64,6 @@ ABOOMWeapon::ABOOMWeapon()
 	LastTimeFiredSeconds = -1.0F;
 	FireRateSeconds = 0.066F; //@Todo configure to rpm
 
-	//@TODO make based off firemodes
-	WeaponDamage = 100.0F;
-
 	CurrentState = InactiveState;
 	bVisualizeHitscanTraces = true;
 	bOverrideCameraFiring = false;
@@ -79,6 +80,8 @@ ABOOMWeapon::ABOOMWeapon()
 	WeaponCoolingStartSeconds = 2.F;
 
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
+
+	FiringSource = EFiringSource::Camera;
 }
 
 // Called when the game starts or when spawned
@@ -176,8 +179,8 @@ void ABOOMWeapon::FireHitscan()
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 
 	FVector StartTrace;
-	FVector EndTrace;
-	if (PlayerController && !bOverrideCameraFiring)//change back to player controller
+	FVector EndTrace;						//should be same as boverridingcamerafiring
+	if (PlayerController && FiringSource == EFiringSource::Camera)//change back to player controller
 	{
 		//Eventually must change these to adjust for aim based on weapon spread. 
 		FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
@@ -188,6 +191,15 @@ void ABOOMWeapon::FireHitscan()
 		 FVector ShotDirection = CalculateBulletSpreadDir(CameraRotation);
 
 		 EndTrace = StartTrace + (ShotDirection * HitscanRange);
+	}
+	else if(GetOwner() && FiringSource == EFiringSource::OwnerCenter) 
+	{
+		//jank
+		StartTrace = GetOwner()->GetActorLocation();
+		FRotator StartRotation = GetOwner()->GetActorRotation();
+		FVector ShotDirection = CalculateBulletSpreadDir(StartRotation);
+
+		EndTrace = StartTrace + (ShotDirection * HitscanRange);
 	}
 	else
 	{
@@ -203,7 +215,6 @@ void ABOOMWeapon::FireHitscan()
 	FCollisionQueryParams TraceParams;
 	TraceParams.AddIgnoredActor(Character); //maybe instigator could be a better choice?
 	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_Visibility, TraceParams);
-	//@TODO - Character can accidentally shoot themselves in their invisible 3P mesh. This can cause a crash trying to reference an empty playerhud variable
 	if (bVisualizeHitscanTraces)
 	{
 		DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
@@ -251,7 +262,7 @@ void ABOOMWeapon::FireHitscan()
 		}
 	}
 }
-
+/*@TODO: Make function to reuse firing source logic from FireHitscan in FireProjectile() at a later point*/
 void ABOOMWeapon::FireProjectile()
 {
 	UWorld* const World = GetWorld();
@@ -344,6 +355,7 @@ void ABOOMWeapon::FeedReloadWeapon()
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {
 	Character = TargetCharacter;
+	SetOwner(Character);
 	if (Character == nullptr)
 	{
 		return;
@@ -507,7 +519,7 @@ void ABOOMWeapon::HandleBeingDropped()
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepWorld, false);
 	BOOMPickUp->AttachToComponent(Weapon1P, AttachmentRules);
 
-	
+
 	if (Character)
 	{
 		Weapon1P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -522,6 +534,8 @@ void ABOOMWeapon::HandleBeingDropped()
 
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Character = nullptr;
+	SetOwner(nullptr);
+		
 }
 
 void ABOOMWeapon::DisableCollision()

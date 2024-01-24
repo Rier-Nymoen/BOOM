@@ -73,7 +73,6 @@ ABOOMCharacter::ABOOMCharacter()
 
 	bIsFocalLengthScalingEnabled = false;
 
-	//b crouch maintains place location could be used for crouch jumping
 	
 	BOOMCharacterMovementComp = Cast<UBOOMCharacterMovementComponent>(GetCharacterMovement());
 
@@ -103,6 +102,7 @@ void ABOOMCharacter::BeginPlay()
 	Super::BeginPlay();
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABOOMCharacter::OnCharacterEndOverlap);
+	OnDeath.AddDynamic(this, &ABOOMCharacter::HandleDeath);
 
 	//check(AttributeSetBase) //sanity check cause of potential corrupted asset bug
 	if (AttributeSetBase)
@@ -132,15 +132,15 @@ void ABOOMCharacter::BeginPlay()
 		if (PlayerHUDClass)
 		{
 			PlayerHUD = CreateWidget<UBOOMPlayerHUD>(PlayerController, PlayerHUDClass);
-		}
-		
-		if (PlayerHUD)
-		{
-			PlayerHUD->AddToPlayerScreen();
-		}
 
+			if (PlayerHUD)
+			{
+				PlayerHUD->AddToPlayerScreen();
+			}
+		}
 
 		FTimerHandle InteractionHandle;
+
 		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
 	}
 	SpawnWeapons();
@@ -215,8 +215,10 @@ void ABOOMCharacter::Reload()
 	{
 		return;
 	}
-
-	Weapon = Weapons[CurrentWeaponSlot];
+	if (Weapons.IsValidIndex(CurrentWeaponSlot))
+	{
+		Weapon = Weapons[CurrentWeaponSlot];
+	}
 	if (Weapon != nullptr)
 	{
 		Weapon->HandleReloadInput();
@@ -390,7 +392,7 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
 
 	TargetWeapon->Character = this;
-
+	TargetWeapon->SetOwner(this);
 
 	TargetWeapon->DisableCollision();
 	if (HasNoWeapons())
@@ -404,6 +406,10 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 		if (GetMesh1P())
 		{
 			TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+		}
+		if (TargetWeapon->GetMeshWeapon3P() && GetMesh())
+		{
+			TargetWeapon->GetMeshWeapon3P()->AttachToComponent(GetMesh(), AttachmentRules, SocketNameGripPoint3P);
 		}
 
 		
@@ -433,6 +439,11 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 		TargetWeapon->GotoStateEquipping();
 		Weapons[CurrentWeaponSlot] = TargetWeapon;
 		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+		if (TargetWeapon->GetMeshWeapon3P() && GetMesh())
+		{
+			TargetWeapon->GetMeshWeapon3P()->AttachToComponent(GetMesh(), AttachmentRules, SocketNameGripPoint3P);
+		}
+
 		if (PlayerHUD)
 		{
 			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
@@ -453,7 +464,7 @@ bool ABOOMCharacter::HasEmptyWeaponSlots()
 	return Weapons.Num() != MaxWeaponsEquipped;
 }
 
-void ABOOMCharacter::OnDeath()
+void ABOOMCharacter::HandleDeath()
 {
 	if (Controller)
 	{
@@ -531,15 +542,9 @@ void ABOOMCharacter::HandleShieldStrengthChanged(const FOnAttributeChangeData& D
 	{
 		if (AttributeSetBase)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is set"))
 			PlayerHUD->GetHealthInformationElement()->SetShieldBar(Data.NewValue / AttributeSetBase->GetMaxShieldStrength());
-
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is not set"))
 
-		}
 		//move to shield component
 	}
 
@@ -573,23 +578,14 @@ void ABOOMCharacter::HandleHealthChanged(float OldValue, float NewValue)
 
 		if (AttributeSetBase)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is set"))
 			PlayerHUD->GetHealthInformationElement()->SetHealthBar(NewValue / AttributeSetBase->GetMaxHealth());
-
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is not set"))
-
-		}
-		//move to health components	
 
 	}
 
 	if (!IsAlive())
 	{
-
-		OnDeath();
+		OnDeath.Broadcast();
 		return;
 	}
 }
@@ -614,8 +610,6 @@ float ABOOMCharacter::GetHealth()
 
 bool ABOOMCharacter::IsAlive()
 {
-	UE_LOG(LogTemp, Warning, TEXT("GetHealth IsAlive Check: %f"), GetHealth())
-
 	return GetHealth() > 0.0F;
 }
 
@@ -654,7 +648,6 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 	{
 		return;
 	}
-	//@TODO - switch to isValidIndex checks
 	if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
 	{
 
