@@ -218,9 +218,6 @@ public:
 	virtual bool CanReload();
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Overrides)
-	bool bOverrideCameraFiring;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Overrides)
 	bool bVisualizeHitscanTraces;
 	
 

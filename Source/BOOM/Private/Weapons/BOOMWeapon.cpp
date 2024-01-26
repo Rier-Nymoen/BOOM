@@ -66,7 +66,6 @@ ABOOMWeapon::ABOOMWeapon()
 
 	CurrentState = InactiveState;
 	bVisualizeHitscanTraces = true;
-	bOverrideCameraFiring = false;
 
 	TimeCooling = 0;
 	bIsOverheated = false;
@@ -271,7 +270,7 @@ void ABOOMWeapon::FireProjectile()
 		APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 		FVector ProjectileSpawnLocation;
 		FRotator ProjectileSpawnRotation;
-		if (PlayerController && !bOverrideCameraFiring)
+		if (PlayerController && FiringSource == EFiringSource::Camera)
 		{
 			FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 			FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
