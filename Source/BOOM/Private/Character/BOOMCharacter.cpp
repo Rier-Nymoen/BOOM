@@ -73,8 +73,8 @@ ABOOMCharacter::ABOOMCharacter()
 
 	bIsFocalLengthScalingEnabled = false;
 
-	
-	BOOMCharacterMovementComp = Cast<UBOOMCharacterMovementComponent>(GetCharacterMovement());
+	////may have to use FObjectInitializer, will see.
+	BOOMCharacterMovementComponent = Cast<UBOOMCharacterMovementComponent>(GetCharacterMovement());
 
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
@@ -368,20 +368,25 @@ void ABOOMCharacter::SpawnWeapons()
 
 void ABOOMCharacter::ThrowGrenade()
 {
-	//plays animation for throwing and spawns the thrown projectile. That should be about it.
-	ABOOMGrenade* SpawnedGrenade = Cast<ABOOMGrenade>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, GrenadeType, CameraComponent->GetComponentTransform()));
-	/*
-	What's a better way I can accomplish this?
-	*/
-	if (SpawnedGrenade)
+	////plays animation for throwing and spawns the thrown projectile. That should be about it.
+	//ABOOMGrenade* SpawnedGrenade = Cast<ABOOMGrenade>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, GrenadeType, CameraComponent->GetComponentTransform()));
+	///*
+	//What's a better way I can accomplish this?
+	//*/
+	//if (SpawnedGrenade)
+	//{
+	//	SpawnedGrenade->SetInstigator(this);
+	//	GetCapsuleComponent()->MoveIgnoreActors.Add(SpawnedGrenade);
+	//	//still need to add velocity of moving person?
+	//	FVector ThrowDirection = CameraComponent->GetForwardVector();
+	//	SpawnedGrenade->ApplyThrownVelocity(ThrowDirection);
+	//	//SpawnedGrenade->GetCollisionComp()->MoveIgnoreActors.Add(this);
+	//	UGameplayStatics::FinishSpawningActor(SpawnedGrenade, CameraComponent->GetComponentTransform());
+	//}
+	if (BOOMCharacterMovementComponent)
 	{
-		SpawnedGrenade->SetInstigator(this);
-		GetCapsuleComponent()->MoveIgnoreActors.Add(SpawnedGrenade);
-		//still need to add velocity of moving person?
-		FVector ThrowDirection = CameraComponent->GetForwardVector();
-		SpawnedGrenade->ApplyThrownVelocity(ThrowDirection);
-		//SpawnedGrenade->GetCollisionComp()->MoveIgnoreActors.Add(this);
-		UGameplayStatics::FinishSpawningActor(SpawnedGrenade, CameraComponent->GetComponentTransform());
+		BOOMCharacterMovementComponent->DetectClimableSurface();
+
 	}
 
 

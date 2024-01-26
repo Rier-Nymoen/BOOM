@@ -73,7 +73,7 @@ protected:
 	void OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UPROPERTY(VisibleAnywhere, Category = "Character")
-	UBOOMCharacterMovementComponent* BOOMCharacterMovementComp;
+	UBOOMCharacterMovementComponent* BOOMCharacterMovementComponent;
 
 private:
 	UPROPERTY()
