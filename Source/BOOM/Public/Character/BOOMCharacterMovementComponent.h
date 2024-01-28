@@ -17,13 +17,13 @@ public:
 	
 	UBOOMCharacterMovementComponent();
 
-	UPROPERTY(Category = "Character Movement: Climbing", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0", ForceUnits = "cm/s"))
-	float MaxClimbingVerticalReach;
-	UPROPERTY(Category = "Character Movement: Climbing", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0", ForceUnits = "cm/s"))
-	float MaxClimbingHorizontalReach;
+	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0", ForceUnits = "cm/s"))
+	float MaxMantleVerticalReach;
+	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0", ForceUnits = "cm/s"))
+	float MaxMantleHorizontalReach;
 
 	/*move to protected after testing*/
-	virtual bool DetectClimableSurface();
+	virtual bool DetectMantleableSurface();
 
 protected:
 
