@@ -26,7 +26,12 @@ public:
 	float MinimumMantleSteepnessAngle;
 
 
+	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite)
+	int NumMantleTraceQueries;
 
+
+	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite)
+	int MantleCapsuleQueryHeightOffset;
 
 	/*move to protected after testing*/
 	virtual bool DetectMantleableSurface();
