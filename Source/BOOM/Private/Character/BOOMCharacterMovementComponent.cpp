@@ -73,7 +73,7 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     //UE_LOG(LogTemp, Warning, TEXT("Normal Vector %s."), *HitResultFront.Normal.ToString());
     //UE_LOG(LogTemp, Warning, TEXT("Normal Magnitude %f."), HitResultFront.Normal.Length());
     //UE_LOG(LogTemp, Warning, TEXT("Up Vector Magnitude %f."), FVector::UpVector.Length());
-    //UE_LOG(LogTemp, Warning, TEXT("Side Steepness Angle: %f."), FrontSteepnessAngle);
+    UE_LOG(LogTemp, Warning, TEXT("Side Steepness Angle: %f."), FrontSteepnessAngle);
 
     if (( FMath::Abs(FrontSteepnessAngle)) < MinimumMantleSteepnessAngle) //The side angle might not matter at all. It could be the angle of what you're going to stand upon. 
     {
@@ -103,6 +103,7 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     FVector UpVectorProjectedOntoPlaneResult = FVector::VectorPlaneProject(FVector::UpVector, HitResultFront.Normal);
 
     //Trace along slope of the surface hit
+    //@TODO: May need to adjust vector length to account for slopes
     FVector StartTraceTop = (UpVectorProjectedOntoPlaneResult * 2 * CapsuleHalfHeight) + HitResultFront.Location;
 
     //Need to move forward by some amount because the trace can barely hit or miss the top of the surface we want to climb on.
@@ -125,7 +126,7 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
 
     FVector ActorMantleCenterLocation = HitResultTopClosest.Location + Character->GetActorForwardVector() * CapsuleRadius + FVector::UpVector * CapsuleHalfHeight;
         
-    //ActorMantleCenterLocation += FVector::UpVector * MantleCapsuleQueryHeightOffset;
+    ActorMantleCenterLocation += FVector::UpVector * MantleCapsuleQueryHeightOffset; //temporary fix
 
     /*
     @TODO: Ramps can cause the capsule check to overlap part of the slope, giving incorrect results. A small Z-axis Offset is a "jank" fix.
