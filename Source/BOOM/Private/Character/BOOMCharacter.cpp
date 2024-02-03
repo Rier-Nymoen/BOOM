@@ -385,8 +385,7 @@ void ABOOMCharacter::ThrowGrenade()
 	//}
 	if (BOOMCharacterMovementComponent)
 	{
-		BOOMCharacterMovementComponent->DetectMantleableSurface();
-
+		BOOMCharacterMovementComponent->StartMantle();
 	}
 
 

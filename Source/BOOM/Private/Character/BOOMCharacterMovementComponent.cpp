@@ -149,8 +149,26 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
         DrawDebugCapsule(GetWorld(), ActorMantleCenterLocation, CapsuleHalfHeight, CapsuleRadius, FQuat(Character->GetActorRotation()), FColor::Cyan, true);
         return true;
     }
+
+    if (MantleMontage3P)
+    {
+        Character->PlayAnimMontage(MantleMontage3P, 1.F); //adjust animation speed based on movement parameters.
+    }
         
     return false;
 
 
+}
+
+void UBOOMCharacterMovementComponent::StartMantle()
+{
+    if (DetectMantleableSurface())
+    {
+        PerformMantle(); //could do something like FMantleContext OutMantleContext for all necessary information to do the actual movement and animation control.
+    }
+
+}
+
+void UBOOMCharacterMovementComponent::PerformMantle()
+{
 }
