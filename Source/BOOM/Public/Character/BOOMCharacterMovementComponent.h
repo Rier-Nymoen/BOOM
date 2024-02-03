@@ -33,10 +33,20 @@ public:
 	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite)
 	int MantleCapsuleQueryHeightOffset;
 
+	UPROPERTY(Category = "Character Movement: Mantle", EditDefaultsOnly)
+	UAnimMontage* MantleMontage3P;
+	UAnimMontage* MantleMontage1P;
+
+
 	/*move to protected after testing*/
-	virtual bool DetectMantleableSurface();
+
+	virtual void StartMantle();
 
 protected:
+
+	virtual bool DetectMantleableSurface();
+
+	virtual void PerformMantle();
 
 	virtual void ControlledCharacterMove(const FVector& InputVector, float DeltaSeconds) override;
 	/*Code for climbing/mantling and stepping up on surfaces.*/
