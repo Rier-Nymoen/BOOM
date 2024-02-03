@@ -54,7 +54,7 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
         }
         else
         {
-            //DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Green, true);
+            DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Green, true);
             break;
         }
     }
@@ -65,15 +65,15 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
 
     //@TODO: Add code to detect the steepness of the surface to see if it is climbable. Take dot product of normal up vector, then get the angle to determine.
         
-    float UpDotNormal = FMath::Abs(FVector::DotProduct(HitResultFront.Normal, FVector::UpVector));
-    float FrontSteepnessRadians = FMath::Acos(UpDotNormal);
+    float FrontProjectionRatio = FMath::Abs(FVector::DotProduct(HitResultFront.Normal, FVector::UpVector));
+    float FrontSteepnessRadians = FMath::Acos(FrontProjectionRatio);
     float FrontSteepnessAngle = FMath::RadiansToDegrees(FrontSteepnessRadians);
 
     //UE_LOG(LogTemp, Warning, TEXT("Dot Product %f."), UpDotNormal);
     //UE_LOG(LogTemp, Warning, TEXT("Normal Vector %s."), *HitResultFront.Normal.ToString());
     //UE_LOG(LogTemp, Warning, TEXT("Normal Magnitude %f."), HitResultFront.Normal.Length());
     //UE_LOG(LogTemp, Warning, TEXT("Up Vector Magnitude %f."), FVector::UpVector.Length());
-    UE_LOG(LogTemp, Warning, TEXT("Side Steepness Angle: %f."), FrontSteepnessAngle);
+    //UE_LOG(LogTemp, Warning, TEXT("Side Steepness Angle: %f."), FrontSteepnessAngle);
 
     if (( FMath::Abs(FrontSteepnessAngle)) < MinimumMantleSteepnessAngle) //The side angle might not matter at all. It could be the angle of what you're going to stand upon. 
     {
@@ -124,9 +124,29 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
 
     FHitResult HitResultTopClosest = HitResultsTop[HitResultsTop.Num()-1];
 
+    float TopProjectionRatio = FMath::Abs(FVector::DotProduct(HitResultTopClosest.Normal, FVector::UpVector));
+    float TopSteepnessRadians = FMath::Acos(TopProjectionRatio);
+    float TopSteepnessAngle = FMath::RadiansToDegrees(TopSteepnessRadians);
+    float TopSinAngle = 180 - 90 - TopSteepnessAngle; //we might not have an angle between up and normal. Handle it!
+
     FVector ActorMantleCenterLocation = HitResultTopClosest.Location + Character->GetActorForwardVector() * CapsuleRadius + FVector::UpVector * CapsuleHalfHeight;
+
+
+    FVector ZOffset = FMath::Sin(TopSinAngle) * FVector::UpVector * HitResultTopClosest.Normal.Z * CapsuleHalfHeight;
+    FVector XYOffset = FMath::Sin(TopSinAngle) * FVector(HitResultTopClosest.Normal.X, HitResultTopClosest.Normal.Y, 0) * CapsuleRadius;
+    UE_LOG(LogTemp, Warning, TEXT("Sin(TopSinAngle): %f"), TopSinAngle);
+    UE_LOG(LogTemp, Warning, TEXT("Cos(TopSinAngle): %f"), TopSteepnessAngle);
+    UE_LOG(LogTemp, Warning, TEXT("TopNormal %s"), *HitResultTopClosest.Normal.ToString());
+
+    UE_LOG(LogTemp, Warning, TEXT("ZOffset: %s"), *ZOffset.ToString());
+    UE_LOG(LogTemp, Warning, TEXT("XYOffset: %s"), *XYOffset.ToString());
+
+
+    ActorMantleCenterLocation += ZOffset + XYOffset;
         
-    ActorMantleCenterLocation += FVector::UpVector * MantleCapsuleQueryHeightOffset; //temporary fix
+    //ActorMantleCenterLocation += FVector::UpVector * MantleCapsuleQueryHeightOffset; //temporary fix
+
+    //ActorMantleCenterLocation += 
 
     /*
     @TODO: Ramps can cause the capsule check to overlap part of the slope, giving incorrect results. A small Z-axis Offset is a "jank" fix.
@@ -156,6 +176,12 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     }
         
     return false;
+
+    /*If we are on a top surface that has a normal perfectly up.
+
+We just account for the capsule height and a few minor offset to properly position the characters every time.
+
+As the angle of the slope increases,*/
 
 
 }
