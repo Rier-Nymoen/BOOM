@@ -8,11 +8,14 @@
 
 UBOOMCharacterMovementComponent::UBOOMCharacterMovementComponent()
 {
-    MaxMantleHorizontalReach = 255.f;
+    MaxMantleHorizontalReach = 225.f;
     MaxMantleVerticalReach = 10.f;
     MinimumMantleSteepnessAngle = 77.f;
     NumMantleTraceQueries = 10;
     MantleCapsuleQueryHeightOffset = 11.f;
+    bIsInMantle = false;
+    DebugTimeToLineUpMantle = 0.2f;
+
 }
 
 void UBOOMCharacterMovementComponent::ControlledCharacterMove(const FVector& InputVector, float DeltaSeconds)
@@ -37,7 +40,7 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     TraceParams.AddIgnoredActor(Character);
     FHitResult HitResultFront;
     float TraceHeightIncrement = (CapsuleHalfHeight * 2) / NumMantleTraceQueries;
-    bool bHitFront;
+    bool bHitFront = false;
 
     //Conduct Raycasts to find side of a mantleable surface.
     for (int i = 0; i < NumMantleTraceQueries; i++)
@@ -127,11 +130,20 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     float TopProjectionRatio = FMath::Abs(FVector::DotProduct(HitResultTopClosest.Normal, FVector::UpVector));
     float TopSteepnessRadians = FMath::Acos(TopProjectionRatio);
     float TopSteepnessAngle = FMath::RadiansToDegrees(TopSteepnessRadians);
-    float TopSinAngle = 180 - 90 - TopSteepnessAngle; //we might not have an angle between up and normal. Handle it!
+    float TopSinAngle;
+    if(!TopSteepnessAngle) // we might not have an angle between
+    {
+        TopSinAngle = 0;
+    }
+    else
+    {
+        TopSinAngle = 180 - 90 - TopSteepnessAngle;
+    }
 
     FVector ActorMantleCenterLocation = HitResultTopClosest.Location + Character->GetActorForwardVector() * CapsuleRadius + FVector::UpVector * CapsuleHalfHeight;
 
 
+    //@TODO: Not perfect. Can improve later with different approach
     FVector ZOffset = FMath::Sin(TopSinAngle) * FVector::UpVector * HitResultTopClosest.Normal.Z * CapsuleHalfHeight;
     FVector XYOffset = FMath::Sin(TopSinAngle) * FVector(HitResultTopClosest.Normal.X, HitResultTopClosest.Normal.Y, 0) * CapsuleRadius;
     UE_LOG(LogTemp, Warning, TEXT("Sin(TopSinAngle): %f"), TopSinAngle);
@@ -142,16 +154,7 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     UE_LOG(LogTemp, Warning, TEXT("XYOffset: %s"), *XYOffset.ToString());
 
 
-    ActorMantleCenterLocation += ZOffset + XYOffset;
-        
-    //ActorMantleCenterLocation += FVector::UpVector * MantleCapsuleQueryHeightOffset; //temporary fix
-
-    //ActorMantleCenterLocation += 
-
-    /*
-    @TODO: Ramps can cause the capsule check to overlap part of the slope, giving incorrect results. A small Z-axis Offset is a "jank" fix.
-    Try to relate the capsule query settings to the angle and capsule radius.
-    */
+    ActorMantleCenterLocation += (ZOffset + XYOffset);
 
     //TEST IF PLAYER CAN FIT IN AREA
     const FCollisionShape CapsuleQuery = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);
@@ -167,34 +170,52 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     else
     {
         DrawDebugCapsule(GetWorld(), ActorMantleCenterLocation, CapsuleHalfHeight, CapsuleRadius, FQuat(Character->GetActorRotation()), FColor::Cyan, true);
-        return true;
     }
+
+    //SetMovementMode(MOVE_Flying); //@TODO: Thought this would affect gravity.
+    MantleRootMotionSource = MakeShared<FRootMotionSource_MoveToDynamicForce>();
+
+    MantleRootMotionSource->StartLocation = Character->GetActorLocation();
+    MantleRootMotionSource->TargetLocation = FVector(HitResultFront.Location.X, HitResultFront.Location.Y,  0) + (HitResultFront.Normal * CapsuleRadius) + FVector::UpVector * GetActorLocation().Z;
+    MantleRootMotionSource->Duration = DebugTimeToLineUpMantle;
+    //testing this out
+   
+    ApplyRootMotionSource(MantleRootMotionSource);
 
     if (MantleMontage3P)
     {
-        Character->PlayAnimMontage(MantleMontage3P, 1.F); //adjust animation speed based on movement parameters.
+        //adjust based on movement parameters
+        Character->PlayAnimMontage(MantleMontage3P, 1.f ); //adjust animation speed based on movement parameters.
     }
-        
-    return false;
+    
 
-    /*If we are on a top surface that has a normal perfectly up.
-
-We just account for the capsule height and a few minor offset to properly position the characters every time.
-
-As the angle of the slope increases,*/
-
-
+    bIsInMantle = true;
+    return true;
 }
 
 void UBOOMCharacterMovementComponent::StartMantle()
 {
     if (DetectMantleableSurface())
     {
-        PerformMantle(); //could do something like FMantleContext OutMantleContext for all necessary information to do the actual movement and animation control.
+        //if i want to separate the functions for seeing if the character is able to mantle, and the logic for actually moving into the mantle
+        // could do something like FMantleContext OutMantleContext for all necessary information to do the actual movement and animation control.
+        PerformMantle(); 
+
     }
 
 }
 
 void UBOOMCharacterMovementComponent::PerformMantle()
 {
+}
+
+void UBOOMCharacterMovementComponent::UpdateCharacterStateAfterMovement(float DeltaSeconds)
+{
+    Super::UpdateCharacterStateAfterMovement(DeltaSeconds);
+
+    //definitely need to account for more factors than just this.
+    if (!HasRootMotionSources() && MOVE_Flying == MovementMode && bIsInMantle)
+    {
+        SetMovementMode(MOVE_Walking);
+    }
 }

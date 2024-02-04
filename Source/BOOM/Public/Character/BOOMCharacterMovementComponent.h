@@ -35,7 +35,10 @@ public:
 
 	UPROPERTY(Category = "Character Movement: Mantle", EditDefaultsOnly)
 	UAnimMontage* MantleMontage3P;
+	UPROPERTY(Category = "Character Movement: Mantle", EditDefaultsOnly)
 	UAnimMontage* MantleMontage1P;
+
+	TSharedPtr<FRootMotionSource_MoveToDynamicForce> MantleRootMotionSource;
 
 
 	/*move to protected after testing*/
@@ -44,6 +47,8 @@ public:
 
 protected:
 
+	virtual void UpdateCharacterStateAfterMovement(float DeltaSeconds);
+
 	virtual bool DetectMantleableSurface();
 
 	virtual void PerformMantle();
@@ -51,6 +56,10 @@ protected:
 	virtual void ControlledCharacterMove(const FVector& InputVector, float DeltaSeconds) override;
 	/*Code for climbing/mantling and stepping up on surfaces.*/
 
+	bool bIsInMantle;
+
+	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere)
+	float DebugTimeToLineUpMantle;
 
 
 
