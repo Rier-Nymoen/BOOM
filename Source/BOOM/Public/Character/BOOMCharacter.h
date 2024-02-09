@@ -118,6 +118,7 @@ protected:
 	void SwapWeapon(const FInputActionValue& Value);
 
 	void StartCrouch(const FInputActionValue& Value);
+
 	void EndCrouch(const FInputActionValue& Value);
 
 	virtual void Jump();
@@ -236,7 +237,6 @@ public:
 	TArray<class ABOOMWeapon*> Weapons;
 
 	class ABOOMWeapon* Weapon;
-
 	void ThrowGrenade();
 
 	UFUNCTION()

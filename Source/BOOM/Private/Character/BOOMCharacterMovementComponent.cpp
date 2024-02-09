@@ -8,15 +8,31 @@
 
 UBOOMCharacterMovementComponent::UBOOMCharacterMovementComponent()
 {
-    MaxMantleHorizontalReach = 225.f;
-    MaxMantleVerticalReach = 10.f;
-    MinimumMantleSteepnessAngle = 77.f;
-    NumMantleTraceQueries = 10;
-    MantleCapsuleQueryHeightOffset = 11.f;
-    bIsInMantle = false;
+    //Might alter these movement values to be percentages of the capsule half height.
+    MaxMantleVerticalReach = 225.f;
     DebugTimeToLineUpMantle = 0.2f;
 
+    MaxHorizontalReachDistanceMultiplier = 2.5f;
+
+    MinimumMantleSteepnessAngle = 45.f;
+    NumSurfaceSideTraceQueries = 10;
+    bIsInMantle = false;
+
+    bWantsToMantle = false;
+    bCanMantle = true;
+
+    bWantsToVault = false;
+    bCanVault = true;
+    MaxVaultOverDistanceMultiplier = 0.5f;
+
+    MaxMantleHeightDistanceMultiplier = 1.5f;
 }
+
+//void UBOOMCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+//{
+//    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+//
+//}
 
 void UBOOMCharacterMovementComponent::ControlledCharacterMove(const FVector& InputVector, float DeltaSeconds)
 {
@@ -35,18 +51,18 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     FVector EndTrace;
 
     //DETECT SIDE SURFACE
-
     FCollisionQueryParams TraceParams;
     TraceParams.AddIgnoredActor(Character);
     FHitResult HitResultFront;
-    float TraceHeightIncrement = (CapsuleHalfHeight * 2) / NumMantleTraceQueries;
+    float SideHeightTrace = CapsuleHalfHeight * 2; 
+    float SideHeightTraceIncrement = SideHeightTrace / NumSurfaceSideTraceQueries;
     bool bHitFront = false;
 
-    //Conduct Raycasts to find side of a mantleable surface.
-    for (int i = 0; i < NumMantleTraceQueries; i++)
+    //Raycast to find side of a vault/mantle surface.
+    for (int i = 0; i < NumSurfaceSideTraceQueries; i++)
     {
-        StartTrace += FVector::DownVector * TraceHeightIncrement;
-        EndTrace = StartTrace + (Character->GetActorForwardVector() * MaxMantleHorizontalReach);
+        StartTrace += FVector::DownVector * SideHeightTraceIncrement;
+        EndTrace = StartTrace + (Character->GetActorForwardVector() * CapsuleRadius * MaxHorizontalReachDistanceMultiplier);
 
         bHitFront = GetWorld()->LineTraceSingleByChannel(HitResultFront, StartTrace, EndTrace, ECC_Visibility, TraceParams);
 
@@ -65,11 +81,9 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     {
         return false;
     }
-
-    //@TODO: Add code to detect the steepness of the surface to see if it is climbable. Take dot product of normal up vector, then get the angle to determine.
-        
-    float FrontProjectionRatio = FMath::Abs(FVector::DotProduct(HitResultFront.Normal, FVector::UpVector));
-    float FrontSteepnessRadians = FMath::Acos(FrontProjectionRatio);
+  
+    float FrontDotProduct = FMath::Abs(FVector::DotProduct(HitResultFront.Normal, FVector::UpVector));
+    float FrontSteepnessRadians = FMath::Acos(FrontDotProduct);
     float FrontSteepnessAngle = FMath::RadiansToDegrees(FrontSteepnessRadians);
 
     //UE_LOG(LogTemp, Warning, TEXT("Dot Product %f."), UpDotNormal);
@@ -78,28 +92,13 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     //UE_LOG(LogTemp, Warning, TEXT("Up Vector Magnitude %f."), FVector::UpVector.Length());
     //UE_LOG(LogTemp, Warning, TEXT("Side Steepness Angle: %f."), FrontSteepnessAngle);
 
-    if (( FMath::Abs(FrontSteepnessAngle)) < MinimumMantleSteepnessAngle) //The side angle might not matter at all. It could be the angle of what you're going to stand upon. 
+    if ((FMath::Abs(FrontSteepnessAngle)) < MinimumMantleSteepnessAngle) //The side angle might not matter at all. It could be the angle of what you're going to stand upon. 
     {
         //UE_LOG(LogTemp, Warning, TEXT("Mantle Surface Failed Side Steepness Check."))
         return false;
     }
 
-    //BACK TRACE CHECKS
-    //@TODO: Calculations of jump onto or over.
-    FVector BackTraceReference = CapsuleRadius * Character->GetActorForwardVector() + HitResultFront.Location;
-
-    FHitResult HitResultBack;
-    bool bHitBack = GetWorld()->LineTraceSingleByChannel(HitResultBack, HitResultFront.Location, BackTraceReference, ECC_Visibility, TraceParams);
-    //DrawDebugLine(GetWorld(), HitResultFront.Location, BackTraceReference, FColor::Emerald, true);
-
-    if (!bHitBack)
-    {
-        return false;
-    }
-
     //TOP SURFACE CHECKS
-   
-    //Finds top of climbable surface (the part we stand on) with vector projections!
     TArray<FHitResult> HitResultsTop;
 
     /*Projects vector onto plane's normal vector, then uses vector subtraction to find vector on plane.*/
@@ -107,54 +106,70 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
 
     //Trace along slope of the surface hit
     //@TODO: May need to adjust vector length to account for slopes
-    FVector StartTraceTop = (UpVectorProjectedOntoPlaneResult * 2 * CapsuleHalfHeight) + HitResultFront.Location;
+    FVector StartTraceTop = (UpVectorProjectedOntoPlaneResult * CapsuleHalfHeight * 2 * MaxMantleHeightDistanceMultiplier ) + HitResultFront.Location;
 
     //Need to move forward by some amount because the trace can barely hit or miss the top of the surface we want to climb on.
     StartTraceTop += Character->GetActorRotation().Vector() * 2;
 
-    FVector EndTraceTop = StartTraceTop - (UpVectorProjectedOntoPlaneResult * CapsuleHalfHeight * 2);
+    FVector EndTraceTop = StartTraceTop - (UpVectorProjectedOntoPlaneResult * CapsuleHalfHeight * 2 * MaxMantleHeightDistanceMultiplier);
 
+    //bool bHitTop = GetWorld()->LineTraceMultiByChannel(HitResultsTop, StartTraceTop, EndTraceTop, ECC_Visibility, TraceParams);
     bool bHitTop = GetWorld()->LineTraceMultiByChannel(HitResultsTop, StartTraceTop, EndTraceTop, ECC_Visibility, TraceParams);
     DrawDebugLine(GetWorld(), StartTraceTop, EndTraceTop, FColor::White, true);
-
+    
     if (!bHitTop)
     {
         return false;
     }
-    //UE_LOG(LogTemp, Warning, TEXT("Hits from LineTraceMulti: %d"), HitResultsTop.Num())
-
+    UE_LOG(LogTemp, Warning, TEXT("Hits from LineTraceMulti: %d"), HitResultsTop.Num())
     //@TODO: we aren't receiving multiple hits when we should. Why?
-
     FHitResult HitResultTopClosest = HitResultsTop[HitResultsTop.Num()-1];
 
-    float TopProjectionRatio = FMath::Abs(FVector::DotProduct(HitResultTopClosest.Normal, FVector::UpVector));
-    float TopSteepnessRadians = FMath::Acos(TopProjectionRatio);
+    if (!HitResultTopClosest.IsValidBlockingHit())
+    {
+        return false;
+    }
+
+    float TopDotProduct = FMath::Abs(FVector::DotProduct(HitResultTopClosest.Normal, FVector::UpVector));
+    float TopSteepnessRadians = FMath::Acos(TopDotProduct);
     float TopSteepnessAngle = FMath::RadiansToDegrees(TopSteepnessRadians);
     float TopSinAngle;
-    if(!TopSteepnessAngle) // we might not have an angle between
+
+    if(!TopSteepnessAngle) // we might not have an angle between - careful of float errors
     {
-        TopSinAngle = 0;
+        TopSinAngle = 0.f;
     }
     else
     {
-        TopSinAngle = 180 - 90 - TopSteepnessAngle;
+        TopSinAngle =  PI - TopDotProduct - PI/2;
+    }
+
+
+    //BACK TRACE CHECKS - for determining if we have enough length to mantle onto, vault over.
+    //@TODO: Calculations of jump onto or over (mantle or vault).
+    FVector BackTraceReference = CapsuleRadius * Character->GetActorForwardVector() + HitResultFront.Location;
+    FHitResult HitResultBack;
+    bool bHitBack = GetWorld()->LineTraceSingleByChannel(HitResultBack, HitResultFront.Location, BackTraceReference, ECC_Visibility, TraceParams);
+    DrawDebugLine(GetWorld(), HitResultFront.Location, BackTraceReference, FColor::Orange, true);
+
+    if (!bHitBack)
+    {
+        return false;
     }
 
     FVector ActorMantleCenterLocation = HitResultTopClosest.Location + Character->GetActorForwardVector() * CapsuleRadius + FVector::UpVector * CapsuleHalfHeight;
 
-
     //@TODO: Not perfect. Can improve later with different approach
     FVector ZOffset = FMath::Sin(TopSinAngle) * FVector::UpVector * HitResultTopClosest.Normal.Z * CapsuleHalfHeight;
     FVector XYOffset = FMath::Sin(TopSinAngle) * FVector(HitResultTopClosest.Normal.X, HitResultTopClosest.Normal.Y, 0) * CapsuleRadius;
+    ActorMantleCenterLocation += (ZOffset + XYOffset);
+
     UE_LOG(LogTemp, Warning, TEXT("Sin(TopSinAngle): %f"), TopSinAngle);
     UE_LOG(LogTemp, Warning, TEXT("Cos(TopSinAngle): %f"), TopSteepnessAngle);
     UE_LOG(LogTemp, Warning, TEXT("TopNormal %s"), *HitResultTopClosest.Normal.ToString());
-
     UE_LOG(LogTemp, Warning, TEXT("ZOffset: %s"), *ZOffset.ToString());
     UE_LOG(LogTemp, Warning, TEXT("XYOffset: %s"), *XYOffset.ToString());
 
-
-    ActorMantleCenterLocation += (ZOffset + XYOffset);
 
     //TEST IF PLAYER CAN FIT IN AREA
     const FCollisionShape CapsuleQuery = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);
@@ -188,21 +203,31 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
         Character->PlayAnimMontage(MantleMontage3P, 1.f ); //adjust animation speed based on movement parameters.
     }
     
-
-    bIsInMantle = true;
     return true;
 }
 
 void UBOOMCharacterMovementComponent::StartMantle()
 {
-    if (DetectMantleableSurface())
-    {
-        //if i want to separate the functions for seeing if the character is able to mantle, and the logic for actually moving into the mantle
-        // could do something like FMantleContext OutMantleContext for all necessary information to do the actual movement and animation control.
-        PerformMantle(); 
 
-    }
+    /*Right now jumping works by ACharacter calling DoJump.*/
+    DetectMantleableSurface();
+}
 
+/*Evaluates which jump action to take based on character and wall height.*/
+void UBOOMCharacterMovementComponent::DetermineJumpInputAction()
+{
+    /*
+    - Trace to get the wall height.
+    - Depending on the percent of the wall height relative to the player height
+    - We can either vault or mantle. At various different heights.
+    */
+
+
+}
+
+bool UBOOMCharacterMovementComponent::CanMantle()
+{
+    return true;
 }
 
 void UBOOMCharacterMovementComponent::PerformMantle()

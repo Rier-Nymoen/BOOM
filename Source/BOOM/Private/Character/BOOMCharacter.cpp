@@ -150,8 +150,6 @@ void ABOOMCharacter::BeginPlay()
 void ABOOMCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-
 }
 
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -368,26 +366,10 @@ void ABOOMCharacter::SpawnWeapons()
 
 void ABOOMCharacter::ThrowGrenade()
 {
-	////plays animation for throwing and spawns the thrown projectile. That should be about it.
-	//ABOOMGrenade* SpawnedGrenade = Cast<ABOOMGrenade>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, GrenadeType, CameraComponent->GetComponentTransform()));
-	///*
-	//What's a better way I can accomplish this?
-	//*/
-	//if (SpawnedGrenade)
-	//{
-	//	SpawnedGrenade->SetInstigator(this);
-	//	GetCapsuleComponent()->MoveIgnoreActors.Add(SpawnedGrenade);
-	//	//still need to add velocity of moving person?
-	//	FVector ThrowDirection = CameraComponent->GetForwardVector();
-	//	SpawnedGrenade->ApplyThrownVelocity(ThrowDirection);
-	//	//SpawnedGrenade->GetCollisionComp()->MoveIgnoreActors.Add(this);
-	//	UGameplayStatics::FinishSpawningActor(SpawnedGrenade, CameraComponent->GetComponentTransform());
-	//}
 	if (BOOMCharacterMovementComponent)
 	{
 		BOOMCharacterMovementComponent->StartMantle();
 	}
-
 
 }
 
@@ -691,11 +673,14 @@ void ABOOMCharacter::EndCrouch(const FInputActionValue& Value)
 
 void ABOOMCharacter::Jump()
 {
+
+
 	if (bIsCrouched)
 	{
 		UnCrouch();
 	}
 	Super::Jump();
+	
 
 }
 
