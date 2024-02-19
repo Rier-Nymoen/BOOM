@@ -6,9 +6,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "BOOMCharacterMovementComponent.generated.h"
 
-/**
- * 
- */
+struct FJumpInputActionQueryData
+{
+	FHitResult HitResultFront;
+};
+
 UCLASS()
 class BOOM_API UBOOMCharacterMovementComponent : public UCharacterMovementComponent
 {
@@ -48,7 +50,16 @@ public:
 	float MaxVaultOverDistanceMultiplier;
 
 	UPROPERTY(EditAnywhere)
+	float MaxVaultHeightDistanceMultiplier;
+
+	UPROPERTY(EditAnywhere)
+	float MinVaultHeightDistanceMultiplier;
+
+	UPROPERTY(EditAnywhere)
 	float MaxMantleHeightDistanceMultiplier;
+
+	UPROPERTY(EditAnywhere)
+	float MinMantleHeightDistanceMultiplier;
 
 
 	/*move to protected after testing*/
@@ -58,6 +69,8 @@ public:
 	virtual void DetermineJumpInputAction();
 
 	virtual bool CanMantle();
+
+	//virtual void QueryMovementSurfaceContext();
 
 protected:
 
@@ -82,7 +95,4 @@ protected:
 
 	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere)
 	float DebugTimeToLineUpMantle;
-
-
-
 };
