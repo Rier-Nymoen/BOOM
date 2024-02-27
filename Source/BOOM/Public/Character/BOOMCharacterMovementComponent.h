@@ -6,9 +6,17 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "BOOMCharacterMovementComponent.generated.h"
 
-/**
- * 
- */
+class ABOOMCharacter;
+
+struct FJumpActionSurfaceData
+{
+	FHitResult HitResultFront;
+	FHitResult HitResultTop;
+	FVector UpVectorProjectedOntoPlaneResult;
+
+
+};
+
 UCLASS()
 class BOOM_API UBOOMCharacterMovementComponent : public UCharacterMovementComponent
 {
@@ -27,6 +35,10 @@ public:
 
 	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0", ForceUnits = "degrees"))
 	float MinimumMantleSteepnessAngle;
+
+	bool bBOOMPressedJump;
+	
+	ABOOMCharacter* BOOMCharacterOwner;
 
 
 	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite)
@@ -48,22 +60,35 @@ public:
 	float MaxVaultOverDistanceMultiplier;
 
 	UPROPERTY(EditAnywhere)
+	float MaxVaultHeightDistanceMultiplier;
+
+	UPROPERTY(EditAnywhere)
+	float MinVaultHeightDistanceMultiplier;
+
+	UPROPERTY(EditAnywhere)
 	float MaxMantleHeightDistanceMultiplier;
+
+	UPROPERTY(EditAnywhere)
+	float MinMantleHeightDistanceMultiplier;
 
 
 	/*move to protected after testing*/
 
-	virtual void StartMantle();
+	virtual bool StartMantle();
 	
 	virtual void DetermineJumpInputAction();
 
 	virtual bool CanMantle();
 
+	//virtual void QueryMovementSurfaceContext();
+
 protected:
+
+	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 
 	virtual void UpdateCharacterStateAfterMovement(float DeltaSeconds) override;
 
-	virtual bool DetectMantleableSurface();
+	virtual bool CanPerformAlternateJumpMovement();
 
 	virtual void PerformMantle();
 
@@ -82,7 +107,4 @@ protected:
 
 	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere)
 	float DebugTimeToLineUpMantle;
-
-
-
 };
