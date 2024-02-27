@@ -6,9 +6,15 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "BOOMCharacterMovementComponent.generated.h"
 
-struct FJumpInputActionQueryData
+class ABOOMCharacter;
+
+struct FJumpActionSurfaceData
 {
 	FHitResult HitResultFront;
+	FHitResult HitResultTop;
+	FVector UpVectorProjectedOntoPlaneResult;
+
+
 };
 
 UCLASS()
@@ -29,6 +35,10 @@ public:
 
 	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0", ForceUnits = "degrees"))
 	float MinimumMantleSteepnessAngle;
+
+	bool bBOOMPressedJump;
+	
+	ABOOMCharacter* BOOMCharacterOwner;
 
 
 	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite)
@@ -64,7 +74,7 @@ public:
 
 	/*move to protected after testing*/
 
-	virtual void StartMantle();
+	virtual bool StartMantle();
 	
 	virtual void DetermineJumpInputAction();
 
@@ -74,9 +84,11 @@ public:
 
 protected:
 
+	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
+
 	virtual void UpdateCharacterStateAfterMovement(float DeltaSeconds) override;
 
-	virtual bool DetectMantleableSurface();
+	virtual bool CanPerformAlternateJumpMovement();
 
 	virtual void PerformMantle();
 

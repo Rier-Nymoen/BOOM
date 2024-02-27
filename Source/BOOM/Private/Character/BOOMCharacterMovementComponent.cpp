@@ -5,6 +5,7 @@
 #include "Character/BOOMCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "CollisionShape.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 UBOOMCharacterMovementComponent::UBOOMCharacterMovementComponent()
 {
@@ -12,7 +13,7 @@ UBOOMCharacterMovementComponent::UBOOMCharacterMovementComponent()
     MaxMantleVerticalReach = 225.f;
     DebugTimeToLineUpMantle = 0.2f;
 
-    MaxHorizontalReachDistanceMultiplier = 2.5f;
+    MaxHorizontalReachDistanceMultiplier = 1.4f;
 
     MinimumMantleSteepnessAngle = 45.f;
     NumSurfaceSideTraceQueries = 10;
@@ -44,8 +45,48 @@ void UBOOMCharacterMovementComponent::ControlledCharacterMove(const FVector& Inp
 }
 
 
-bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
+void UBOOMCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
 {
+    if (bBOOMPressedJump)
+    {
+        if (CanPerformAlternateJumpMovement())
+        {
+            bIsInMantle = true;
+            CharacterOwner->StopJumping(); //Change the state to not jumping
+        }
+    }
+
+    Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
+}
+
+void UBOOMCharacterMovementComponent::UpdateCharacterStateAfterMovement(float DeltaSeconds)
+{
+
+    //definitely need to account for more factors than just this.
+    if (!HasRootMotionSources())
+    {
+        //UE_LOG(LogTemp, Warning, TEXT("doesnt have root motion sources"))
+        bIsInMantle = false;
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Has root motion sources"))
+    }
+    Super::UpdateCharacterStateAfterMovement(DeltaSeconds);
+
+   
+}
+
+
+
+bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
+{
+    //@TODO: Add some optimization conditions to avoid the constant tracing.
+    if (bIsInMantle)
+    {
+        return false;
+    }
+
     ACharacter* Character = GetCharacterOwner();
 
     const float CapsuleHalfHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
@@ -64,7 +105,7 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     float SideHeightTraceIncrement = SideHeightTrace / NumSurfaceSideTraceQueries;
     bool bHitFront = false;
 
-    //Raycast to find side of a vault/mantle surface.
+    //Raycast to find side of a vault/mantle surface. Could try shape sweeping as well.
     for (int i = 0; i < NumSurfaceSideTraceQueries; i++)
     {
         bHitFront = GetWorld()->LineTraceSingleByChannel(HitResultFront, StartTrace, EndTrace, ECC_Visibility, TraceParams);
@@ -90,7 +131,7 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     //UE_LOG(LogTemp, Warning, TEXT("Normal Vector %s."), *HitResultFront.Normal.ToString());
     //UE_LOG(LogTemp, Warning, TEXT("Normal Magnitude %f."), HitResultFront.Normal.Length());
     //UE_LOG(LogTemp, Warning, TEXT("Up Vector Magnitude %f."), FVector::UpVector.Length());
-    //UE_LOG(LogTemp, Warning, TEXT("Side Steepness Angle: %f."), FrontSteepnessAngle);
+    UE_LOG(LogTemp, Warning, TEXT("Side Steepness Angle: %f."), FrontSteepnessAngle);
 
     if ((FMath::Abs(FrontSteepnessAngle)) < MinimumMantleSteepnessAngle) //The side angle might not matter at all.
     {
@@ -98,8 +139,6 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
         return false;
     }
 
-    //TOP SURFACE CHECKS
-    TArray<FHitResult> HitResultsTop;
 
     /*Projects vector onto plane's normal vector, then uses vector subtraction to find vector on plane.*/
     FVector UpVectorProjectedOntoPlaneResult = FVector::VectorPlaneProject(FVector::UpVector, HitResultFront.Normal);
@@ -108,26 +147,47 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     //Trace along slope of the surface hit
     //@TODO: May need to adjust vector length to account for slopes
 
-    FVector StartTraceTop = HitResultFront.Location + UpVectorProjectedOntoPlaneResult * CapsuleHalfHeight;
+    FVector StartTraceTop = HitResultFront.Location + UpVectorProjectedOntoPlaneResult * CapsuleHeight;
     StartTraceTop += Character->GetActorRotation().Vector() * 2;
     FVector EndTraceTop = HitResultFront.Location;
 
-    bool bHitTop = GetWorld()->LineTraceMultiByChannel(HitResultsTop, StartTraceTop, EndTraceTop, ECC_Visibility, TraceParams);
-    DrawDebugLine(GetWorld(), StartTraceTop, EndTraceTop, FColor::White, true);
-    
-    if (!bHitTop)
-    {
-        return false;
-    }
+    //TOP SURFACE CHECKS
+    TArray<FHitResult> HitResultsTop;
 
+    bool bHitTop = GetWorld()->LineTraceMultiByProfile(HitResultsTop, StartTraceTop, EndTraceTop, "OverlapAll", TraceParams);
+
+    DrawDebugLine(GetWorld(), StartTraceTop, EndTraceTop, FColor::White, true);
     UE_LOG(LogTemp, Warning, TEXT("Hits from LineTraceMulti: %d"), HitResultsTop.Num())
 
-    FHitResult HitResultTop = HitResultsTop[0];
 
-    if (!HitResultTop.IsValidBlockingHit())
+        //if (!bHitTop)
+        //{
+        //    return false;
+        //}
+    FHitResult HitResultTop;
+    int LowestSurfaceIndex = HitResultsTop.Num() - 1;
+    if (HitResultsTop.IsValidIndex(LowestSurfaceIndex))
     {
+       HitResultTop = HitResultsTop[LowestSurfaceIndex];
+    }
+
+    if (HitResultTop.bStartPenetrating)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Started  Penetrating"))
         return false;
     }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Didnt start penetrating"))
+    }
+    
+       
+    //if (!HitResultTop.IsValidBlockingHit())
+    //{
+    //    UE_LOG(LogTemp, Warning, TEXT("Invalid blocking height"))
+
+    //    return false;
+    //}
 
     float SurfaceHeight = (HitResultTop.Location - CapsuleBaseLocation).Z;
     UE_LOG(LogTemp, Warning, TEXT("Surface Height: %f"), SurfaceHeight)
@@ -136,6 +196,13 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     float TopSteepnessRadians = FMath::Acos(TopDotProduct);
     float TopSteepnessAngle = FMath::RadiansToDegrees(TopSteepnessRadians);
     float TopSinAngle;
+
+    UE_LOG(LogTemp, Warning, TEXT("Top Steepness Angle: %f."), TopSteepnessAngle)
+
+    if ((FMath::Abs(TopSteepnessAngle)) > MinimumMantleSteepnessAngle) //The side angle might not matter at all.
+    {
+        return false;
+    }
 
     if(!TopSteepnessAngle) // we might not have an angle between - careful of float errors
     {
@@ -147,23 +214,23 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     }
 
 
-    
-    FVector VaultOverLocation = HitResultTop.Location + FVector::UpVector * (CapsuleHalfHeight + 1);
+    //
+    //FVector VaultOverLocation = HitResultTop.Location + FVector::UpVector * (CapsuleHalfHeight + 1);
 
-    const FCollisionShape CapsuleQueryVaultOver = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);
-    FHitResult HitResultCapsuleQueryVaultOver;
-    bool bHitCapsuleQueryVaultOver = GetWorld()->SweepSingleByChannel(HitResultCapsuleQueryVaultOver, VaultOverLocation, VaultOverLocation, FQuat::Identity, ECC_Visibility, CapsuleQueryVaultOver, TraceParams);
+    //const FCollisionShape CapsuleQueryVaultOver = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);
+    //FHitResult HitResultCapsuleQueryVaultOver;
+    //bool bHitCapsuleQueryVaultOver = GetWorld()->SweepSingleByChannel(HitResultCapsuleQueryVaultOver, VaultOverLocation, VaultOverLocation, FQuat::Identity, ECC_Visibility, CapsuleQueryVaultOver, TraceParams);
 
-    if (bHitCapsuleQueryVaultOver)
-    {
-        DrawDebugCapsule(GetWorld(), VaultOverLocation, CapsuleHalfHeight, CapsuleRadius, FQuat(Character->GetActorRotation()), FColor::Orange, true);
+    //if (bHitCapsuleQueryVaultOver)
+    //{
+    //    DrawDebugCapsule(GetWorld(), VaultOverLocation, CapsuleHalfHeight, CapsuleRadius, FQuat(Character->GetActorRotation()), FColor::Orange, true);
 
-        return false;
-    }
-    else
-    {
-        DrawDebugCapsule(GetWorld(), VaultOverLocation, CapsuleHalfHeight, CapsuleRadius, FQuat(Character->GetActorRotation()), FColor::Green, true);
-    }
+    //    return false;
+    //}
+    //else
+    //{
+    //    DrawDebugCapsule(GetWorld(), VaultOverLocation, CapsuleHalfHeight, CapsuleRadius, FQuat(Character->GetActorRotation()), FColor::Green, true);
+    //}
 
     FVector CharacterMantleEndLocation = HitResultTop.Location + Character->GetActorForwardVector() * CapsuleRadius + FVector::UpVector * (CapsuleHalfHeight + 1);
 
@@ -175,8 +242,8 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
     //UE_LOG(LogTemp, Warning, TEXT("Sin(TopSinAngle): %f"), TopSinAngle);
     //UE_LOG(LogTemp, Warning, TEXT("Cos(TopSinAngle): %f"), TopSteepnessAngle);
     //UE_LOG(LogTemp, Warning, TEXT("TopNormal %s"), *HitResultTopClosest.Normal.ToString());
-    //UE_LOG(LogTemp, Warning, TEXT("ZOffset: %s"), *ZOffset.ToString());
-    //UE_LOG(LogTemp, Warning, TEXT("XYOffset: %s"), *XYOffset.ToString());
+    UE_LOG(LogTemp, Warning, TEXT("ZOffset: %s"), *ZOffset.ToString());
+    UE_LOG(LogTemp, Warning, TEXT("XYOffset: %s"), *XYOffset.ToString());
 
     //TEST IF PLAYER CAN FIT IN AREA
     const FCollisionShape CapsuleQueryMantleEnd = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);
@@ -206,30 +273,31 @@ bool UBOOMCharacterMovementComponent::DetectMantleableSurface()
 
     //Mantle code
 
-    ////SetMovementMode(MOVE_Flying); //@TODO: Thought this would affect gravity.
-    //MantleRootMotionSource = MakeShared<FRootMotionSource_MoveToDynamicForce>();
+    //SetMovementMode(MOVE_Flying); //@TODO: Thought this would affect gravity.
+    MantleRootMotionSource = MakeShared<FRootMotionSource_MoveToDynamicForce>();
 
-    //MantleRootMotionSource->StartLocation = Character->GetActorLocation();
-    //MantleRootMotionSource->TargetLocation = FVector(HitResultFront.Location.X, HitResultFront.Location.Y,  0) + (HitResultFront.Normal * CapsuleRadius) + FVector::UpVector * GetActorLocation().Z;
-    //MantleRootMotionSource->Duration = DebugTimeToLineUpMantle;
-    ////testing this out
+    MantleRootMotionSource->StartLocation = Character->GetActorLocation();
+    //Line-up if doing root motion animations
+    MantleRootMotionSource->TargetLocation = FVector(HitResultFront.Location.X, HitResultFront.Location.Y,  0) + (HitResultFront.Normal * CapsuleRadius) + FVector::UpVector * GetActorLocation().Z;
+    MantleRootMotionSource->Duration = DebugTimeToLineUpMantle;
+    //testing this out
    
-    //ApplyRootMotionSource(MantleRootMotionSource);
+    ApplyRootMotionSource(MantleRootMotionSource);
 
-    //if (MantleMontage3P)
-    //{
-    //    //adjust based on movement parameters
-    //    Character->PlayAnimMontage(MantleMontage3P, 1.f ); //adjust animation speed based on movement parameters.
-    //}
+    if (MantleMontage3P)
+    {
+        //adjust based on movement parameters
+        Character->PlayAnimMontage(MantleMontage3P, DebugTimeToLineUpMantle ); //adjust animation speed based on movement parameters.
+    }
     
     return true;
 }
 
-void UBOOMCharacterMovementComponent::StartMantle()
+bool UBOOMCharacterMovementComponent::StartMantle()
 {
 
     /*Right now jumping works by ACharacter calling DoJump.*/
-    DetectMantleableSurface();
+    return CanPerformAlternateJumpMovement();
 }
 
 /*Evaluates which jump action to take based on character and wall height.*/
@@ -252,15 +320,4 @@ bool UBOOMCharacterMovementComponent::CanMantle()
 
 void UBOOMCharacterMovementComponent::PerformMantle()
 {
-}
-
-void UBOOMCharacterMovementComponent::UpdateCharacterStateAfterMovement(float DeltaSeconds)
-{
-    Super::UpdateCharacterStateAfterMovement(DeltaSeconds);
-
-    //definitely need to account for more factors than just this.
-    if (!HasRootMotionSources() && MOVE_Flying == MovementMode && bIsInMantle)
-    {
-        SetMovementMode(MOVE_Walking);
-    }
 }

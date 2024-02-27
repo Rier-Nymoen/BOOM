@@ -103,6 +103,8 @@ public:
 	void StartFire();
 	UFUNCTION()
 	void StopFire();
+
+	bool bReleasedJumpInput;
 	
 protected:
 	// APawn interface
@@ -121,7 +123,11 @@ protected:
 
 	void EndCrouch(const FInputActionValue& Value);
 
-	virtual void Jump();
+	virtual void Jump() override;
+
+	void CaptureJumpInputRelease();
+
+	virtual void StopJumping() override;
 
 	//void StartFire(const FInputActionValue& Value);
 

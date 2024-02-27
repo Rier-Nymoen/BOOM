@@ -95,6 +95,9 @@ ABOOMCharacter::ABOOMCharacter()
 
 	HealthComponent = CreateDefaultSubobject<UBOOMHealthComponent>("HealthComponent");
 	HealthComponent->InitializeComponentWithOwningActor(AbilitySystemComponent);
+
+	bReleasedJumpInput = true;
+
 }
 
 void ABOOMCharacter::BeginPlay()
@@ -174,8 +177,10 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ABOOMCharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABOOMCharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABOOMCharacter::CaptureJumpInputRelease);
+
 
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ABOOMCharacter::StartCrouch);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ABOOMCharacter::EndCrouch); 
@@ -673,15 +678,36 @@ void ABOOMCharacter::EndCrouch(const FInputActionValue& Value)
 
 void ABOOMCharacter::Jump()
 {
+	//uncrouch code if needed
 
-
-	if (bIsCrouched)
+	if (bReleasedJumpInput)
 	{
-		UnCrouch();
+		Super::Jump();
+		bReleasedJumpInput = false;
 	}
-	Super::Jump();
-	
+	else
+	{
+		Super::StopJumping();
+	}
 
+	if (BOOMCharacterMovementComponent)
+	{
+		BOOMCharacterMovementComponent->bBOOMPressedJump = true;
+	}
+}
+
+void ABOOMCharacter::CaptureJumpInputRelease()
+{
+	bReleasedJumpInput = true;
+}
+
+void ABOOMCharacter::StopJumping()
+{
+	Super::StopJumping();
+	if (BOOMCharacterMovementComponent)
+	{
+		BOOMCharacterMovementComponent->bBOOMPressedJump = false;
+	}
 }
 
 //void ABOOMCharacter::StartFire(const FInputActionValue& Value)
