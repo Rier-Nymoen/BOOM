@@ -13,7 +13,8 @@ UBOOMCharacterMovementComponent::UBOOMCharacterMovementComponent()
     MaxMantleVerticalReach = 225.f;
     DebugTimeToLineUpMantle = 0.2f;
 
-    MaxHorizontalReachDistanceMultiplier = 1.4f;
+    MaxHorizontalReachDistanceMultiplier = 1.4f; //Might want to extend higher depending on how the "line up phase" of animation ends up feeling.
+    MinHorizontalReachDistanceMultiplier = 1.085f;
 
     MinimumMantleSteepnessAngle = 45.f;
     NumSurfaceSideTraceQueries = 10;
@@ -31,6 +32,38 @@ UBOOMCharacterMovementComponent::UBOOMCharacterMovementComponent()
 
     MaxVaultHeightDistanceMultiplier = MinMantleHeightDistanceMultiplier;
     MinVaultHeightDistanceMultiplier = 0.f;
+}
+
+void UBOOMCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+    ////test code
+    //ACharacter* Character = GetCharacterOwner();
+
+    //const float CapsuleHalfHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+    //const float CapsuleHeight = CapsuleHalfHeight * 2;
+    //const float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
+    //const FVector CapsuleBaseLocation = Character->GetActorLocation() + FVector::DownVector * CapsuleHalfHeight;
+
+    ////do I want the trace to start at the outside of the capsule? Will test.
+    //FVector StartTrace = Character->GetActorLocation();
+    ////FVector EndTrace = StartTrace + Character->GetActorForwardVector() * CapsuleRadius * MaxHorizontalReachDistanceMultiplier;
+
+    //FVector VelocityXY = FVector(Velocity.X, Velocity.Y, 0.f);
+
+    ////velocity relative to actor forward vector
+    //float ForwardSpeed = FVector::DotProduct(Velocity, Character->GetActorForwardVector());
+
+    //float MantleReachDistance = FMath::Clamp(ForwardSpeed, CapsuleRadius * MinHorizontalReachDistanceMultiplier, CapsuleRadius * MaxHorizontalReachDistanceMultiplier);
+
+    //FVector EndTrace = StartTrace + Character->GetActorForwardVector() * MantleReachDistance;
+
+    //DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Green, false);
+    //GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.3f , FColor::Green, "ForwardSpeed: " + FString::SanitizeFloat(ForwardSpeed), true);
+    //GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.3f, FColor::Green, "MantleReachDistance: " + FString::SanitizeFloat(MantleReachDistance), true);
+
+
 }
 
 //void UBOOMCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -77,8 +110,6 @@ void UBOOMCharacterMovementComponent::UpdateCharacterStateAfterMovement(float De
    
 }
 
-
-
 bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
 {
     //@TODO: Add some optimization conditions to avoid the constant tracing.
@@ -94,8 +125,21 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
     const float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
     const FVector CapsuleBaseLocation = Character->GetActorLocation() + FVector::DownVector * CapsuleHalfHeight;
 
+    //do I want the trace to start at the outside of the capsule? Will test.
     FVector StartTrace = Character->GetActorLocation() + FVector::UpVector * CapsuleHalfHeight;
-    FVector EndTrace = StartTrace + Character->GetActorForwardVector() * CapsuleRadius * MaxHorizontalReachDistanceMultiplier;
+    //FVector EndTrace = StartTrace + Character->GetActorForwardVector() * CapsuleRadius * MaxHorizontalReachDistanceMultiplier;
+    
+    FVector VelocityXY = FVector(Velocity.X, Velocity.Y, 0.f);
+    
+    //velocity relative to actor forward vector
+    float ForwardSpeed = FVector::DotProduct(Velocity, Character->GetActorForwardVector());
+
+    float MantleReachDistance = FMath::Clamp(ForwardSpeed, CapsuleRadius* MinHorizontalReachDistanceMultiplier, CapsuleRadius * MaxHorizontalReachDistanceMultiplier);
+
+    UE_LOG(LogTemp, Warning, TEXT("Forward Speed: %f"), ForwardSpeed)
+    UE_LOG(LogTemp, Warning, TEXT("MantleReachDistance: %f"), MantleReachDistance)
+
+    FVector EndTrace = StartTrace + Character->GetActorForwardVector() * MantleReachDistance;
 
     //DETECT SIDE SURFACE
     FCollisionQueryParams TraceParams;
@@ -191,6 +235,11 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
 
     float SurfaceHeight = (HitResultTop.Location - CapsuleBaseLocation).Z;
     UE_LOG(LogTemp, Warning, TEXT("Surface Height: %f"), SurfaceHeight)
+
+    if (SurfaceHeight >= CapsuleHeight * MaxMantleHeightDistanceMultiplier || SurfaceHeight <= CapsuleHalfHeight * MinMantleHeightDistanceMultiplier)
+    {
+        return false;
+    }
 
     float TopDotProduct = FMath::Abs(FVector::DotProduct(HitResultTop.Normal, FVector::UpVector));
     float TopSteepnessRadians = FMath::Acos(TopDotProduct);
