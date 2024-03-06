@@ -17,14 +17,6 @@
 Most of this code is experimental and terribly unoptimized.
 */
 
-
-/*
-Optimizations Ideas: 
-
-	- I don't have to recalculate all distances or  arcs in the ArcLists
-
-*/
-
 UBOOMElectricSourceComponent::UBOOMElectricSourceComponent()
 {
 	RecalculateInterval = 0.3F;

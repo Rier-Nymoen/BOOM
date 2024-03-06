@@ -8,6 +8,11 @@
 
 
 
+UBOOMPickUpPrompt::UBOOMPickUpPrompt()
+{
+	SetVisibility(ESlateVisibility::Hidden);
+}
+
 void UBOOMPickUpPrompt::SetPromptText(FName PromptItemName) const
 {
 	PromptText->SetText(FText::FromName(PromptItemName));

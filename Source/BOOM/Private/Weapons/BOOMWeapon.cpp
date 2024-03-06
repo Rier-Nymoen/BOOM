@@ -330,11 +330,11 @@ void ABOOMWeapon::ReloadWeapon()
 		CurrentAmmoReserves -= FMath::Min(BulletDifference, CurrentAmmoReserves);
 
 		check(Character)
-			if (Character->GetPlayerHUD())
-			{
-				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
-				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-			}
+		if (Character->GetPlayerHUD())
+		{
+			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
+			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+		}
 	}
 	GotoState(ActiveState);
 }

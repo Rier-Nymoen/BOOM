@@ -51,7 +51,10 @@ public:
 	UPROPERTY(Category = "Character Movement: Mantle", EditDefaultsOnly)
 	UAnimMontage* MantleMontage1P;
 
-	TSharedPtr<FRootMotionSource_MoveToDynamicForce> MantleRootMotionSource;
+	TSharedPtr<FRootMotionSource_MoveToDynamicForce> MantleLineUp_RootMotionSource;
+	TSharedPtr<FRootMotionSource_MoveToDynamicForce> MantleClimbUp_RootMotionSource;
+	TSharedPtr<FRootMotionSource_MoveToDynamicForce> MantleClimbForward_RootMotionSource;
+
 
 	/*The multiplier for the character capsule radius when determining how far the character can reach.*/
 	UPROPERTY(EditAnywhere)

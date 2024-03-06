@@ -4,6 +4,11 @@
 #include "UI/BOOMWeaponInformation.h"
 #include "Components/TextBlock.h"
 
+UBOOMWeaponInformation::UBOOMWeaponInformation()
+{
+	SetVisibility(ESlateVisibility::Hidden);
+}
+
 void UBOOMWeaponInformation::SetCurrentAmmoText(int Value) const
 {
 	CurrentAmmoText->SetText(FText::AsNumber(Value));

@@ -14,6 +14,7 @@ class BOOM_API UBOOMPickUpPrompt : public UBOOMUserWidget
 {
 	GENERATED_BODY()
 
+	UBOOMPickUpPrompt();
 public:
 	UFUNCTION()
 		void SetPromptText(FName PromptItemName) const;

@@ -14,6 +14,8 @@ class BOOM_API UBOOMWeaponInformation : public UBOOMUserWidget
 {
 	GENERATED_BODY()
 
+	UBOOMWeaponInformation();
+
 public:
 	UFUNCTION()
 		void SetCurrentAmmoText(int Value) const;

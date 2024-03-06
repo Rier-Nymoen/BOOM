@@ -38,39 +38,7 @@ void UBOOMCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick 
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    ////test code
-    //ACharacter* Character = GetCharacterOwner();
-
-    //const float CapsuleHalfHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-    //const float CapsuleHeight = CapsuleHalfHeight * 2;
-    //const float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
-    //const FVector CapsuleBaseLocation = Character->GetActorLocation() + FVector::DownVector * CapsuleHalfHeight;
-
-    ////do I want the trace to start at the outside of the capsule? Will test.
-    //FVector StartTrace = Character->GetActorLocation();
-    ////FVector EndTrace = StartTrace + Character->GetActorForwardVector() * CapsuleRadius * MaxHorizontalReachDistanceMultiplier;
-
-    //FVector VelocityXY = FVector(Velocity.X, Velocity.Y, 0.f);
-
-    ////velocity relative to actor forward vector
-    //float ForwardSpeed = FVector::DotProduct(Velocity, Character->GetActorForwardVector());
-
-    //float MantleReachDistance = FMath::Clamp(ForwardSpeed, CapsuleRadius * MinHorizontalReachDistanceMultiplier, CapsuleRadius * MaxHorizontalReachDistanceMultiplier);
-
-    //FVector EndTrace = StartTrace + Character->GetActorForwardVector() * MantleReachDistance;
-
-    //DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Green, false);
-    //GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.3f , FColor::Green, "ForwardSpeed: " + FString::SanitizeFloat(ForwardSpeed), true);
-    //GEngine->AddOnScreenDebugMessage(INDEX_NONE, 0.3f, FColor::Green, "MantleReachDistance: " + FString::SanitizeFloat(MantleReachDistance), true);
-
-
 }
-
-//void UBOOMCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-//{
-//    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-//
-//}
 
 void UBOOMCharacterMovementComponent::ControlledCharacterMove(const FVector& InputVector, float DeltaSeconds)
 {
@@ -85,7 +53,7 @@ void UBOOMCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float D
         if (CanPerformAlternateJumpMovement())
         {
             bIsInMantle = true;
-            CharacterOwner->StopJumping(); //Change the state to not jumping
+            CharacterOwner->StopJumping();
         }
     }
 
@@ -94,25 +62,20 @@ void UBOOMCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float D
 
 void UBOOMCharacterMovementComponent::UpdateCharacterStateAfterMovement(float DeltaSeconds)
 {
-
-    //definitely need to account for more factors than just this.
-    if (!HasRootMotionSources())
-    {
-        //UE_LOG(LogTemp, Warning, TEXT("doesnt have root motion sources"))
-        bIsInMantle = false;
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Has root motion sources"))
-    }
     Super::UpdateCharacterStateAfterMovement(DeltaSeconds);
 
+    //definitely need to account for more factors than just this.
+    if (bIsInMantle && !HasRootMotionSources())
+    {
+        bIsInMantle = false;
+
+        SetMovementMode(EMovementMode::MOVE_Walking);
+    }
    
 }
 
 bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
 {
-    //@TODO: Add some optimization conditions to avoid the constant tracing.
     if (bIsInMantle)
     {
         return false;
@@ -124,10 +87,6 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
     const float CapsuleHeight = CapsuleHalfHeight * 2;
     const float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
     const FVector CapsuleBaseLocation = Character->GetActorLocation() + FVector::DownVector * CapsuleHalfHeight;
-
-    //do I want the trace to start at the outside of the capsule? Will test.
-    FVector StartTrace = Character->GetActorLocation() + FVector::UpVector * CapsuleHalfHeight;
-    //FVector EndTrace = StartTrace + Character->GetActorForwardVector() * CapsuleRadius * MaxHorizontalReachDistanceMultiplier;
     
     FVector VelocityXY = FVector(Velocity.X, Velocity.Y, 0.f);
     
@@ -138,7 +97,7 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
 
     UE_LOG(LogTemp, Warning, TEXT("Forward Speed: %f"), ForwardSpeed)
     UE_LOG(LogTemp, Warning, TEXT("MantleReachDistance: %f"), MantleReachDistance)
-
+    FVector StartTrace = Character->GetActorLocation() + FVector::UpVector * CapsuleHalfHeight;
     FVector EndTrace = StartTrace + Character->GetActorForwardVector() * MantleReachDistance;
 
     //DETECT SIDE SURFACE
@@ -175,7 +134,7 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
     //UE_LOG(LogTemp, Warning, TEXT("Normal Vector %s."), *HitResultFront.Normal.ToString());
     //UE_LOG(LogTemp, Warning, TEXT("Normal Magnitude %f."), HitResultFront.Normal.Length());
     //UE_LOG(LogTemp, Warning, TEXT("Up Vector Magnitude %f."), FVector::UpVector.Length());
-    UE_LOG(LogTemp, Warning, TEXT("Side Steepness Angle: %f."), FrontSteepnessAngle);
+    //UE_LOG(LogTemp, Warning, TEXT("Side Steepness Angle: %f."), FrontSteepnessAngle);
 
     if ((FMath::Abs(FrontSteepnessAngle)) < MinimumMantleSteepnessAngle) //The side angle might not matter at all.
     {
@@ -183,14 +142,11 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
         return false;
     }
 
-
     /*Projects vector onto plane's normal vector, then uses vector subtraction to find vector on plane.*/
     FVector UpVectorProjectedOntoPlaneResult = FVector::VectorPlaneProject(FVector::UpVector, HitResultFront.Normal);
-    UpVectorProjectedOntoPlaneResult.Normalize(); //Leaving this vector non-normalized at the moment since it works.
+    UpVectorProjectedOntoPlaneResult.Normalize();
    
-    //Trace along slope of the surface hit
-    //@TODO: May need to adjust vector length to account for slopes
-
+    //Take the projected vector and trace along the slope to find edges.
     FVector StartTraceTop = HitResultFront.Location + UpVectorProjectedOntoPlaneResult * CapsuleHeight;
     StartTraceTop += Character->GetActorRotation().Vector() * 2;
     FVector EndTraceTop = HitResultFront.Location;
@@ -201,13 +157,8 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
     bool bHitTop = GetWorld()->LineTraceMultiByProfile(HitResultsTop, StartTraceTop, EndTraceTop, "OverlapAll", TraceParams);
 
     DrawDebugLine(GetWorld(), StartTraceTop, EndTraceTop, FColor::White, true);
-    UE_LOG(LogTemp, Warning, TEXT("Hits from LineTraceMulti: %d"), HitResultsTop.Num())
+    //UE_LOG(LogTemp, Warning, TEXT("Hits from LineTraceMulti: %d"), HitResultsTop.Num())
 
-
-        //if (!bHitTop)
-        //{
-        //    return false;
-        //}
     FHitResult HitResultTop;
     int LowestSurfaceIndex = HitResultsTop.Num() - 1;
     if (HitResultsTop.IsValidIndex(LowestSurfaceIndex))
@@ -217,12 +168,12 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
 
     if (HitResultTop.bStartPenetrating)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Started  Penetrating"))
+        //UE_LOG(LogTemp, Warning, TEXT("Started  Penetrating"))
         return false;
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("Didnt start penetrating"))
+        //UE_LOG(LogTemp, Warning, TEXT("Didnt start penetrating"))
     }
     
        
@@ -234,8 +185,9 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
     //}
 
     float SurfaceHeight = (HitResultTop.Location - CapsuleBaseLocation).Z;
-    UE_LOG(LogTemp, Warning, TEXT("Surface Height: %f"), SurfaceHeight)
-
+    //UE_LOG(LogTemp, Warning, TEXT("Surface Height: %f"), SurfaceHeight)
+    
+    //could not bother tracing below a certain height.
     if (SurfaceHeight >= CapsuleHeight * MaxMantleHeightDistanceMultiplier || SurfaceHeight <= CapsuleHalfHeight * MinMantleHeightDistanceMultiplier)
     {
         return false;
@@ -246,23 +198,22 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
     float TopSteepnessAngle = FMath::RadiansToDegrees(TopSteepnessRadians);
     float TopSinAngle;
 
-    UE_LOG(LogTemp, Warning, TEXT("Top Steepness Angle: %f."), TopSteepnessAngle)
+    //UE_LOG(LogTemp, Warning, TEXT("Top Steepness Angle: %f."), TopSteepnessAngle)
 
     if ((FMath::Abs(TopSteepnessAngle)) > MinimumMantleSteepnessAngle) //The side angle might not matter at all.
     {
         return false;
     }
 
-    if(!TopSteepnessAngle) // we might not have an angle between - careful of float errors
+    if(!TopSteepnessAngle) // we might not have an angle between
     {
         TopSinAngle = 0.f;
     }
     else
     {
         TopSinAngle =  PI - TopDotProduct - PI/2;
-    }
-
-
+    } 
+          
     //
     //FVector VaultOverLocation = HitResultTop.Location + FVector::UpVector * (CapsuleHalfHeight + 1);
 
@@ -291,10 +242,10 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
     //UE_LOG(LogTemp, Warning, TEXT("Sin(TopSinAngle): %f"), TopSinAngle);
     //UE_LOG(LogTemp, Warning, TEXT("Cos(TopSinAngle): %f"), TopSteepnessAngle);
     //UE_LOG(LogTemp, Warning, TEXT("TopNormal %s"), *HitResultTopClosest.Normal.ToString());
-    UE_LOG(LogTemp, Warning, TEXT("ZOffset: %s"), *ZOffset.ToString());
-    UE_LOG(LogTemp, Warning, TEXT("XYOffset: %s"), *XYOffset.ToString());
-
-    //TEST IF PLAYER CAN FIT IN AREA
+    //UE_LOG(LogTemp, Warning, TEXT("ZOffset: %s"), *ZOffset.ToString());
+    //UE_LOG(LogTemp, Warning, TEXT("XYOffset: %s"), *XYOffset.ToString());
+    
+    //Player Capsule Clearance Check - determines if player can fit on the climb target.
     const FCollisionShape CapsuleQueryMantleEnd = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);
     FHitResult HitResultCapsuleQueryMantleEnd;
     bool bHitCapsuleQueryMantleEnd = GetWorld()->SweepSingleByChannel(HitResultCapsuleQueryMantleEnd, CharacterMantleEndLocation, CharacterMantleEndLocation, FQuat::Identity, ECC_Visibility, CapsuleQueryMantleEnd, TraceParams);
@@ -309,7 +260,7 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
         DrawDebugCapsule(GetWorld(), CharacterMantleEndLocation, CapsuleHalfHeight, CapsuleRadius, FQuat(Character->GetActorRotation()), FColor::Cyan, true);
     }
 
-    ////BACK TRACE CHECKS - for determining if we have enough length to mantle onto, vault over.
+    ////Back Trace Check - for determining if we have enough length to mantle onto, vault over.
     //FVector BackTraceReference = HitResultFront.Location - (HitResultFront.Normal * MaxVaultOverDistanceMultiplier * CapsuleRadius);
     //FHitResult HitResultBack;
     //bool bHitBack = GetWorld()->LineTraceSingleByChannel(HitResultBack, BackTraceReference, HitResultFront.Location , ECC_Visibility, TraceParams);
@@ -320,25 +271,34 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
     //    return false;
     //}
 
-    //Mantle code
+    /*Placeholder for animation root motion to be implemented.*/
+    //@TODO: Implement mantling animations with root motion & get rid of magic numbers.
 
-    //SetMovementMode(MOVE_Flying); //@TODO: Thought this would affect gravity.
-    MantleRootMotionSource = MakeShared<FRootMotionSource_MoveToDynamicForce>();
+    MantleLineUp_RootMotionSource = MakeShared<FRootMotionSource_MoveToDynamicForce>();
+    MantleLineUp_RootMotionSource->AccumulateMode = ERootMotionAccumulateMode::Override;
+    MantleLineUp_RootMotionSource->StartLocation = Character->GetActorLocation();
+    MantleLineUp_RootMotionSource->TargetLocation = FVector(HitResultFront.Location.X, HitResultFront.Location.Y, GetActorLocation().Z) + (HitResultFront.Normal * CapsuleRadius );
+    float TargetDistance = FVector::Distance(MantleLineUp_RootMotionSource->StartLocation, MantleLineUp_RootMotionSource->TargetLocation);
+    MantleLineUp_RootMotionSource->Duration = 0.1f;
 
-    MantleRootMotionSource->StartLocation = Character->GetActorLocation();
-    //Line-up if doing root motion animations
-    MantleRootMotionSource->TargetLocation = FVector(HitResultFront.Location.X, HitResultFront.Location.Y,  0) + (HitResultFront.Normal * CapsuleRadius) + FVector::UpVector * GetActorLocation().Z;
-    MantleRootMotionSource->Duration = DebugTimeToLineUpMantle;
-    //testing this out
-   
-    ApplyRootMotionSource(MantleRootMotionSource);
+    ApplyRootMotionSource(MantleLineUp_RootMotionSource);
 
-    if (MantleMontage3P)
-    {
-        //adjust based on movement parameters
-        Character->PlayAnimMontage(MantleMontage3P, DebugTimeToLineUpMantle ); //adjust animation speed based on movement parameters.
-    }
-    
+    MantleClimbUp_RootMotionSource = MakeShared<FRootMotionSource_MoveToDynamicForce>();
+    MantleClimbUp_RootMotionSource->AccumulateMode = ERootMotionAccumulateMode::Override;
+    MantleClimbUp_RootMotionSource->StartLocation = MantleLineUp_RootMotionSource->TargetLocation;
+    MantleClimbUp_RootMotionSource->TargetLocation =  FVector(MantleLineUp_RootMotionSource->TargetLocation.X, MantleLineUp_RootMotionSource->TargetLocation.Y, HitResultTop.Location.Z) + FVector::UpVector * (CapsuleHalfHeight + 1);
+    TargetDistance = FVector::Distance(MantleClimbUp_RootMotionSource->StartLocation, MantleClimbUp_RootMotionSource->TargetLocation);
+    MantleClimbUp_RootMotionSource->Duration = 0.3f;
+
+    ApplyRootMotionSource(MantleClimbUp_RootMotionSource);
+
+    MantleClimbForward_RootMotionSource = MakeShared<FRootMotionSource_MoveToDynamicForce>();
+    MantleClimbForward_RootMotionSource->AccumulateMode = ERootMotionAccumulateMode::Override;
+    MantleClimbForward_RootMotionSource->StartLocation = MantleClimbUp_RootMotionSource->TargetLocation;
+    MantleClimbForward_RootMotionSource->TargetLocation = CharacterMantleEndLocation;
+    MantleClimbForward_RootMotionSource->Duration = 0.6f;
+
+    ApplyRootMotionSource(MantleClimbForward_RootMotionSource);
     return true;
 }
 

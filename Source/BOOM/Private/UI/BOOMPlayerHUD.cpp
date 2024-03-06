@@ -3,6 +3,7 @@
 
 #include "UI/BOOMPlayerHUD.h"
 
+
 UBOOMPickUpPrompt* UBOOMPlayerHUD::GetPickUpPromptElement()
 {
 	return PickUpPrompt;
