@@ -1,5 +1,4 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -19,7 +18,6 @@ enum class EZoom : int8
 {
 	Not_Zoomed,
 	Zoomed,
-
 };
 
 UENUM()
@@ -34,7 +32,7 @@ USTRUCT()
 struct FFireInput
 {
 	GENERATED_BODY()
-		bool bIsPendingFiring;
+	bool bIsPendingFiring;
 	//possibly additional information
 };
 
@@ -161,7 +159,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TSubclassOf<class ABOOMProjectile> Projectile;
-
 	//
 	virtual void GotoState(class UBOOMWeaponState* NewState);
 
@@ -190,7 +187,7 @@ protected:
 	float FireRateSeconds;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		UMaterialInstance* ImpactDecal;
+	UMaterialInstance* ImpactDecal;
 
 public:
 	UFUNCTION()
@@ -220,13 +217,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Overrides)
 	bool bVisualizeHitscanTraces;
 	
-
 	UPROPERTY(BlueprintReadWrite, Category = Weapon)
 
 	//Maps current heat to added heat value for consecutive shots
 	struct FRuntimeFloatCurve HeatIncreaseCurve;
 
-	
 	UPROPERTY(BlueprintReadWrite, Category = Weapon)
 
 	struct FRuntimeFloatCurve HeatCooldownCurve;
@@ -239,9 +234,9 @@ public:
 
 	float Temperature;
 
-	virtual void Heat();
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
 	float CoolingRate;
+
 	float TimeCooling;
 
 	bool bIsOverheated;
@@ -249,14 +244,7 @@ public:
 	virtual void Cooldown();
 	
 	FTimerHandle TimerHandle_WeaponCooldown;
-	/*
-	Move to OverheatComponent
-	*/
-	
-	/*
-	Weapon Zooming
-	
-	*/
+
 
 	virtual void Zoom();
 	
@@ -264,18 +252,6 @@ public:
 
 	virtual void ZoomIn();
 
-	/*
-	Weapon Zooming
-
-	*/
-	// 	
-	// //At max charge, fires immediately, otherwise can be held.
-	// UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
-	// bool bCanHoldCharge;
-	//
-	// UPROPERTY()
-	// float Charge;
-	
 	virtual void OnEquip();
 
 	virtual void OnUnequip();
@@ -288,13 +264,9 @@ public:
 
 	//Maps heat level to bullet spread angle
 
-	/*
-	Will be adaptable to allow the heat level to affect the weapon spread if desired.
-	*/
-
 	float CurrentHeat;
 
-	//type if for defining curves for object in editor
+	//type for defining curves for object in editor
 	UPROPERTY(EditAnywhere, Category = Spread)
 	struct FRuntimeFloatCurve HeatToSpreadCurve;
 
@@ -308,7 +280,6 @@ public:
 	float WeaponCoolingStartSeconds;
 	
 	FVector CalculateBulletSpreadDir(FRotator StartRot);
-
 
 	UPROPERTY(EditAnywhere, Category = Spread)
 	bool bHeatAffectsSpread;
@@ -327,8 +298,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = Spread)
 	float SpreadGroupingExponent;
 
-	//could change to hit effect (could have equipment that doesn't necessarily do damage, but has some other effect).
 	UPROPERTY(EditAnywhere, Category = GameplayEffects)
-	TSubclassOf<class UGameplayEffect> DamageEffect;
-	
+	TSubclassOf<class UGameplayEffect> DamageEffect;	
 };

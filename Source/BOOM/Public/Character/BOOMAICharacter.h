@@ -18,9 +18,9 @@ public:
 
 
 
-	class ABOOMPatrolRoute* GetPatrolRouteComponent() const { return PatrolRouteComponent; }
+	class UBOOMPatrolRouteComponent* GetPatrolRouteComponent() const { return PatrolRouteComponent; }
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-	class ABOOMPatrolRoute* PatrolRouteComponent;
+	class UBOOMPatrolRouteComponent* PatrolRouteComponent;
 };

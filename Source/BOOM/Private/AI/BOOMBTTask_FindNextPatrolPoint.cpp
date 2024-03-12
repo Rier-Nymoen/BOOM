@@ -6,7 +6,7 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Character/BOOMAICharacter.h"
-#include "AI/BOOMPatrolRoute.h"
+#include "AI/BOOMPatrolRouteComponent.h"
 
 UBOOMBTTask_FindNextPatrolPoint::UBOOMBTTask_FindNextPatrolPoint()
 {
@@ -28,8 +28,8 @@ EBTNodeResult::Type UBOOMBTTask_FindNextPatrolPoint::ExecuteTask(UBehaviorTreeCo
 		return EBTNodeResult::Failed;
 
 	}
-	ABOOMPatrolRoute* PatrolRoute = AICharacter->GetPatrolRouteComponent();
-
+	//UBOOMPatrolRouteComponent* PatrolRoute = AICharacter->GetPatrolRouteComponent();
+	UBOOMPatrolRouteComponent* PatrolRoute = nullptr;
 	if (!PatrolRoute)
 	{
 		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "Patrol has failed - PatrolRoute- null");
@@ -40,7 +40,7 @@ EBTNodeResult::Type UBOOMBTTask_FindNextPatrolPoint::ExecuteTask(UBehaviorTreeCo
 
 
 
-	PatrolRoute->FindNextPoint();
+	//PatrolRoute->FindNextPoint();
 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	return EBTNodeResult::Succeeded;
 

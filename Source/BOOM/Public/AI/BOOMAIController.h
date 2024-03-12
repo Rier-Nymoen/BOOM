@@ -37,12 +37,4 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
 	class UAISenseConfig_Sight* AISenseConfig_Sight;
-
-	/*
-	We get the sense, get the blackboard, update the blackboard key
-
-	But where does EQS come into play??
-
-	*/
-
 };

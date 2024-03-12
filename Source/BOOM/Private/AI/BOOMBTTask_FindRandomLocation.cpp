@@ -23,7 +23,7 @@ EBTNodeResult::Type UBOOMBTTask_FindRandomLocation::ExecuteTask(UBehaviorTreeCom
     const FVector Origin = AIPawn->GetActorLocation();
 
     const UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
-    //GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Emerald, "task executed");
+    GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Emerald, "task executed");
     if (IsValid(NavSystem) && NavSystem->GetRandomPointInNavigableRadius(Origin, SearchRadius, Destination))
     {
         AIController->GetBlackboardComponent()->SetValueAsVector(BlackboardKey.SelectedKeyName, Destination.Location);
@@ -34,5 +34,5 @@ EBTNodeResult::Type UBOOMBTTask_FindRandomLocation::ExecuteTask(UBehaviorTreeCom
 
 FString UBOOMBTTask_FindRandomLocation::GetStaticDescription() const
 {
-    return FString::Printf(TEXT("Testing"));
+    return FString::Printf(TEXT("Vector: %s"), *BlackboardKey.SelectedKeyName.ToString());
 }

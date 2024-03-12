@@ -7,6 +7,8 @@
 #include "CollisionShape.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+//@TODO: Setup debug settings for movement
+
 UBOOMCharacterMovementComponent::UBOOMCharacterMovementComponent()
 {
     //Might alter these movement values to be percentages of the capsule half height.
@@ -95,8 +97,8 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
 
     float MantleReachDistance = FMath::Clamp(ForwardSpeed, CapsuleRadius* MinHorizontalReachDistanceMultiplier, CapsuleRadius * MaxHorizontalReachDistanceMultiplier);
 
-    UE_LOG(LogTemp, Warning, TEXT("Forward Speed: %f"), ForwardSpeed)
-    UE_LOG(LogTemp, Warning, TEXT("MantleReachDistance: %f"), MantleReachDistance)
+    //UE_LOG(LogTemp, Warning, TEXT("Forward Speed: %f"), ForwardSpeed)
+    //UE_LOG(LogTemp, Warning, TEXT("MantleReachDistance: %f"), MantleReachDistance)
     FVector StartTrace = Character->GetActorLocation() + FVector::UpVector * CapsuleHalfHeight;
     FVector EndTrace = StartTrace + Character->GetActorForwardVector() * MantleReachDistance;
 

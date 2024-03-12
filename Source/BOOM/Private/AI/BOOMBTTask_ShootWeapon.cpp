@@ -23,9 +23,6 @@ EBTNodeResult::Type UBOOMBTTask_ShootWeapon::ExecuteTask(UBehaviorTreeComponent&
 		if (World)
 		{
 		}
-
-		AICharacter->StartFire();
-		AICharacter->StopFire();
 	}
 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	return EBTNodeResult::Succeeded;
@@ -33,5 +30,5 @@ EBTNodeResult::Type UBOOMBTTask_ShootWeapon::ExecuteTask(UBehaviorTreeComponent&
 
 FString UBOOMBTTask_ShootWeapon::GetStaticDescription() const
 {
-	return FString("Fires weapon lol");
+	return FString("UBOOMBTTask_ShootWeapon()");
 }
