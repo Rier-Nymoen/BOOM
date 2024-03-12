@@ -17,7 +17,7 @@ UBOOMBTTask_Patrol::UBOOMBTTask_Patrol()
 
 EBTNodeResult::Type UBOOMBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-
+	//Move to spline form.
 	AAIController* AIController = OwnerComp.GetAIOwner();
 	const APawn* AIPawn = AIController->GetPawn();
 	

@@ -29,7 +29,6 @@ void UBOOMWeaponStateFiring::EnterState()
 
 	if (Weapon != nullptr && Weapon->IsReadyToFire())
 	{
-			
 			Weapon->Fire();
 			Weapon->GetWorldTimerManager().SetTimer(TimerHandle_RefireTimer, this, &UBOOMWeaponStateFiring::CheckRefireTimer, Weapon->GetFireRateSeconds(), true);
 	}

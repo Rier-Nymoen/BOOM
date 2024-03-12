@@ -25,13 +25,15 @@ public:
 	
 	UBOOMCharacterMovementComponent();
 
-	//virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 
 	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0", ForceUnits = "cm"))
 	float MaxMantleVerticalReach;
 	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0", ForceUnits = "cm"))
 	float MaxMantleHorizontalReach;
+
+
 
 	UPROPERTY(Category = "Character Movement: Mantle", EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", UIMin = "0", ForceUnits = "degrees"))
 	float MinimumMantleSteepnessAngle;
@@ -49,11 +51,17 @@ public:
 	UPROPERTY(Category = "Character Movement: Mantle", EditDefaultsOnly)
 	UAnimMontage* MantleMontage1P;
 
-	TSharedPtr<FRootMotionSource_MoveToDynamicForce> MantleRootMotionSource;
+	TSharedPtr<FRootMotionSource_MoveToDynamicForce> MantleLineUp_RootMotionSource;
+	TSharedPtr<FRootMotionSource_MoveToDynamicForce> MantleClimbUp_RootMotionSource;
+	TSharedPtr<FRootMotionSource_MoveToDynamicForce> MantleClimbForward_RootMotionSource;
+
 
 	/*The multiplier for the character capsule radius when determining how far the character can reach.*/
 	UPROPERTY(EditAnywhere)
 	float MaxHorizontalReachDistanceMultiplier;
+
+	UPROPERTY(EditAnywhere)
+	float MinHorizontalReachDistanceMultiplier;
 
 	/*The multiplier for the character capsule radius when determining how far the character can vault over obstacles.*/
 	UPROPERTY(EditAnywhere)

@@ -21,7 +21,6 @@ class UAnimMontage;
 class USoundBase;
 class UAbilitySystemComponent;
 
-//want to use Data table since its stored on disk. 
 USTRUCT(BlueprintType)
 struct FItemInformation : public FTableRowBase
 {
@@ -51,6 +50,7 @@ class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* CameraComponent;
+
 
 public:
 	ABOOMCharacter();

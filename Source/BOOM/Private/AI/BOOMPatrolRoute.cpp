@@ -18,14 +18,14 @@ void ABOOMPatrolRoute::BeginPlay()
 	//FTimerHandle PointHandle;
 	//GetWorldTimerManager().SetTimer(PointHandle, this, &ABOOMPatrolRoute::FindNextPoint, 2.0F, true);
 	//problem because wont count til after instances created. Cannot run in constructor.
-	if (Direction == EDirection::Ascending)
-	{
-		CurrentPoint = 0;
-	}
-	else
-	{
-		CurrentPoint = PatrolPoints.Num() - 1;
-	}
+	//if (Direction == EDirection::Ascending)
+	//{
+	//	CurrentPoint = 0;
+	//}
+	//else
+	//{
+	//	CurrentPoint = PatrolPoints.Num() - 1;
+	//}
 }
 
 // Called every frame
@@ -38,22 +38,22 @@ void ABOOMPatrolRoute::Tick(float DeltaTime)
 void ABOOMPatrolRoute::FindNextPoint()
 {
 
-	if (Direction == EDirection::Ascending)
-	{
-		CurrentPoint++;
-		if (CurrentPoint == PatrolPoints.Num() -1 )
-		{
-			Direction = EDirection::Descending;
-		}
-	}
-	else
-	{
-		CurrentPoint--;
-		if (CurrentPoint == 0)
-		{
-			Direction = EDirection::Ascending;
-		}
-	}
+	//if (Direction == EDirection::Ascending)
+	//{
+	//	CurrentPoint++;
+	//	if (CurrentPoint == PatrolPoints.Num() -1 )
+	//	{
+	//		Direction = EDirection::Descending;
+	//	}
+	//}
+	//else
+	//{
+	//	CurrentPoint--;
+	//	if (CurrentPoint == 0)
+	//	{
+	//		Direction = EDirection::Ascending;
+	//	}
+	//}
 
 	
 }

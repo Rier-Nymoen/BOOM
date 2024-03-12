@@ -22,8 +22,10 @@
 #include "BOOMGameplayAbility.h"
 #include "GameplayEffect.h"
 #include "GameplayEffectTypes.h"
+#include "BOOMPlayerController.h"
 //////////////////////////////////////////////////////////////////////////
 // ABOOMCharacter
+
 
 ABOOMCharacter::ABOOMCharacter()
 {	
@@ -49,12 +51,6 @@ ABOOMCharacter::ABOOMCharacter()
 	GetMesh()->bCastDynamicShadow = true;
 
 	GetMesh()->SetOnlyOwnerSee(true);
-	//Debating on own 3P mesh, or just using the mesh class as the 3p mesh.
-	//Mesh3P = CreateDefaultSubobject<USkeletalMeshComponent>("CharacterMesh3P");
-	//Mesh3P->SetOnlyOwnerSee(false);
-	//Mesh3P->SetupAttachment(FirstPersonCameraComponent);
-	//Mesh3P->bCastDynamicShadow = true;
-	//Mesh3P->CastShadow = true;
 
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
@@ -69,11 +65,8 @@ ABOOMCharacter::ABOOMCharacter()
 	MaxWeaponsEquipped = 2;
 	bIsPendingFiring = false;
 
-	PlayerHUD = nullptr;
-
 	bIsFocalLengthScalingEnabled = false;
 
-	////may have to use FObjectInitializer, will see.
 	BOOMCharacterMovementComponent = Cast<UBOOMCharacterMovementComponent>(GetCharacterMovement());
 
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
@@ -116,7 +109,7 @@ void ABOOMCharacter::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is not set"))
 	}
-	//}
+	
 
 	HealthComponent->OnHealthChanged.AddDynamic(this, &ABOOMCharacter::HandleHealthChanged);
 	/*
@@ -131,15 +124,6 @@ void ABOOMCharacter::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-		if (PlayerHUDClass)
-		{
-			PlayerHUD = CreateWidget<UBOOMPlayerHUD>(PlayerController, PlayerHUDClass);
-
-			if (PlayerHUD)
-			{
-				PlayerHUD->AddToPlayerScreen();
-			}
 		}
 
 		FTimerHandle InteractionHandle;
@@ -158,16 +142,12 @@ void ABOOMCharacter::Tick(float DeltaSeconds)
 void ABOOMCharacter::OnCharacterBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Overlaps++;
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Red, FString::FromInt(Overlaps));
-
 }	
 
 
 void ABOOMCharacter::OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	Overlaps--;
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Blue, FString::FromInt(Overlaps));
-
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -258,7 +238,9 @@ void ABOOMCharacter::DropCurrentWeapon()
 
 UBOOMPlayerHUD* ABOOMCharacter::GetPlayerHUD()
 {
-	return PlayerHUD;
+	ABOOMPlayerController* BOOMPlayerController = Cast<ABOOMPlayerController>(GetController());
+
+	return BOOMPlayerController ? BOOMPlayerController->GetPlayerHUD() : nullptr ;
 }
 
 
@@ -371,11 +353,6 @@ void ABOOMCharacter::SpawnWeapons()
 
 void ABOOMCharacter::ThrowGrenade()
 {
-	if (BOOMCharacterMovementComponent)
-	{
-		BOOMCharacterMovementComponent->StartMantle();
-	}
-
 }
 
 void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
@@ -386,6 +363,11 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 	TargetWeapon->SetOwner(this);
 
 	TargetWeapon->DisableCollision();
+	if (GetPlayerHUD())
+	{
+		GetPlayerHUD()->GetWeaponInformationElement()->SetVisibility(ESlateVisibility::Visible);
+	}
+
 	if (HasNoWeapons())
 	{
 		Weapons.Add(TargetWeapon);
@@ -393,7 +375,6 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 
 		TargetWeapon->GotoStateEquipping();
 
-		//jank placeholder
 		if (GetMesh1P())
 		{
 			TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
@@ -404,7 +385,7 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 		}
 
 		
-		if (PlayerHUD)
+		if (GetPlayerHUD())
 		{
 			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
 			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
@@ -435,7 +416,7 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 			TargetWeapon->GetMeshWeapon3P()->AttachToComponent(GetMesh(), AttachmentRules, SocketNameGripPoint3P);
 		}
 
-		if (PlayerHUD)
+		if (GetPlayerHUD())
 		{
 			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
 			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
@@ -461,20 +442,17 @@ void ABOOMCharacter::HandleDeath()
 	{
 		Controller->UnPossess();
 	}
-	//todo - specify function
-	//otherwise could cause bug hard to find
 
 	ThrowInventory();
 
 	GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRechargeDelay);
 
-	if (PlayerHUD)
+	if (GetPlayerHUD())
 	{
-		PlayerHUD->RemoveFromParent();
+		GetPlayerHUD()->RemoveFromParent();
 	}
 	if (DeathMontage)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Montage Executed"))
 		PlayAnimMontage(DeathMontage);
 	}
 }
@@ -484,7 +462,6 @@ void ABOOMCharacter::ThrowInventory()
 	for (ABOOMWeapon* TWeapon : Weapons) //jank code 
 	{
 		TWeapon->HandleBeingDropped();
-		//Can isolate death physics behaviors or have dropping behavior that is shared on death.
 	}
 	Weapons.Empty();
 }
@@ -510,7 +487,6 @@ void ABOOMCharacter::InterpShieldRegen()
 
 void ABOOMCharacter::RegenerateShields()
 {
-	//local for testing
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRecharge, this, &ABOOMCharacter::InterpShieldRegen, ShieldRechargeInterpSeconds, true);
 }
 
@@ -529,11 +505,11 @@ void ABOOMCharacter::HandleShieldStrengthChanged(const FOnAttributeChangeData& D
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
 	}
 	
-	if (PlayerHUD)
+	if (GetPlayerHUD())
 	{
 		if (AttributeSetBase)
 		{
-			PlayerHUD->GetHealthInformationElement()->SetShieldBar(Data.NewValue / AttributeSetBase->GetMaxShieldStrength());
+			GetPlayerHUD()->GetHealthInformationElement()->SetShieldBar(Data.NewValue / AttributeSetBase->GetMaxShieldStrength());
 		}
 
 		//move to shield component
@@ -564,12 +540,12 @@ void ABOOMCharacter::HandleHealthChanged(float OldValue, float NewValue)
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
 	}
 
-	if (PlayerHUD)
+	if (GetPlayerHUD())
 	{
 
 		if (AttributeSetBase)
 		{
-			PlayerHUD->GetHealthInformationElement()->SetHealthBar(NewValue / AttributeSetBase->GetMaxHealth());
+			GetPlayerHUD()->GetHealthInformationElement()->SetHealthBar(NewValue / AttributeSetBase->GetMaxHealth());
 		}
 
 	}
@@ -635,28 +611,27 @@ void ABOOMCharacter::Look(const FInputActionValue& Value)
 
 void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 {
-	if (Weapons.Num() <= 1)
+	if (!(Weapons.Num() >= 2))
 	{
 		return;
 	}
+
 	if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
 	{
-
 		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
 		
 		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameHolsterPoint);
 		
 		Weapons[CurrentWeaponSlot]->HandleUnequipping();
 
-		//
 		CurrentWeaponSlot++;
 		CurrentWeaponSlot = (CurrentWeaponSlot % MaxWeaponsEquipped);
 
-		if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr) //maybe use isValidIndex instead
+		if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
 		{
 			Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameGripPoint);
 			Weapons[CurrentWeaponSlot]->HandleEquipping();
-			if (PlayerHUD)
+			if (GetPlayerHUD())
 			{
 				GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
 				GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);

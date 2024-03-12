@@ -141,8 +141,6 @@ void ABOOMWeapon::Fire()
 		CurrentSpreadAngle = FMath::Clamp(CurrentSpreadAngle, MinSpreadAngle, MaxSpreadAngle);
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_WeaponCooldown, this, &ABOOMWeapon::Cooldown, WeaponCoolingStartSeconds, true);
 	}
-
-
 }
 
 bool ABOOMWeapon::IsIntendingToRefire()
@@ -181,7 +179,6 @@ void ABOOMWeapon::FireHitscan()
 	FVector EndTrace;						//should be same as boverridingcamerafiring
 	if (PlayerController && FiringSource == EFiringSource::Camera)//change back to player controller
 	{
-		//Eventually must change these to adjust for aim based on weapon spread. 
 		FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 		FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
 
@@ -193,7 +190,6 @@ void ABOOMWeapon::FireHitscan()
 	}
 	else if(GetOwner() && FiringSource == EFiringSource::OwnerCenter) 
 	{
-		//jank
 		StartTrace = GetOwner()->GetActorLocation();
 		FRotator StartRotation = GetOwner()->GetActorRotation();
 		FVector ShotDirection = CalculateBulletSpreadDir(StartRotation);
@@ -256,12 +252,11 @@ void ABOOMWeapon::FireHitscan()
 				const FGameplayEffectSpecHandle DamageEffectSpec = TargetAbilitySystemComponent->MakeOutgoingSpec(DamageEffect, 0.F, EffectContext);
 				
 				TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*DamageEffectSpec.Data, PredictionKey);
-				UE_LOG(LogTemp, Warning, TEXT("DamageEffect Applied to HitObject"))
 			}
 		}
 	}
 }
-/*@TODO: Make function to reuse firing source logic from FireHitscan in FireProjectile() at a later point*/
+
 void ABOOMWeapon::FireProjectile()
 {
 	UWorld* const World = GetWorld();
@@ -320,21 +315,19 @@ void ABOOMWeapon::HandleReloadInput()
 
 void ABOOMWeapon::ReloadWeapon()
 {
-	//if we have Reserve Ammo to reload the weapon, then we can do this
-	if (CanReload()) //May be unnecessary but keeping here for now in case of unexpected issues.
+	if (CanReload())
 	{
-		//How much ammo is missing from the mags ammo capacity
 		int BulletDifference = (MagazineSize - CurrentAmmo);
 
 		CurrentAmmo += FMath::Min(BulletDifference, CurrentAmmoReserves);
 		CurrentAmmoReserves -= FMath::Min(BulletDifference, CurrentAmmoReserves);
 
 		check(Character)
-			if (Character->GetPlayerHUD())
-			{
-				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
-				Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-			}
+		if (Character->GetPlayerHUD())
+		{
+			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
+			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+		}
 	}
 	GotoState(ActiveState);
 }
@@ -365,9 +358,7 @@ void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 void ABOOMWeapon::OnInteractionRangeEntered(ABOOMCharacter* TargetCharacter)
 {
 	const  FString cont(TEXT("cont"));
-
 	check(TargetCharacter)
-
 
 	if(TargetCharacter->GetPlayerHUD())
 	{
@@ -455,7 +446,6 @@ void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 	{
 		PreviousState->ExitState();
 	}
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.F, FColor(255, 82, 255), "Start of ID: "+ GetName() + "Model Name:" + Name.ToString());
 
 	CurrentState = NewState;
 
@@ -467,9 +457,7 @@ void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 		}
 	}
 	
-	CurrentState->EnterState();
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.F, FColor(255, 82, 255), "End of ID: " + GetName() + "Model Name:" + Name.ToString());
-	
+	CurrentState->EnterState();	
 }
 
 void ABOOMWeapon::GotoStateEquipping()
@@ -492,7 +480,6 @@ float ABOOMWeapon::GetFireRateSeconds()
 	return FireRateSeconds;
 }
 
-//move functionality
 float ABOOMWeapon::GetLastTimeFiredSeconds()
 {
 	return LastTimeFiredSeconds;
@@ -522,10 +509,6 @@ void ABOOMWeapon::HandleBeingDropped()
 	if (Character)
 	{
 		Weapon1P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		/*
-		On character death, velocity will be 0, need to have character have velocity on death.
-		or may need Velocity and forward vector recorded before death when dying -- Solved by physics on death
-		*/
 
 		//@TODO: Need to have this affected by directional movement and rotation, for now this is okay.
 		Weapon1P->SetPhysicsLinearVelocity(Character->GetActorForwardVector() * Character->GetVelocity().Size(), true);
@@ -550,11 +533,6 @@ bool ABOOMWeapon::CanReload()
 	return CurrentAmmoReserves > 0 && CurrentAmmo < MagazineSize;
 }
 
-void ABOOMWeapon::Heat()
-{
-
-}
-
 void ABOOMWeapon::Zoom()
 {
 	if (ZoomMode == EZoom::Zoomed)
@@ -564,7 +542,6 @@ void ABOOMWeapon::Zoom()
 	}
 	if(CurrentState != ReloadingState && CurrentState != EquippingState && CurrentState != UnequippingState)
 	{
-
 		ZoomIn();
 	}
 }
@@ -591,8 +568,6 @@ void ABOOMWeapon::ZoomIn()
 
 void ABOOMWeapon::Cooldown()
 {
-	
-	
 	float CooldownRate = HeatToCooldownCurve.GetRichCurve()->Eval(CurrentHeat);
 	CurrentHeat = FMath::Clamp(CurrentHeat - CooldownRate, 0.F , 100.F);
 
@@ -603,6 +578,7 @@ void ABOOMWeapon::Cooldown()
 	
 }
 
+//This is technically "wielding" the weapon.
 void ABOOMWeapon::OnEquip()
 {
 	/*
@@ -618,7 +594,6 @@ void ABOOMWeapon::OnEquip()
 		EnableInput(PlayerController);
 		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 		{
-			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Blue, "OnEquip");
 			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMWeapon::HandleFireInput);
 			EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMWeapon::HandleStopFireInput);
 		}
@@ -626,10 +601,9 @@ void ABOOMWeapon::OnEquip()
 	}
 }
 
-
+//This is technically "unwielding" the weapon.
 void ABOOMWeapon::OnUnequip()
 {
-
 	if (Character == nullptr)
 	{
 		return;
@@ -641,7 +615,6 @@ void ABOOMWeapon::OnUnequip()
 		{
 
 			EnhancedInputComponent->ClearActionBindings();
-			//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Orange, "OnUnequip");
 			DisableInput(Cast<APlayerController>(PlayerController));
 		}
 	}
