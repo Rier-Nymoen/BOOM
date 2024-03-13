@@ -29,22 +29,8 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
-	//	EDirection Direction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI, meta = (MakeEditWidget = true))
 		TArray<FVector> PatrolPoints;
-
-	UFUNCTION()
-	virtual void FindNextPoint();
-
-	UFUNCTION()
-	const FVector GetCurrentPoint();
-
-	UPROPERTY(EditAnywhere)
-	int test;
-
-
-	int CurrentPoint;
 
 };

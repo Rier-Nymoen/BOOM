@@ -17,22 +17,18 @@ EBTNodeResult::Type UBOOMBTTask_FindNextPatrolPoint::ExecuteTask(UBehaviorTreeCo
 {
 
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	const ABOOMAICharacter* AICharacter = Cast<ABOOMAICharacter>(AIController->GetCharacter());
+	const ABOOMCharacter* AICharacter = Cast<ABOOMCharacter>(AIController->GetCharacter());
 
 	if (!AICharacter)
 	{
-		//return fail
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "Patrol has failed - AICharacter null");
-
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return EBTNodeResult::Failed;
-
 	}
 	//UBOOMPatrolRouteComponent* PatrolRoute = AICharacter->GetPatrolRouteComponent();
-	UBOOMPatrolRouteComponent* PatrolRoute = nullptr;
+	UBOOMPatrolRouteComponent* PatrolRoute = AIController->GetCharacter()->FindComponentByClass<UBOOMPatrolRouteComponent>();
 	if (!PatrolRoute)
 	{
-		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.0F, FColor::Cyan, "Patrol has failed - PatrolRoute- null");
+		UE_LOG(LogTemp, Warning, TEXT("Patrol not assigned for: %s"), *GetNameSafe(AICharacter)) //getactor getnamesafe
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return EBTNodeResult::Failed;
@@ -40,7 +36,7 @@ EBTNodeResult::Type UBOOMBTTask_FindNextPatrolPoint::ExecuteTask(UBehaviorTreeCo
 
 
 
-	//PatrolRoute->FindNextPoint();
+	PatrolRoute->FindNextPoint();
 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	return EBTNodeResult::Succeeded;
 
