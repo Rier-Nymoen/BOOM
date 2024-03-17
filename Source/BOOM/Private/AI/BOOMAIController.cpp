@@ -6,13 +6,16 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Perception/AIPerceptionComponent.h"
 
 
 ABOOMAIController::ABOOMAIController()
 {
 	BehaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>("BehaviorTreeComponent");
 	BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>("BlackboardComponent");
+	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>("AIPerceptionComponent");
 }
+
 
 void ABOOMAIController::BeginPlay()
 {
@@ -23,6 +26,7 @@ void ABOOMAIController::BeginPlay()
 		RunBehaviorTree(BehaviorTree.Get());
 		BehaviorTreeComponent->StartTree(*BehaviorTree.Get());
 	}
+	
 }
 
 void ABOOMAIController::OnPossess(APawn* InPawn)
@@ -33,4 +37,9 @@ void ABOOMAIController::OnPossess(APawn* InPawn)
 	{
 		Blackboard->InitializeBlackboard(*BehaviorTree.Get()->BlackboardAsset.Get());
 	}
+}
+
+void ABOOMAIController::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	Super::SetGenericTeamId(NewTeamID);
 }

@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "Engine/DataTable.h"
 #include "GameplayEffectTypes.h"
+#include "GenericTeamAgentInterface.h"
 
 //
 #include "AbilitySystemInterface.h"
@@ -35,7 +36,7 @@ public:
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
 UCLASS(config = Game)
-class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface
+class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -82,6 +83,15 @@ private:
 	UPROPERTY()
 	int Overlaps;
 public:
+
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void UnPossessed() override;
+
+	//Team Interface
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	//End Team Interface
+
 	/** Bool for AnimBP to switch to another animation set */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
 	bool bHasRifle;

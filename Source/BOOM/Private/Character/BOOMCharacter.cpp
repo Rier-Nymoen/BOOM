@@ -717,6 +717,40 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 	}
 }
 
+void ABOOMCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+
+}
+
+void ABOOMCharacter::UnPossessed()
+{
+	Super::UnPossessed();
+}
+
+void ABOOMCharacter::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+}
+
+FGenericTeamId ABOOMCharacter::GetGenericTeamId() const
+{
+	//temp code testing - probably store id on character
+	IGenericTeamAgentInterface* TeamInterface = Cast<IGenericTeamAgentInterface>(GetController());
+	if (TeamInterface)
+	{
+		TeamInterface->GetGenericTeamId();
+		UE_LOG(LogTemp, Warning, TEXT("Team ID got successfully: %s"), *GetNameSafe(this));
+		return 	TeamInterface->GetGenericTeamId();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Team id failed in: %s"), *GetNameSafe(this));
+
+	}
+	return FGenericTeamId::NoTeam;
+}
+
 void ABOOMCharacter::SetHasRifle(bool bNewHasRifle)
 {
 	bHasRifle = bNewHasRifle;
