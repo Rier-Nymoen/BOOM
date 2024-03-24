@@ -21,7 +21,7 @@ public:
 	virtual void BeginPlay() override;
 
 	/** Sphere collision component */
-	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Projectile)
 	USphereComponent* CollisionComp;
 
 	
@@ -35,7 +35,7 @@ public:
 
 	/** called when projectile hits something */
 	UFUNCTION()
-	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	/** Returns CollisionComp subobject **/
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }

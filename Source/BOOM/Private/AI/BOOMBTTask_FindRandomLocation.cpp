@@ -10,8 +10,7 @@
 UBOOMBTTask_FindRandomLocation::UBOOMBTTask_FindRandomLocation()
 {
     NodeName = "FindRandomLocation";
-    BlackboardKey.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UBOOMBTTask_FindRandomLocation, BlackboardKey));
-}
+    BlackboardKey.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UBOOMBTTask_FindRandomLocation, BlackboardKey));}
 
 EBTNodeResult::Type UBOOMBTTask_FindRandomLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {

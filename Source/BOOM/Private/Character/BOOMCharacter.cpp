@@ -743,11 +743,7 @@ FGenericTeamId ABOOMCharacter::GetGenericTeamId() const
 		UE_LOG(LogTemp, Warning, TEXT("Team ID got successfully: %s"), *GetNameSafe(this));
 		return 	TeamInterface->GetGenericTeamId();
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Team id failed in: %s"), *GetNameSafe(this));
-
-	}
+	UE_LOG(LogTemp, Warning, TEXT("Team id failed in: %s"), *GetNameSafe(this));
 	return FGenericTeamId::NoTeam;
 }
 

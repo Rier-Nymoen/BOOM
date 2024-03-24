@@ -37,7 +37,6 @@ void UBOOMElectricSourceComponent::BeginPlay()
 	GetOverlappingComponents(OverlappedComponents);
 	OnComponentBeginOverlap.AddDynamic(this, &UBOOMElectricSourceComponent::OnSphereBeginOverlap);
 
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Cyan, FString::FromInt(OverlappedComponents.Num()));
 	//UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
 	//ObjectPoolingSubsystem->InitializeActorPool(ABOOMElectricArc::StaticClass(), 100);
 
@@ -45,7 +44,7 @@ void UBOOMElectricSourceComponent::BeginPlay()
 	{
 		GetOwner()->GetWorldTimerManager().SetTimer(TimerHandle_MST, this, &UBOOMElectricSourceComponent::CheckForUpdates, RecalculateInterval, true);
 	}
-		 MST();
+	MST();
 	
 }
 
@@ -65,22 +64,6 @@ void UBOOMElectricSourceComponent::MST()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE("MST")
 	GraphNodes.Empty(GraphNodes.Num());
-
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Orange, "MST Recalculated");
-
-	UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
-
-	//for (int i = 0; i < ArcList.Num(); i++)
-	//{
-
-	//	TRACE_CPUPROFILER_EVENT_SCOPE("Restoring back to pool")
-	//	ArcList[i]->GetBoxComponent()->SetHiddenInGame(true);
-	//	ArcList[i]->GetBoxComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	//	TWeakObjectPtr<AActor> ToActor = Cast<AActor>(ArcList[i]);
-	//	/*@TODO: properly defined interface and options for sending to pool.*/
-	//	ObjectPoolingSubsystem->GetActorPool(ABOOMElectricArc::StaticClass())->Add(ToActor);
-	//	ArcList.RemoveAtSwap(i, 1, false);
-	//}
 
 	GetOverlappingComponents(OverlappedComponents);
 	TSet<UPrimitiveComponent*> Visited;
@@ -198,8 +181,14 @@ void UBOOMElectricSourceComponent::MST()
 void UBOOMElectricSourceComponent::CheckForUpdates()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE("CheckForUpdates")
+	UE_LOG(LogTemp,Warning, TEXT("GRAPHNODES.NUM() % d"), GraphNodes.Num())
+	if (GraphNodes.Num() == 1)
+	{
+		
+		MST();
+		return;
+	}
 
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, RecalculateInterval, FColor::Cyan, "GraphNodes.Num = " + FString::FromInt(GraphNodes.Num()));
 	for (TPair<UPrimitiveComponent*, FVector> Component : GraphNodes)
 	{
 		if (IsValid(Component.Key) && Component.Key->GetComponentLocation() == Component.Value)
@@ -229,33 +218,6 @@ void UBOOMElectricSourceComponent::ConnectMST(TArray<FPriorityQueueNode> Minimum
 		if (CurrentNode.ParentComponent != nullptr)
 		{
 
-			//Spawns a box collision in between two points
-			FVector Midpoint = (CurrentNode.ParentComponent->GetComponentLocation() + CurrentNode.Component->GetComponentLocation() ) /2;
-			FVector Direction = CurrentNode.ParentComponent->GetComponentLocation() - CurrentNode.Component->GetComponentLocation();
-
-			float Distance = FMath::Sqrt(CurrentNode.Cost);
-
-			//UBOOMObjectPoolingSubsystem* ObjectPoolingSubsystem = GetWorld()->GetSubsystem<UBOOMObjectPoolingSubsystem>();
-
-
-			//ABOOMElectricArc* ElectricArc = GetWorld()->SpawnActor<ABOOMElectricArc>(Arc, Midpoint, Direction.Rotation(), ActorSpawnParams);
-			
-			//if (ABOOMElectricArc* ElectricArc = Cast<ABOOMElectricArc>(ObjectPoolingSubsystem->GetActor(ABOOMElectricArc::StaticClass())))
-			//{
-			//	TRACE_CPUPROFILER_EVENT_SCOPE("SquareRootOperation")
-
-			//	ElectricArc->SetActorLocation(Midpoint);
-			//	ElectricArc->SetActorRotation(Direction.Rotation());
-			//	UBoxComponent* ArcBoxVolume = ElectricArc->GetBoxComponent();
-
-			//	float Distance = FMath::Sqrt(CurrentNode.Cost);
-
-
-			//	//Change magic numbers to electric arc thickness or something.
-			//	ArcBoxVolume->SetBoxExtent(FVector(Distance / 2, 5, 5), false);
-
-			//	ArcList.Add(ElectricArc);
-			//}			
 			DrawDebugLine(GetWorld(), CurrentNode.Component->GetComponentLocation(), CurrentNode.ParentComponent->GetComponentLocation(), FColor::Blue, false, RecalculateInterval, 1, 3.F);
 			if (!PoweredNodes.Find(CurrentNode.Component))
 			{

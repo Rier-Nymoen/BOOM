@@ -2,6 +2,7 @@
 
 
 #include "AI/BOOMBTTask_CombatSearch.h"
+#include "Character/BOOMCharacter.h"
 #include "AI/BOOMAIController.h"
 UBOOMBTTask_CombatSearch::UBOOMBTTask_CombatSearch()
 {
@@ -12,16 +13,13 @@ EBTNodeResult::Type UBOOMBTTask_CombatSearch::ExecuteTask(UBehaviorTreeComponent
 {
 	ABOOMAIController* BOOMAIController = Cast<ABOOMAIController>(OwnerComp.GetAIOwner());
 
+	ABOOMCharacter* BOOMCharacter = Cast<ABOOMCharacter>(BOOMAIController->GetPawn());
+	
+	if (BOOMCharacter)
+	{
 
+	}
 
-	/*
-	Owner must have perceived something and should focus on what it heard.
-
-	So now we need to search and if we get a certain observation like sight on an enemy fire an event to do combat tactics
-
-
-
-	*/
 
 	return EBTNodeResult::Type();
 }

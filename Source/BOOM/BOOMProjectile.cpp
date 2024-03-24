@@ -52,7 +52,7 @@ void ABOOMProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 	//}
 	
 
-	Destroy();
+	//Destroy();
 }
 
 void ABOOMProjectile::PostInitializeComponents()
