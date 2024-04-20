@@ -110,8 +110,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = DataTable)
 	class UDataTable* WeaponTable;
 
+	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void StartFire();
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void StopFire();
 
 	bool bReleasedJumpInput;

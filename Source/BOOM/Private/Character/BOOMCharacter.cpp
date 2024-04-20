@@ -388,8 +388,8 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 		if (GetPlayerHUD())
 		{
 			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmo());
+			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmoReserves());
 		}
 
 	}
@@ -419,8 +419,8 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 		if (GetPlayerHUD())
 		{
 			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmo());
+			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmoReserves());
 		}
 	}
 	SetHasRifle(true);
@@ -552,6 +552,7 @@ void ABOOMCharacter::HandleHealthChanged(float OldValue, float NewValue)
 
 	if (!IsAlive())
 	{
+		
 		OnDeath.Broadcast();
 		return;
 	}
@@ -634,8 +635,8 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 			if (GetPlayerHUD())
 			{
 				GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
-				GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
-				GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+				GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmo());
+				GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmoReserves());
 			}
 		}
 	}

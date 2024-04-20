@@ -9,7 +9,6 @@
 void UBOOMWeaponStateActive::EnterState()
 {
 
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Emerald, "Active::EnterState");
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{

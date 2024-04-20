@@ -15,8 +15,8 @@ void UBOOMWeaponStateFeedReloading::EnterState()
 			Weapon->GotoStateActive();
 			return;	
 		}
-
-		Weapon->GetWorldTimerManager().SetTimer(TimerHandle_FeedReload, this, &UBOOMWeaponStateFeedReloading::CheckReloadTimer, 0.7F, true);
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, Weapon->ReloadDurationSeconds, FColor::Cyan, "Feed Load");
+		Weapon->GetWorldTimerManager().SetTimer(TimerHandle_FeedReload, this, &UBOOMWeaponStateFeedReloading::CheckReloadTimer, Weapon->ReloadDurationSeconds, true);
 		
 	}
 	

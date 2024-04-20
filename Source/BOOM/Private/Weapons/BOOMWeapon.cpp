@@ -16,7 +16,7 @@
 #include "Weapons/BOOMWeaponStateReloading.h"
 #include "Weapons/BOOMWeaponStateUnequipping.h"
 #include "Math/UnrealMathUtility.h"
-#include "AI/BOOMAIController.h"
+//#include "AI/BOOMAIController.h"
 #include "Camera/CameraComponent.h"
 #include "BOOM/BOOMProjectile.h"
 #include "Curves/CurveFloat.h"
@@ -31,7 +31,7 @@
 ABOOMWeapon::ABOOMWeapon()
 {
 	//dont forget to turn off
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	Weapon1P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh1P");
 	Weapon1P->bOnlyOwnerSee = true;
@@ -66,14 +66,16 @@ ABOOMWeapon::ABOOMWeapon()
 
 	CurrentState = InactiveState;
 	bVisualizeHitscanTraces = true;
+	bUseHeatBasedSpreadRecoil = false;
 
-	TimeCooling = 0;
-	bIsOverheated = false;
 	BulletsPerShot = 1;
 
-	bHeatAffectsSpread = false;
-	CurrentHeat = 0;
+	CurrentHeat = 0.f;
+	MinSpreadAngle = 0.0f;
+	MaxSpreadAngle = 5.f;
 
+	CurrentRotation = FRotator::ZeroRotator;
+	
 	SpreadGroupingExponent = 1;
 
 	WeaponCoolingStartSeconds = 2.F;
@@ -81,66 +83,115 @@ ABOOMWeapon::ABOOMWeapon()
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
 
 	FiringSource = EFiringSource::Camera;
+
 }
 
 // Called when the game starts or when spawned
 void ABOOMWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-
 	if (Character == nullptr)
 	{
 		CurrentState = InactiveState;
 	}
-
 	bGenerateOverlapEventsDuringLevelStreaming = true;
 }
 
 void ABOOMWeapon::Tick(float DeltaSeconds)
 {
+	Super::Tick(DeltaSeconds);
 
+	if (Character)
+	{
+
+		APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+		if (PlayerController)
+		{
+			if (TargetRotation == FRotator::ZeroRotator)
+			{
+
+				//dont apply recoil
+			}
+			else
+			{
+
+
+			}
+		}
+	}
 }
 
 void ABOOMWeapon::Fire()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Weapon Fired"))
 	if (Character == nullptr || Character->GetController() == nullptr)
 	{
 		return;
 	}
 
-	AddAmmo(-AmmoCost);
-	
 	//Update the time weapon was fired.
 	LastTimeFiredSeconds = GetWorld()->GetTimeSeconds();
 
-		//need object pooling solution before implementing multiple projectiles per shot.
-		if (Projectile)
-		{
-			FireProjectile();
-		}
-		else
-		{
-			FireHitscan();
-		}	
-	
+	//need object pooling solution before implementing multiple projectiles per shot.
+	if (Projectile)
+	{
+		FireProjectile();
+	}
+	else
+	{
+		FireHitscan();
+	}	
+
+	AddAmmo(-AmmoCost);
+
 	if (Character && Character->GetPlayerHUD()) //it was possible for the character to be set to null when collision settings allowed for self inflcited damage and dies.
 	{
 		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
+	}			
+
+	CurrentHeat += HeatToHeatIncreaseCurve.GetRichCurve()->Eval(CurrentHeat);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_WeaponCooldown, this, &ABOOMWeapon::Cooldown, WeaponCoolingStartSeconds, true);
+
+	if (SpreadMode == ESpreadMode::HeatBasedSpread)
+	{
+		CurrentSpreadAngle = HeatToSpreadCurve.GetRichCurve()->Eval(CurrentHeat);
+		CurrentSpreadAngle = FMath::Clamp(CurrentSpreadAngle, MinSpreadAngle, MaxSpreadAngle);
+	}
+	else
+	{
+		CurrentSpreadAngle = MaxSpreadAngle;
 	}
 
-	
-	//Should clamp the values around the ranges of the curves incase we get an X value that is out of range of the curve it will be used as an input to.
-	if(bHeatAffectsSpread)
+	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+	if (PlayerController)
 	{
-		GetWorldTimerManager().ClearTimer(TimerHandle_WeaponCooldown);
+		if (FiringCameraShakeClass)
+		{
+			//PlayerController->PlayerCameraManager->StartCameraShake(FiringCameraShakeClass, 1.f);
+		}
+
+		if (RecoilIndex == 0)
+		{
+			FirstShotRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+		}
 		
-		CurrentHeat += HeatToHeatIncreaseCurve.GetRichCurve()->Eval(CurrentHeat);
-		
-		CurrentSpreadAngle = HeatToSpreadCurve.GetRichCurve()->Eval(CurrentHeat);
-		
-		CurrentSpreadAngle = FMath::Clamp(CurrentSpreadAngle, MinSpreadAngle, MaxSpreadAngle);
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_WeaponCooldown, this, &ABOOMWeapon::Cooldown, WeaponCoolingStartSeconds, true);
+
+		if (RecoilPattern.IsValidIndex(RecoilIndex))
+		{
+			TargetRotation += RecoilPattern[RecoilIndex];
+			RecoilIndex++;
+			RecoilIndex = RecoilIndex % RecoilPattern.Num();
+
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("INVALID RECOIL INDEX: %d"), RecoilIndex);
+		}
+
 	}
+	
+
+	
 }
 
 bool ABOOMWeapon::IsIntendingToRefire()
@@ -167,17 +218,13 @@ ABOOMCharacter* ABOOMWeapon::GetCharacter()
 	return Character;
 }
 
-/*
-Fire Hitscan/Projectile: Can choose between firing from actual muzzle of weapon, or camera. On AI, the firing would look weird coming from some camera. 
-*/
-//@todo add code to reasonably prevent some self inflicted damage
 void ABOOMWeapon::FireHitscan()
 {
 	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 
 	FVector StartTrace;
-	FVector EndTrace;						//should be same as boverridingcamerafiring
-	if (PlayerController && FiringSource == EFiringSource::Camera)//change back to player controller
+	FVector EndTrace;						
+	if (PlayerController && FiringSource == EFiringSource::Camera)
 	{
 		FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 		FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
@@ -200,15 +247,15 @@ void ABOOMWeapon::FireHitscan()
 	{
 		if (Weapon1P)
 		{
+			//@TODO Add: SocketNameMuzzle member with this value as default.
 			StartTrace = Weapon1P->GetSocketLocation("Muzzle");
 			FRotator EndRotation = Weapon1P->GetSocketRotation("Muzzle");
-
-			EndTrace = StartTrace * HitscanRange;
+			EndTrace = StartTrace  + EndRotation.Vector() * HitscanRange;
 		}
 	}
 	FHitResult HitResult;
 	FCollisionQueryParams TraceParams;
-	TraceParams.AddIgnoredActor(Character); //maybe instigator could be a better choice?
+	TraceParams.AddIgnoredActor(Character);
 	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_Visibility, TraceParams);
 	if (bVisualizeHitscanTraces)
 	{
@@ -217,13 +264,11 @@ void ABOOMWeapon::FireHitscan()
 	
 	if (bHit)
 	{
-		/*
-		Should use targeting maybe?
-		*/
 
 		if (ImpactDecal)
 		{
-			UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), ImpactDecal, FVector(5, 5, 5), HitResult.Location);
+			
+			UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), ImpactDecal, FVector(1, 1, 1), HitResult.Location, HitResult.Normal.Rotation());
 			Decal->SetFadeScreenSize(0.F);
 		}
 
@@ -250,7 +295,7 @@ void ABOOMWeapon::FireHitscan()
 			if (DamageEffect)
 			{
 				const FGameplayEffectSpecHandle DamageEffectSpec = TargetAbilitySystemComponent->MakeOutgoingSpec(DamageEffect, 0.F, EffectContext);
-				
+
 				TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*DamageEffectSpec.Data, PredictionKey);
 			}
 		}
@@ -293,17 +338,16 @@ void ABOOMWeapon::FireProjectile()
 		if (SpawnedProjectile)
 		{
 			SpawnedProjectile->SetOwner(this);
-			SetInstigator(Character); //@TODO - instigators arent managed properly in this class
+			//SetInstigator(Character);
 			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(Character);
-			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(GetInstigator());
+			//SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(GetInstigator());
 			Character->GetCapsuleComponent()->MoveIgnoreActors.Add(SpawnedProjectile);
-			/*
-			Possibly empty MoveIgnoreActors after x amount of time.
-			*/
+			/*@TODO: Possibly empty MoveIgnoreActors after x amount of time.*/
 			UGameplayStatics::FinishSpawningActor(SpawnedProjectile, ProjectileTransform);
 		}
 	}
 }
+
 
 void ABOOMWeapon::HandleReloadInput()
 {
@@ -344,10 +388,12 @@ void ABOOMWeapon::FeedReloadWeapon()
 	}
 }
 
+//When the weapon is added to your equipment
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {
 	Character = TargetCharacter;
 	SetOwner(Character);
+	SetInstigator(Character);
 	if (Character == nullptr)
 	{
 		return;
@@ -499,7 +545,6 @@ void ABOOMWeapon::HandleBeingDropped()
 	FDetachmentTransformRules DetRules(EDetachmentRule::KeepWorld, true);
 	DetachFromActor(DetRules);
 
-	GotoState(UnequippingState);
 
 	Weapon1P->SetSimulatePhysics(true);
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepWorld, false);
@@ -517,6 +562,9 @@ void ABOOMWeapon::HandleBeingDropped()
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Character = nullptr;
 	SetOwner(nullptr);
+
+	GotoState(UnequippingState);
+
 		
 }
 
@@ -611,6 +659,7 @@ void ABOOMWeapon::OnUnequip()
 
 	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
 	{
+		PlayerController->PlayerCameraManager->StopAllInstancesOfCameraShake(FiringCameraShakeClass, true);
 		if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
 		{
 
@@ -621,7 +670,7 @@ void ABOOMWeapon::OnUnequip()
 }
 
 
-FVector ABOOMWeapon::CalculateBulletSpreadDir(FRotator StartRot) //This is circular spread. The idea  to use Quaternions was from Epic's Lyra project.
+FVector ABOOMWeapon::CalculateBulletSpreadDir(FRotator StartRot) //This is circular spread. The idea  to use Quaternions to define the rotations was from Epic's Lyra project.
 {	
 	//Imagining an axis of rotation around the weapon's barrel, this is will represent where on a spread circle the bullet will land. (Magnitude of Rotation)
 	const float AngleAround = FMath::FRand() * 360;
@@ -658,5 +707,10 @@ FVector ABOOMWeapon::CalculateBulletSpreadDir(FRotator StartRot) //This is circu
 
 
 	return FinalVector;
+}
+
+void ABOOMWeapon::ApplyRecoil()
+{
+
 }
 

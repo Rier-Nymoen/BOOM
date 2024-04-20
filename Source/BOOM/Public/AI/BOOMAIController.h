@@ -19,8 +19,6 @@ public:
 
 	ABOOMAIController();
 
-
-
 protected:
 
 	virtual void BeginPlay() override;
@@ -40,6 +38,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
 	class UAISenseConfig_Sight* AISenseConfig_Sight;
+
+	UFUNCTION()
+	virtual void OnTargetPerceptionForgotten(AActor* ForgottenActor);
 
 public:
 	UFUNCTION(BlueprintCallable)
