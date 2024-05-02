@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameplayTagAssetInterface.h"
 #include "BOOMProjectile.generated.h"
 
 class USphereComponent;
 class UProjectileMovementComponent;
 
 UCLASS(config=Game)
-class ABOOMProjectile : public AActor
+class ABOOMProjectile : public AActor, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 public:
@@ -21,10 +22,9 @@ public:
 	virtual void BeginPlay() override;
 
 	/** Sphere collision component */
-	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Projectile)
 	USphereComponent* CollisionComp;
 
-	
 
 	/** Projectile movement component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
@@ -35,7 +35,7 @@ public:
 
 	/** called when projectile hits something */
 	UFUNCTION()
-	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	/** Returns CollisionComp subobject **/
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }
@@ -44,10 +44,13 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = GameplayEffects)
 	TSubclassOf<class UGameplayEffect> DamageEffect;
-
 	
 	virtual void PostInitializeComponents() override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	struct FGameplayTagContainer GameplayTags;
+
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 
 };
 

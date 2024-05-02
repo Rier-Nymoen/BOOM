@@ -25,7 +25,6 @@ void UBOOMWeaponStateFiring::EnterState()
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 
 	//Upon entering the state, fire	and have refire timer
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Orange, "Firing::EnterState");
 
 	if (Weapon != nullptr && Weapon->IsReadyToFire())
 	{

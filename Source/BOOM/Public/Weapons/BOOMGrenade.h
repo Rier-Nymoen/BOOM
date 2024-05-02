@@ -20,7 +20,6 @@ public:
 
 	virtual void BeginPlay() override;
 
-
 	struct FTimerHandle TimerHandle_GrenadeFuse;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -35,12 +34,12 @@ public:
 	UFUNCTION()
 	void Explode();
 
-	virtual void ApplyThrownVelocity(FVector& ThrowDirection);
-
 	UFUNCTION()
 	virtual void PostInitializeComponents() override;
 
  	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	
 
 };

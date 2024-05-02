@@ -6,6 +6,7 @@
 #include "GameplayEffectExtension.h"
 
 #include "Character/BOOMCharacter.h"
+#include "Perception/AISense_Damage.h"
 
 UBOOMAttributeSetBase::UBOOMAttributeSetBase()
 {
@@ -44,7 +45,7 @@ void UBOOMAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 	//A programming context can be defined as all the relevant information that a developer needs to complete a task.
 	FGameplayEffectContextHandle Context = Data.EffectSpec.GetContext();
 	UAbilitySystemComponent* Source = Context.GetOriginalInstigatorAbilitySystemComponent();
-
+	AActor* EffectInstigator = Context.GetInstigator();
 	AActor* TargetActor = nullptr;
 	AController* TargetController = nullptr;
 	ABOOMCharacter* TargetCharacter = nullptr;
@@ -104,10 +105,28 @@ void UBOOMAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 			UE_LOG(LogTemp, Warning, TEXT("Shield strength: %f"), GetShieldStrength())
 			UE_LOG(LogTemp, Warning, TEXT("Health: %f"), GetHealth())
 
-			//if (TargetCharacter && !TargetCharacter->IsAlive())
-			//{
-			//}
 		}
+		
+		/*
+		Not sure if reporting a damage event would be best here.
+		*/
+
+		check(GetWorld())
+		check(TargetActor)
+		check(EffectInstigator)
+		
+
+		if (Context.GetHitResult())
+		{
+			UAISense_Damage::ReportDamageEvent(GetWorld(), TargetActor, EffectInstigator, LocalDamage,
+				EffectInstigator->GetActorLocation(), Context.GetHitResult()->Location);
+		}
+		else
+		{
+			UAISense_Damage::ReportDamageEvent(GetWorld(), TargetActor, EffectInstigator, LocalDamage,
+				EffectInstigator->GetActorLocation(), TargetActor->GetActorLocation());
+		}
+
 	}
 
 }

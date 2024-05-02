@@ -52,10 +52,15 @@ void ABOOMProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UP
 	//}
 	
 
-	Destroy();
+	//Destroy();
 }
 
 void ABOOMProjectile::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+}
+
+void ABOOMProjectile::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	UE_LOG(LogTemp,Warning,TEXT("GetOwnedGameplayTags"))
 }

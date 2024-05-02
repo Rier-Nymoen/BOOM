@@ -58,7 +58,7 @@ void UBOOMWeaponStateBurstFiring::CheckRefireTimer()
 
 	if (Weapon != nullptr)
 	{
-			if (CurrentShot == BurstSize || Weapon->CurrentAmmo == 0)
+			if (CurrentShot == BurstSize || Weapon->GetCurrentAmmo() == 0)
 			{
 				Weapon->GotoState(Weapon->ActiveState);
 				return;

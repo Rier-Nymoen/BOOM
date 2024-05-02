@@ -19,6 +19,7 @@ void UBOOMWeaponStateReloading::EnterState()
 			return;
 		}
 		//play anims etc
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, Weapon->ReloadDurationSeconds, FColor::Cyan, "Reloading");
 		Weapon->GetWorldTimerManager().SetTimer(TimerHandle_ReloadWeapon, Weapon, &ABOOMWeapon::ReloadWeapon, Weapon->ReloadDurationSeconds, false);
 
 	}
@@ -64,7 +65,7 @@ void UBOOMWeaponStateReloading::CancelReload()
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
-
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, Weapon->ReloadDurationSeconds, FColor::Emerald, "Reload Ended");
 		Weapon->GetWorldTimerManager().ClearTimer(TimerHandle_ReloadWeapon);
 	}
 }

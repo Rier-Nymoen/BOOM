@@ -4,9 +4,7 @@
 #include "Weapons/BOOMWeapon.h"
 
 void UBOOMWeaponStateEquipping::EnterState()
-{
-	
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.0F, FColor::Cyan, "Equipping::EnterState");
+{	
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{

@@ -80,7 +80,7 @@ ABOOMCharacter::ABOOMCharacter()
 
 	//Can always get handles to delegates if needed.
 
-	//AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABOOMCharacter::HandleHealthChanged);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABOOMCharacter::HandleHealthChanged);
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetShieldStrengthAttribute()).AddUObject(this, &ABOOMCharacter::HandleShieldStrengthChanged);
 	ShieldRechargeInterpSeconds = 0.01f;
 	ShieldFullRechargeDurationSeconds = 3.f;
@@ -111,7 +111,7 @@ void ABOOMCharacter::BeginPlay()
 	}
 	
 
-	HealthComponent->OnHealthChanged.AddDynamic(this, &ABOOMCharacter::HandleHealthChanged);
+	//HealthComponent->OnHealthChanged.AddDynamic(this, &ABOOMCharacter::HandleHealthChanged);
 	/*
 	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
 	*/
@@ -353,6 +353,14 @@ void ABOOMCharacter::SpawnWeapons()
 
 void ABOOMCharacter::ThrowGrenade()
 {
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		ABOOMGrenade* Grenade = GetWorld()->SpawnActor<ABOOMGrenade>(GrenadeType, GetActorLocation(), PlayerController->PlayerCameraManager->GetCameraRotation());
+		if (Grenade)
+		{
+
+		}
+	}
 }
 
 void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
@@ -388,8 +396,8 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 		if (GetPlayerHUD())
 		{
 			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmo());
+			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmoReserves());
 		}
 
 	}
@@ -419,8 +427,8 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 		if (GetPlayerHUD())
 		{
 			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmo());
+			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmoReserves());
 		}
 	}
 	SetHasRifle(true);
@@ -527,33 +535,33 @@ void ABOOMCharacter::SetupCharacterAbilities()
 	}
 }
 
-
-void ABOOMCharacter::HandleHealthChanged(float OldValue, float NewValue)
+void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
 {
-	check(HealthComponent)
-
-
+	float OldValue = Data.OldValue;
+	float NewValue = Data.NewValue;
+	
 	if (OldValue > NewValue)
 	{
-
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecharge);
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
 	}
 
 	if (GetPlayerHUD())
 	{
-
 		if (AttributeSetBase)
 		{
 			GetPlayerHUD()->GetHealthInformationElement()->SetHealthBar(NewValue / AttributeSetBase->GetMaxHealth());
 		}
-
 	}
 
 	if (!IsAlive())
 	{
 		OnDeath.Broadcast();
 		return;
+	}
+	else
+	{
+		HandleHitReaction();
 	}
 }
 
@@ -563,6 +571,19 @@ void ABOOMCharacter::Zoom()
 	{
 		Weapons[CurrentWeaponSlot]->Zoom();
 	}
+}
+
+void ABOOMCharacter::HandleHitReaction()
+{
+	if (HitReactionMontage)
+	{
+		PlayAnimMontage(HitReactionMontage, 1.f);
+	}
+}
+
+void ABOOMCharacter::HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
+{
+	UE_LOG(LogTemp, Warning, TEXT("HandleGameplayCue called"));
 }
 
 float ABOOMCharacter::GetHealth()
@@ -634,8 +655,8 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 			if (GetPlayerHUD())
 			{
 				GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
-				GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmo);
-				GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->CurrentAmmoReserves);
+				GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmo());
+				GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmoReserves());
 			}
 		}
 	}
@@ -715,6 +736,36 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 		this->GetNearestInteractable();
 		return;
 	}
+}
+
+void ABOOMCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+
+}
+
+void ABOOMCharacter::UnPossessed()
+{
+	Super::UnPossessed();
+}
+
+void ABOOMCharacter::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+}
+
+FGenericTeamId ABOOMCharacter::GetGenericTeamId() const
+{
+	//temp code testing - probably store id on character
+	IGenericTeamAgentInterface* TeamInterface = Cast<IGenericTeamAgentInterface>(GetController());
+	if (TeamInterface)
+	{
+		TeamInterface->GetGenericTeamId();
+		UE_LOG(LogTemp, Warning, TEXT("Team ID got successfully: %s"), *GetNameSafe(this));
+		return 	TeamInterface->GetGenericTeamId();
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Team id failed in: %s"), *GetNameSafe(this));
+	return FGenericTeamId::NoTeam;
 }
 
 void ABOOMCharacter::SetHasRifle(bool bNewHasRifle)

@@ -140,7 +140,7 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
 
     if ((FMath::Abs(FrontSteepnessAngle)) < MinimumMantleSteepnessAngle) //The side angle might not matter at all.
     {
-        //UE_LOG(LogTemp, Warning, TEXT("Mantle Surface Failed Side Steepness Check."))
+        UE_LOG(LogTemp, Warning, TEXT("Mantle Surface Failed Side Steepness Check."))
         return false;
     }
 
@@ -200,7 +200,7 @@ bool UBOOMCharacterMovementComponent::CanPerformAlternateJumpMovement()
     float TopSteepnessAngle = FMath::RadiansToDegrees(TopSteepnessRadians);
     float TopSinAngle;
 
-    //UE_LOG(LogTemp, Warning, TEXT("Top Steepness Angle: %f."), TopSteepnessAngle)
+    UE_LOG(LogTemp, Warning, TEXT("Top Steepness Angle: %f."), TopSteepnessAngle)
 
     if ((FMath::Abs(TopSteepnessAngle)) > MinimumMantleSteepnessAngle) //The side angle might not matter at all.
     {

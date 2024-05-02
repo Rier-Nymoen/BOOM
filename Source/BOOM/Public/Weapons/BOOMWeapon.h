@@ -20,6 +20,7 @@ enum class EZoom : int8
 	Zoomed,
 };
 
+
 UENUM()
 enum class EFiringSource : int8
 {
@@ -28,13 +29,13 @@ enum class EFiringSource : int8
 	OwnerCenter
 };
 
-USTRUCT()
-struct FFireInput
+UENUM()
+enum class ESpreadMode : int8
 {
-	GENERATED_BODY()
-	bool bIsPendingFiring;
-	//possibly additional information
+	HeatBasedSpread,
+	RandomSpread
 };
+
 
 UCLASS()
 class BOOM_API ABOOMWeapon : public AActor, public IInteractableInterface, public IAbilitySystemInterface
@@ -42,48 +43,53 @@ class BOOM_API ABOOMWeapon : public AActor, public IInteractableInterface, publi
 	GENERATED_BODY()
 
 public:
+
 	// Sets default values for this actor's properties
 	ABOOMWeapon();
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
 	UAbilitySystemComponent* AbilitySystemComponent;
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
 
+protected:
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaSeconds);
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* Weapon1P;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* Weapon3P;
+public:
+
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
 
 	USkeletalMeshComponent* GetMeshWeapon1P() const { return Weapon1P; }
 	USkeletalMeshComponent* GetMeshWeapon3P() const { return Weapon3P; }
-
 
 	UPROPERTY(VisibleAnywhere, Category = Component)
 	UBOOMPickUpComponent* BOOMPickUp;
 
 	UPROPERTY(EditAnywhere, Category = Name)
-	FName Name = FName(TEXT("W1"));
+	FName Name = FName(TEXT("Default Weapon Name"));
 
 	/*Character holding weapon*/
 	ABOOMCharacter* Character;
 
-	FFireInput* FireInput;
+
+protected:
+	float LastTimeFiredSeconds;
 
 	EZoom ZoomMode;
 
 	UPROPERTY(EditAnywhere)
 	EFiringSource FiringSource;
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	virtual void Tick(float DeltaSeconds);
-
-	float LastTimeFiredSeconds;
+	UPROPERTY(EditAnywhere)
+	ESpreadMode SpreadMode;
 
 public:
 	/*Interface Implementations*/
@@ -112,6 +118,8 @@ public:
 	UFUNCTION()
 	virtual void HandleStopFireInput();
 
+
+protected:
 	//Value should be a multiple of MagazineSize. Maximum Ammo Reserves.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int MaxAmmoReserves;
@@ -132,11 +140,30 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int CurrentAmmo;
 
-	UFUNCTION()
-	virtual void AddAmmo(int Amount);
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int BulletsPerShot;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float HitscanRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float FireRateSeconds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UMaterialInstance* ImpactDecal;
+
+
+public:
+	int GetMaxAmmoReserves() const  { return MaxAmmoReserves; }
+
+	int GetCurrentAmmoReserves() const { return CurrentAmmoReserves; }
+
+	int GetMagazineSize() const { return MagazineSize; }
+
+	int GetCurrentAmmo() const { return CurrentAmmo; }
+
+	UFUNCTION()
+	virtual void AddAmmo(int Amount);
 	
 	UFUNCTION()
 	virtual bool HasAmmo();
@@ -152,14 +179,16 @@ public:
 	virtual bool IsIntendingToRefire();
 
 	class ABOOMCharacter* GetCharacter();
-
+protected:
 	virtual void FireHitscan();
 
 	virtual void FireProjectile();
 
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	TSubclassOf<class ABOOMProjectile> Projectile;
 	//
+public:
 	virtual void GotoState(class UBOOMWeaponState* NewState);
 
 	class UBOOMWeaponState* InactiveState;
@@ -179,17 +208,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float ReloadDurationSeconds;
 
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	float HitscanRange;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	float FireRateSeconds;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UMaterialInstance* ImpactDecal;
-
-public:
 	UFUNCTION()
 	void GotoStateEquipping();
 
@@ -223,28 +241,14 @@ public:
 	struct FRuntimeFloatCurve HeatIncreaseCurve;
 
 	UPROPERTY(BlueprintReadWrite, Category = Weapon)
-
 	struct FRuntimeFloatCurve HeatCooldownCurve;
-	
-	/*
-	Move to OverheatComponent
-	*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
-	float HeatingRate;
-
-	float Temperature;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Weapon)
-	float CoolingRate;
-
-	float TimeCooling;
-
-	bool bIsOverheated;
 
 	virtual void Cooldown();
 	
-	FTimerHandle TimerHandle_WeaponCooldown;
+	void InterpRecoil();
 
+
+	FTimerHandle TimerHandle_WeaponCooldown;
 
 	virtual void Zoom();
 	
@@ -264,6 +268,13 @@ public:
 
 	//Maps heat level to bullet spread angle
 
+	//Affects how likely shots are to group towards the center. From the center, a random value is picked and raised to the power of SpreadGroupingExponent
+	UPROPERTY(EditAnywhere, Category = Spread)
+	float SpreadGroupingExponent;
+
+	UPROPERTY(EditAnywhere, Category = GameplayEffects)
+	TSubclassOf<class UGameplayEffect> DamageEffect;	
+protected:
 	float CurrentHeat;
 
 	//type for defining curves for object in editor
@@ -275,29 +286,50 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Spread)
 	struct FRuntimeFloatCurve HeatToHeatIncreaseCurve;
-	
+
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	float WeaponCoolingStartSeconds;
-	
+
 	FVector CalculateBulletSpreadDir(FRotator StartRot);
 
 	UPROPERTY(EditAnywhere, Category = Spread)
-	bool bHeatAffectsSpread;
+	bool bUseHeatBasedSpreadRecoil;
 
 	UPROPERTY(EditAnywhere, Category = Spread)
 	float MaxSpreadAngle;
 
-	
+
 	UPROPERTY(EditAnywhere, Category = Spread)
 	float MinSpreadAngle;
 
-	UPROPERTY(EditAnywhere, Category = Spread)
 	float CurrentSpreadAngle;
 
-	//Affects how likely shots are to group towards the center. From the center, a random value is picked and raised to the power of SpreadGroupingExponent
-	UPROPERTY(EditAnywhere, Category = Spread)
-	float SpreadGroupingExponent;
+	UPROPERTY(EditDefaultsOnly, Category = Camera)
+	TSubclassOf<class UCameraShakeBase> FiringCameraShakeClass;
+	/*RECOIL*/
 
-	UPROPERTY(EditAnywhere, Category = GameplayEffects)
-	TSubclassOf<class UGameplayEffect> DamageEffect;	
+	UPROPERTY(EditDefaultsOnly, Category = Recoil)
+	TArray<FRotator> RecoilPattern;
+
+	int RecoilIndex;
+
+	UPROPERTY(EditAnywhere, Category = Spread)
+	struct FRuntimeFloatCurve HeatToRecoilCurve;
+
+	FRotator TargetRotation;
+	FRotator CurrentRotation;
+
+	float VerticalRecoil;
+
+	UPROPERTY(EditAnywhere, Category = Debug)
+	float DebugInterpSpeedRecoil;
+
+	UPROPERTY(EditAnywhere, Category = Debug)
+	
+	float DebugInterpSpeedRecovery;
+
+	FRotator FirstShotRotation;
+
+	//UPROPERTY(EditDefaultsOnly, Category = Effects)
+	//class UNiagraSystem* BulletTraceFX;
 };

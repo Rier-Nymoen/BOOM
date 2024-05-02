@@ -14,7 +14,7 @@ EBTNodeResult::Type UBOOMBTTask_ShootWeapon::ExecuteTask(UBehaviorTreeComponent&
 {
 
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	ABOOMAICharacter* AICharacter = Cast<ABOOMAICharacter>(AIController->GetCharacter());
+	ABOOMCharacter* AICharacter = Cast<ABOOMCharacter>(AIController->GetCharacter());
 
 
 	if (AICharacter)
@@ -22,6 +22,7 @@ EBTNodeResult::Type UBOOMBTTask_ShootWeapon::ExecuteTask(UBehaviorTreeComponent&
 		const UWorld* World = AICharacter->GetWorld();
 		if (World)
 		{
+			AICharacter->StartFire(); //maybe StartFire on the interface calls the usage of a firing pattern?
 		}
 	}
 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);

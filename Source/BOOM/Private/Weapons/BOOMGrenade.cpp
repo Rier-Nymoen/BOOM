@@ -9,7 +9,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include"AbilitySystemInterface.h"
-
+#include "AI/BOOMAIController.h"
 
 ABOOMGrenade::ABOOMGrenade()
 {
@@ -27,7 +27,6 @@ void ABOOMGrenade::BeginPlay()
 }
 
 
-
 void ABOOMGrenade::Explode()
 {
 	TArray<FHitResult> OutHitResults;
@@ -35,35 +34,21 @@ void ABOOMGrenade::Explode()
 	const FCollisionShape SphereShape = FCollisionShape::MakeSphere(ExplosionRadius);
 	const bool bHit = GetWorld()->SweepMultiByChannel(OutHitResults, GetActorLocation(), GetActorLocation(), FQuat::Identity, ECC_Visibility, SphereShape);
 
-	DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 50, FColor::Red, false, 1.f);
+	DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 10, FColor::Red, false, 1.f);
 
 	if (bHit)
 	{
 		for (FHitResult& HitResult : OutHitResults)
 		{
-
 			UStaticMeshComponent* MeshComponent = Cast<UStaticMeshComponent>(HitResult.GetActor()->GetRootComponent());
 
 			if (MeshComponent)
 			{
-
 				MeshComponent->AddRadialImpulse(GetActorLocation(), ExplosionRadius, 10000.f, ERadialImpulseFalloff::RIF_Linear, true);
 			}
-
 		}
 	}
 	Destroy();
-}
-
-void ABOOMGrenade::ApplyThrownVelocity(FVector& ThrowDirection)
-{
-	if (ProjectileMovement)
-	{
-		ProjectileMovement->Velocity = ThrowDirection; /** ProjectileMovement->InitialSpeed;*/
-
-		UE_LOG(LogTemp, Warning, TEXT("Velocity: %s"), *ProjectileMovement->Velocity.ToString())
-	}
-	
 }
 
 void ABOOMGrenade::PostInitializeComponents()
@@ -75,28 +60,12 @@ void ABOOMGrenade::PostInitializeComponents()
 
 void ABOOMGrenade::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	//TArray<FHitResult> OutHitResults;
 
-	//const FCollisionShape SphereShape = FCollisionShape::MakeSphere(ExplosionRadius);
-	//const bool bHit = GetWorld()->SweepMultiByChannel(OutHitResults, Hit.Location, Hit.Location, FQuat::Identity, ECC_Visibility, SphereShape);
-
-	//DrawDebugSphere(GetWorld(), Hit.Location, ExplosionRadius, 50, FColor::Red, false, 1.f);
-
-	//if (bHit)
-	//{
-	//	for (FHitResult& HitResult : OutHitResults)
-	//	{
-	//		
-	//		UStaticMeshComponent* MeshComponent = Cast<UStaticMeshComponent>(HitResult.GetActor()->GetRootComponent());
-	//		
-	//		if (MeshComponent)
-	//		{
-	//		
-	//			MeshComponent->AddRadialImpulse(Hit.Location, ExplosionRadius, 10000.f, ERadialImpulseFalloff::RIF_Linear, true);
-	//		}
-
-	//	}
-	//}
-
-	//Destroy();
 }
+
+void ABOOMGrenade::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grenade::GetOwnedGameplayTags"))
+		TagContainer.AppendTags(GameplayTags);
+}
+

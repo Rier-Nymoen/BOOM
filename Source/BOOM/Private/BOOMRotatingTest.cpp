@@ -34,7 +34,7 @@ void ABOOMRotatingTest::OnConnectToPower()
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Blue, "Powered");
 
 		bIsPowered = true;
-		//GetWorldTimerManager().SetTimer(TimerHandle_Rotate, this, &ABOOMRotatingTest::Spin, 0.01F, true);
+		GetWorldTimerManager().SetTimer(TimerHandle_Rotate, this, &ABOOMRotatingTest::Spin, 0.01F, true);
 	}
 
 }
@@ -42,7 +42,7 @@ void ABOOMRotatingTest::OnConnectToPower()
 void ABOOMRotatingTest::OnDisconnectFromPower()
 {
 	bIsPowered = false;
-	//GetWorldTimerManager().ClearTimer(TimerHandle_Rotate);
+	GetWorldTimerManager().ClearTimer(TimerHandle_Rotate);
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 1.F, FColor::Red, "Removed From Power");
 
 }

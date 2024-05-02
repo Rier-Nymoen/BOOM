@@ -4,6 +4,7 @@
 #include "Character/BOOMHealthComponent.h"
 #include "AbilitySystemComponent.h"
 #include "Character/BOOMAttributeSetBase.h"
+#include "AIController.h"
 
 // Sets default values for this component's properties
 UBOOMHealthComponent::UBOOMHealthComponent()
@@ -28,7 +29,6 @@ void UBOOMHealthComponent::BeginPlay()
 	}
 	
 }
-
 
 // Called every frame
 void UBOOMHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

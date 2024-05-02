@@ -6,6 +6,7 @@
 #include "AIController.h"
 #include "BOOMAIController.generated.h"
 
+
 /**
  * 
  */
@@ -13,7 +14,6 @@ UCLASS()
 class BOOM_API ABOOMAIController : public AAIController
 {
 	GENERATED_BODY()
-
 public:
 
 	ABOOMAIController();
@@ -37,4 +37,20 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
 	class UAISenseConfig_Sight* AISenseConfig_Sight;
+
+	UFUNCTION()
+	virtual void OnTargetPerceptionForgotten(AActor* ForgottenActor);
+
+	//UFUNCTION()
+	//virtual void OnTargetPerceptionUpdated(FActorPerceptionUpdateInfo& UpdateInfo);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FName InCombatName;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
+	
+	UFUNCTION()
+	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 };
