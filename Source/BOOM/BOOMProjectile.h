@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameplayTagAssetInterface.h"
 #include "BOOMProjectile.generated.h"
 
 class USphereComponent;
 class UProjectileMovementComponent;
 
 UCLASS(config=Game)
-class ABOOMProjectile : public AActor
+class ABOOMProjectile : public AActor, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 public:
@@ -24,7 +25,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Projectile)
 	USphereComponent* CollisionComp;
 
-	
 
 	/** Projectile movement component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
@@ -44,10 +44,13 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = GameplayEffects)
 	TSubclassOf<class UGameplayEffect> DamageEffect;
-
 	
 	virtual void PostInitializeComponents() override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	struct FGameplayTagContainer GameplayTags;
+
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 
 };
 

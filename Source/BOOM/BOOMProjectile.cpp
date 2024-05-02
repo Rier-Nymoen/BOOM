@@ -59,3 +59,8 @@ void ABOOMProjectile::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 }
+
+void ABOOMProjectile::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	UE_LOG(LogTemp,Warning,TEXT("GetOwnedGameplayTags"))
+}

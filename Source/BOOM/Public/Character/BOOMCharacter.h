@@ -8,6 +8,7 @@
 #include "Engine/DataTable.h"
 #include "GameplayEffectTypes.h"
 #include "GenericTeamAgentInterface.h"
+#include "GameplayCueInterface.h"
 
 //
 #include "AbilitySystemInterface.h"
@@ -36,7 +37,7 @@ public:
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
 UCLASS(config = Game)
-class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
+class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IGameplayCueInterface
 {
 	GENERATED_BODY()
 
@@ -140,14 +141,11 @@ protected:
 
 	virtual void StopJumping() override;
 
-	//void StartFire(const FInputActionValue& Value);
-
 	UFUNCTION()
 	void Reload();
 
 	UFUNCTION()
 	virtual void Fire();
-
 
 	void Interact(const FInputActionValue& Value);
 
@@ -191,8 +189,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* GrenadeThrowAction;
-
-protected:
 
 public:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
@@ -268,9 +264,8 @@ public:
 	UFUNCTION()
 	float GetHealth();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	bool IsAlive();
-
 
 protected:
 
@@ -296,6 +291,7 @@ protected:
 
 	UFUNCTION()
 	virtual void InterpShieldRegen();
+
 	UFUNCTION()
 	virtual void RegenerateShields();
 
@@ -305,11 +301,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Abilities")
 	TArray<TSubclassOf<class UBOOMGameplayAbility>> CharacterAbilities;
 
+	virtual void HandleHealthChanged(const FOnAttributeChangeData& Data);
 
-	//virtual void HandleHealthChanged(const FOnAttributeChangeData& Data);
-	UFUNCTION()
-	virtual void HandleHealthChanged(float OldValue, float NewValue);
-	
+	UPROPERTY(VisibleAnywhere)
 	bool bIsDead;
 
 	UFUNCTION()
@@ -318,8 +312,16 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Input)
 	bool bIsFocalLengthScalingEnabled;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	class UAnimMontage* DeathMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	class UAnimMontage* HitReactionMontage;
+
+	UFUNCTION()
+	virtual void HandleHitReaction();
+
+	virtual void HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters);
 
 
 };

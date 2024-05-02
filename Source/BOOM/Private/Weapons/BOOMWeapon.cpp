@@ -103,13 +103,11 @@ void ABOOMWeapon::Tick(float DeltaSeconds)
 
 	if (Character)
 	{
-
 		APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 		if (PlayerController)
 		{
 			if (TargetRotation == FRotator::ZeroRotator)
 			{
-
 				//dont apply recoil
 			}
 			else
@@ -167,7 +165,7 @@ void ABOOMWeapon::Fire()
 	{
 		if (FiringCameraShakeClass)
 		{
-			//PlayerController->PlayerCameraManager->StartCameraShake(FiringCameraShakeClass, 1.f);
+			PlayerController->PlayerCameraManager->StartCameraShake(FiringCameraShakeClass, 1.f);
 		}
 
 		if (RecoilIndex == 0)
@@ -181,6 +179,10 @@ void ABOOMWeapon::Fire()
 			TargetRotation += RecoilPattern[RecoilIndex];
 			RecoilIndex++;
 			RecoilIndex = RecoilIndex % RecoilPattern.Num();
+			//PlayerController->AddPitchInput(-RecoilPattern[RecoilIndex].Pitch);
+			/*
+				The tick based recoil - framerate problem is annoying to deal with.
+				*/
 
 		}
 		else
@@ -189,7 +191,7 @@ void ABOOMWeapon::Fire()
 		}
 
 	}
-	
+
 
 	
 }
@@ -264,10 +266,8 @@ void ABOOMWeapon::FireHitscan()
 	
 	if (bHit)
 	{
-
 		if (ImpactDecal)
 		{
-			
 			UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), ImpactDecal, FVector(1, 1, 1), HitResult.Location, HitResult.Normal.Rotation());
 			Decal->SetFadeScreenSize(0.F);
 		}
@@ -290,13 +290,15 @@ void ABOOMWeapon::FireHitscan()
 		{
 			FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
 			EffectContext.AddHitResult(HitResult);
+			EffectContext.AddInstigator(GetInstigator(), this);
 
 			FPredictionKey PredictionKey;
 			if (DamageEffect)
 			{
 				const FGameplayEffectSpecHandle DamageEffectSpec = TargetAbilitySystemComponent->MakeOutgoingSpec(DamageEffect, 0.F, EffectContext);
 
-				TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*DamageEffectSpec.Data, PredictionKey);
+				AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*DamageEffectSpec.Data, TargetAbilitySystemComponent);
+
 			}
 		}
 	}
@@ -708,9 +710,3 @@ FVector ABOOMWeapon::CalculateBulletSpreadDir(FRotator StartRot) //This is circu
 
 	return FinalVector;
 }
-
-void ABOOMWeapon::ApplyRecoil()
-{
-
-}
-

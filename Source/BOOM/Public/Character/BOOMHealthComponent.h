@@ -11,6 +11,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBOOMOnHealthChanged, float, OldValue, float, NewValue);
 
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BOOM_API UBOOMHealthComponent : public UActorComponent
 {
@@ -30,10 +31,8 @@ protected:
 	UPROPERTY()
 	class UAbilitySystemComponent* AbilitySystemComponent;
 	//figure out health and shield interactions
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	const class UBOOMAttributeSetBase* AttributeSetBase;
-	
-
 	
 
 public:	

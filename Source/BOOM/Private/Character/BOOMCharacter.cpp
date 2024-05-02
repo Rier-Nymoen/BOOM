@@ -80,7 +80,7 @@ ABOOMCharacter::ABOOMCharacter()
 
 	//Can always get handles to delegates if needed.
 
-	//AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABOOMCharacter::HandleHealthChanged);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABOOMCharacter::HandleHealthChanged);
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetShieldStrengthAttribute()).AddUObject(this, &ABOOMCharacter::HandleShieldStrengthChanged);
 	ShieldRechargeInterpSeconds = 0.01f;
 	ShieldFullRechargeDurationSeconds = 3.f;
@@ -111,7 +111,7 @@ void ABOOMCharacter::BeginPlay()
 	}
 	
 
-	HealthComponent->OnHealthChanged.AddDynamic(this, &ABOOMCharacter::HandleHealthChanged);
+	//HealthComponent->OnHealthChanged.AddDynamic(this, &ABOOMCharacter::HandleHealthChanged);
 	/*
 	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
 	*/
@@ -353,6 +353,14 @@ void ABOOMCharacter::SpawnWeapons()
 
 void ABOOMCharacter::ThrowGrenade()
 {
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		ABOOMGrenade* Grenade = GetWorld()->SpawnActor<ABOOMGrenade>(GrenadeType, GetActorLocation(), PlayerController->PlayerCameraManager->GetCameraRotation());
+		if (Grenade)
+		{
+
+		}
+	}
 }
 
 void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
@@ -527,34 +535,33 @@ void ABOOMCharacter::SetupCharacterAbilities()
 	}
 }
 
-
-void ABOOMCharacter::HandleHealthChanged(float OldValue, float NewValue)
+void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
 {
-	check(HealthComponent)
-
-
+	float OldValue = Data.OldValue;
+	float NewValue = Data.NewValue;
+	
 	if (OldValue > NewValue)
 	{
-
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecharge);
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ShieldRechargeDelay, this, &ABOOMCharacter::RegenerateShields, ShieldRechargeDelaySeconds);
 	}
 
 	if (GetPlayerHUD())
 	{
-
 		if (AttributeSetBase)
 		{
 			GetPlayerHUD()->GetHealthInformationElement()->SetHealthBar(NewValue / AttributeSetBase->GetMaxHealth());
 		}
-
 	}
 
 	if (!IsAlive())
 	{
-		
 		OnDeath.Broadcast();
 		return;
+	}
+	else
+	{
+		HandleHitReaction();
 	}
 }
 
@@ -564,6 +571,19 @@ void ABOOMCharacter::Zoom()
 	{
 		Weapons[CurrentWeaponSlot]->Zoom();
 	}
+}
+
+void ABOOMCharacter::HandleHitReaction()
+{
+	if (HitReactionMontage)
+	{
+		PlayAnimMontage(HitReactionMontage, 1.f);
+	}
+}
+
+void ABOOMCharacter::HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
+{
+	UE_LOG(LogTemp, Warning, TEXT("HandleGameplayCue called"));
 }
 
 float ABOOMCharacter::GetHealth()

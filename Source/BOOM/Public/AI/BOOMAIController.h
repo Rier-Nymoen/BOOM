@@ -14,7 +14,6 @@ UCLASS()
 class BOOM_API ABOOMAIController : public AAIController
 {
 	GENERATED_BODY()
-
 public:
 
 	ABOOMAIController();
@@ -42,8 +41,16 @@ protected:
 	UFUNCTION()
 	virtual void OnTargetPerceptionForgotten(AActor* ForgottenActor);
 
+	//UFUNCTION()
+	//virtual void OnTargetPerceptionUpdated(FActorPerceptionUpdateInfo& UpdateInfo);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FName InCombatName;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
-
+	
+	UFUNCTION()
+	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 };

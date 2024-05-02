@@ -311,8 +311,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Recoil)
 	TArray<FRotator> RecoilPattern;
 
-
-
 	int RecoilIndex;
 
 	UPROPERTY(EditAnywhere, Category = Spread)
@@ -329,12 +327,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Debug)
 	
 	float DebugInterpSpeedRecovery;
-
-	FTimerHandle TimerHandle_ApplyRecoil;
-
-	UFUNCTION()
-	void ApplyRecoil();
-
 
 	FRotator FirstShotRotation;
 
