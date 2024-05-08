@@ -16,7 +16,6 @@ class BOOM_API UBOOMBTTask_GetPatrolPoint : public UBTTask_BlackboardBase
 public:
 	UBOOMBTTask_GetPatrolPoint();
 protected:
-
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 	virtual FString GetStaticDescription() const override;

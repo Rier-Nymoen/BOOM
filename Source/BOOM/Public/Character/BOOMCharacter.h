@@ -9,6 +9,7 @@
 #include "GameplayEffectTypes.h"
 #include "GenericTeamAgentInterface.h"
 #include "GameplayCueInterface.h"
+#include "GameplayTagAssetInterface.h"
 
 //
 #include "AbilitySystemInterface.h"
@@ -24,6 +25,30 @@ class USoundBase;
 class UAbilitySystemComponent;
 
 USTRUCT(BlueprintType)
+struct FCombatProperties
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float RateOfFiringInputSeconds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TargetTrackingAccuracy;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TargetLeadingAccuracy;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BurstDurationSeconds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TimeBetweenBursts;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TargetTrackingImprovementAngularVelocity;
+};
+
+USTRUCT(BlueprintType)
 struct FItemInformation : public FTableRowBase
 {
 	GENERATED_BODY()
@@ -37,7 +62,7 @@ public:
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
 UCLASS(config = Game)
-class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IGameplayCueInterface
+class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IGameplayCueInterface, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
@@ -113,6 +138,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void StartFire();
+
+	//Temporary solution to have AI only worry about when to fire, not when to stop, when using non-automatic weapons.
+	UFUNCTION(BlueprintCallable, Category = Weapon)
+	void SingleFire();
+	
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void StopFire();
 
@@ -267,6 +297,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsAlive();
 
+	UPROPERTY(EditAnywhere)
+	FCombatProperties CombatProperties;
+
 protected:
 
 	UPROPERTY()
@@ -323,5 +356,9 @@ protected:
 
 	virtual void HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	struct FGameplayTagContainer GameplayTags;
+
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 
 };

@@ -22,7 +22,7 @@
 #include "Curves/CurveFloat.h"
 #include "Components/DecalComponent.h"
 #include "Components/CapsuleComponent.h"
-
+#include "AIController.h"
 
 #include "AbilitySystemComponent.h"
 #include"AbilitySystemInterface.h"
@@ -255,6 +255,8 @@ void ABOOMWeapon::FireHitscan()
 			EndTrace = StartTrace  + EndRotation.Vector() * HitscanRange;
 		}
 	}
+
+
 	FHitResult HitResult;
 	FCollisionQueryParams TraceParams;
 	TraceParams.AddIgnoredActor(Character);
@@ -285,16 +287,17 @@ void ABOOMWeapon::FireHitscan()
 		{
 			return;
 		}
-
+		check(GetInstigator())
 		if (AbilitySystemComponent)
 		{
-			FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
-			EffectContext.AddHitResult(HitResult);
-			EffectContext.AddInstigator(GetInstigator(), this);
 
-			FPredictionKey PredictionKey;
 			if (DamageEffect)
 			{
+				FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+				EffectContext.AddHitResult(HitResult);
+				EffectContext.AddInstigator(GetInstigator(), this);
+
+				FPredictionKey PredictionKey;
 				const FGameplayEffectSpecHandle DamageEffectSpec = TargetAbilitySystemComponent->MakeOutgoingSpec(DamageEffect, 0.F, EffectContext);
 
 				AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*DamageEffectSpec.Data, TargetAbilitySystemComponent);
@@ -340,7 +343,6 @@ void ABOOMWeapon::FireProjectile()
 		if (SpawnedProjectile)
 		{
 			SpawnedProjectile->SetOwner(this);
-			//SetInstigator(Character);
 			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(Character);
 			//SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(GetInstigator());
 			Character->GetCapsuleComponent()->MoveIgnoreActors.Add(SpawnedProjectile);
@@ -394,8 +396,6 @@ void ABOOMWeapon::FeedReloadWeapon()
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {
 	Character = TargetCharacter;
-	SetOwner(Character);
-	SetInstigator(Character);
 	if (Character == nullptr)
 	{
 		return;
@@ -433,22 +433,14 @@ void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* TargetCharacter)
 
 	}
 }
-
+/*reworking input for firing weapons*/
 void ABOOMWeapon::HandleFireInput()
 {
-	if (Character)
-	{
-		Character->bIsPendingFiring = true;
-	}
 	CurrentState->HandleFireInput();
 }
 
 void ABOOMWeapon::HandleStopFireInput()
 {
-	if (Character)
-	{
-		Character->bIsPendingFiring = false;
-	}
 	CurrentState->HandleStopFiringInput();
 }
 

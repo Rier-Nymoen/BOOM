@@ -26,7 +26,6 @@
 //////////////////////////////////////////////////////////////////////////
 // ABOOMCharacter
 
-
 ABOOMCharacter::ABOOMCharacter()
 {	
 	PrimaryActorTick.bCanEverTick = true;
@@ -177,12 +176,11 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		//Weapon Pickup
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ABOOMCharacter::Interact);
 
-		//Fire Weapon
+		//` Weapon
 		//@TODO - Possibly let weapons bind their own firing input responses
-		//EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMCharacter::StartFire);
+		// 
+	
 		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Started, this, &ABOOMCharacter::Zoom);
-
-		//EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMCharacter::StopFire);
 
 		//Reload Weapon
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMCharacter::Reload);
@@ -194,6 +192,7 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 void ABOOMCharacter::Reload()
 {
+	bIsPendingFiring = false;
 	if (HasNoWeapons())
 	{
 		return;
@@ -211,6 +210,19 @@ void ABOOMCharacter::Reload()
 void ABOOMCharacter::Fire()
 {
 
+}
+
+void ABOOMCharacter::SingleFire()
+{
+	if (HasNoWeapons())
+	{
+		return;
+	}
+
+	if (Weapons[CurrentWeaponSlot] != nullptr)
+	{
+		Weapons[CurrentWeaponSlot]->HandleFireInput();
+	}
 }
 
 void ABOOMCharacter::StopFire()
@@ -355,7 +367,7 @@ void ABOOMCharacter::ThrowGrenade()
 {
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
-		ABOOMGrenade* Grenade = GetWorld()->SpawnActor<ABOOMGrenade>(GrenadeType, GetActorLocation(), PlayerController->PlayerCameraManager->GetCameraRotation());
+		ABOOMGrenade* Grenade = GetWorld()->SpawnActor<ABOOMGrenade>(GrenadeType, PlayerController->PlayerCameraManager->GetCameraLocation(), PlayerController->PlayerCameraManager->GetCameraRotation());
 		if (Grenade)
 		{
 
@@ -367,8 +379,10 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 {
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
 
+	//@todo ideally should let the weapon manage this.
 	TargetWeapon->Character = this;
 	TargetWeapon->SetOwner(this);
+	TargetWeapon->SetInstigator(this);
 
 	TargetWeapon->DisableCollision();
 	if (GetPlayerHUD())
@@ -392,7 +406,6 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 			TargetWeapon->GetMeshWeapon3P()->AttachToComponent(GetMesh(), AttachmentRules, SocketNameGripPoint3P);
 		}
 
-		
 		if (GetPlayerHUD())
 		{
 			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
@@ -583,7 +596,11 @@ void ABOOMCharacter::HandleHitReaction()
 
 void ABOOMCharacter::HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
 {
-	UE_LOG(LogTemp, Warning, TEXT("HandleGameplayCue called"));
+}
+
+void ABOOMCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	TagContainer.AppendTags(GameplayTags);
 }
 
 float ABOOMCharacter::GetHealth()
