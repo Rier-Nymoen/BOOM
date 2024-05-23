@@ -9,6 +9,7 @@
 #include "GameplayEffectTypes.h"
 #include "GenericTeamAgentInterface.h"
 #include "GameplayCueInterface.h"
+#include "GameplayTagAssetInterface.h"
 
 //
 #include "AbilitySystemInterface.h"
@@ -24,6 +25,39 @@ class USoundBase;
 class UAbilitySystemComponent;
 
 USTRUCT(BlueprintType)
+struct FBurstGeometryProperties
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float RateOfFiringInputSeconds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float TargetTrackingAccuracy;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float TargetLeadingAccuracy;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float BurstDurationSeconds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float TimeBetweenBursts;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float TargetTrackingImprovementAngularVelocity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float InitialBurstAngle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float CurrentBurstAngle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float BurstCorrectionAngularVelocity;
+};
+
+USTRUCT(BlueprintType)
 struct FItemInformation : public FTableRowBase
 {
 	GENERATED_BODY()
@@ -37,7 +71,7 @@ public:
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
 UCLASS(config = Game)
-class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IGameplayCueInterface
+class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IGameplayCueInterface, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
@@ -113,6 +147,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void StartFire();
+
+	//Temporary solution to have AI only worry about when to fire, not when to stop, when using non-automatic weapons.
+	UFUNCTION(BlueprintCallable, Category = Weapon)
+	void SingleFire();
+	
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void StopFire();
 
@@ -267,6 +306,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsAlive();
 
+	UPROPERTY(EditAnywhere)
+	FBurstGeometryProperties BurstGeometryProperties;
+
 protected:
 
 	UPROPERTY()
@@ -323,5 +365,9 @@ protected:
 
 	virtual void HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	struct FGameplayTagContainer GameplayTags;
 
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
+	
 };

@@ -22,7 +22,7 @@
 #include "Curves/CurveFloat.h"
 #include "Components/DecalComponent.h"
 #include "Components/CapsuleComponent.h"
-
+#include "AIController.h"
 
 #include "AbilitySystemComponent.h"
 #include"AbilitySystemInterface.h"
@@ -100,23 +100,6 @@ void ABOOMWeapon::BeginPlay()
 void ABOOMWeapon::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	if (Character)
-	{
-		APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
-		if (PlayerController)
-		{
-			if (TargetRotation == FRotator::ZeroRotator)
-			{
-				//dont apply recoil
-			}
-			else
-			{
-
-
-			}
-		}
-	}
 }
 
 void ABOOMWeapon::Fire()
@@ -173,17 +156,11 @@ void ABOOMWeapon::Fire()
 			FirstShotRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
 		}
 		
-
 		if (RecoilPattern.IsValidIndex(RecoilIndex))
 		{
 			TargetRotation += RecoilPattern[RecoilIndex];
 			RecoilIndex++;
 			RecoilIndex = RecoilIndex % RecoilPattern.Num();
-			//PlayerController->AddPitchInput(-RecoilPattern[RecoilIndex].Pitch);
-			/*
-				The tick based recoil - framerate problem is annoying to deal with.
-				*/
-
 		}
 		else
 		{
@@ -191,9 +168,6 @@ void ABOOMWeapon::Fire()
 		}
 
 	}
-
-
-	
 }
 
 bool ABOOMWeapon::IsIntendingToRefire()
@@ -241,6 +215,13 @@ void ABOOMWeapon::FireHitscan()
 	{
 		StartTrace = GetOwner()->GetActorLocation();
 		FRotator StartRotation = GetOwner()->GetActorRotation();
+
+		AAIController* AIController = Cast<AAIController>(Character->GetController());
+		if (AIController)
+		{
+			StartRotation += FRotator(0, Character->BurstGeometryProperties.CurrentBurstAngle, 0);
+		}
+
 		FVector ShotDirection = CalculateBulletSpreadDir(StartRotation);
 
 		EndTrace = StartTrace + (ShotDirection * HitscanRange);
@@ -255,6 +236,7 @@ void ABOOMWeapon::FireHitscan()
 			EndTrace = StartTrace  + EndRotation.Vector() * HitscanRange;
 		}
 	}
+
 	FHitResult HitResult;
 	FCollisionQueryParams TraceParams;
 	TraceParams.AddIgnoredActor(Character);
@@ -285,20 +267,20 @@ void ABOOMWeapon::FireHitscan()
 		{
 			return;
 		}
-
+		check(GetInstigator())
 		if (AbilitySystemComponent)
 		{
-			FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
-			EffectContext.AddHitResult(HitResult);
-			EffectContext.AddInstigator(GetInstigator(), this);
 
-			FPredictionKey PredictionKey;
 			if (DamageEffect)
 			{
+				FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+				EffectContext.AddHitResult(HitResult);
+				EffectContext.AddInstigator(GetInstigator(), this);
+
+				FPredictionKey PredictionKey;
 				const FGameplayEffectSpecHandle DamageEffectSpec = TargetAbilitySystemComponent->MakeOutgoingSpec(DamageEffect, 0.F, EffectContext);
 
 				AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*DamageEffectSpec.Data, TargetAbilitySystemComponent);
-
 			}
 		}
 	}
@@ -340,7 +322,6 @@ void ABOOMWeapon::FireProjectile()
 		if (SpawnedProjectile)
 		{
 			SpawnedProjectile->SetOwner(this);
-			//SetInstigator(Character);
 			SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(Character);
 			//SpawnedProjectile->GetCollisionComp()->MoveIgnoreActors.Add(GetInstigator());
 			Character->GetCapsuleComponent()->MoveIgnoreActors.Add(SpawnedProjectile);
@@ -394,8 +375,6 @@ void ABOOMWeapon::FeedReloadWeapon()
 void ABOOMWeapon::Interact(ABOOMCharacter* TargetCharacter)
 {
 	Character = TargetCharacter;
-	SetOwner(Character);
-	SetInstigator(Character);
 	if (Character == nullptr)
 	{
 		return;
@@ -433,22 +412,14 @@ void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* TargetCharacter)
 
 	}
 }
-
+/*reworking input for firing weapons*/
 void ABOOMWeapon::HandleFireInput()
 {
-	if (Character)
-	{
-		Character->bIsPendingFiring = true;
-	}
 	CurrentState->HandleFireInput();
 }
 
 void ABOOMWeapon::HandleStopFireInput()
 {
-	if (Character)
-	{
-		Character->bIsPendingFiring = false;
-	}
 	CurrentState->HandleStopFiringInput();
 }
 

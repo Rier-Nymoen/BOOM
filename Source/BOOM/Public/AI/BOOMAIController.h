@@ -46,6 +46,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FName InCombatName;
+	
 
 public:
 	UFUNCTION(BlueprintCallable)

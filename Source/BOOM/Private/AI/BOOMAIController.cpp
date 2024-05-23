@@ -16,7 +16,6 @@ ABOOMAIController::ABOOMAIController()
 	BehaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>("BehaviorTreeComponent");
 	BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>("BlackboardComponent");
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>("AIPerceptionComponent");
-	InCombatName = FName(TEXT("InCombat"));
 }
 
 
@@ -45,17 +44,6 @@ void ABOOMAIController::OnPossess(APawn* InPawn)
 
 void ABOOMAIController::OnTargetPerceptionForgotten(AActor* ForgottenActor)
 {
-	TArray<AActor*> PerceivedHostileActors;
-	AIPerceptionComponent->GetPerceivedHostileActors(PerceivedHostileActors);
-
-	if (PerceivedHostileActors.Num() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No hostile actors are perceived - marks end of combat for all AI controllers."))
-		if (IsValid(Blackboard.Get()))
-		{
-			BlackboardComponent->SetValueAsBool(InCombatName, false);
-		}
-	}
 }
 
 void ABOOMAIController::SetGenericTeamId(const FGenericTeamId& NewTeamID)

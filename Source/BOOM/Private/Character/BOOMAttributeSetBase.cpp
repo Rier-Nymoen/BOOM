@@ -111,8 +111,6 @@ void UBOOMAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCa
 		Not sure if reporting a damage event would be best here.
 		*/
 
-		check(GetWorld())
-		check(TargetActor)
 		check(EffectInstigator)
 		
 
