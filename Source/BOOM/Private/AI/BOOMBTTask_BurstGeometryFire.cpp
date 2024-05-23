@@ -21,13 +21,24 @@ EBTNodeResult::Type UBOOMBTTask_BurstGeometryFire::ExecuteTask(UBehaviorTreeComp
 	ABOOMCharacter* AICharacter = Cast<ABOOMCharacter>(AIController->GetCharacter());
 	if (AICharacter)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("CreateNodeInstance: %d"), bCreateNodeInstance)
+		bool bIsClockwise = FMath::RandBool();
 
-		float Duration = AICharacter->CombatProperties.BurstDurationSeconds;
+		if (bIsClockwise)
+		{
+			DirectionModifier = 1;
+		}
+		else
+		{
+			DirectionModifier = -1;
+		}
+		TaskDurationSeconds = 0;
+		AICharacter->BurstGeometryProperties.CurrentBurstAngle = AICharacter->BurstGeometryProperties.InitialBurstAngle * DirectionModifier;
+
+		float Duration = AICharacter->BurstGeometryProperties.BurstDurationSeconds;
 		bNotifyTick = true;
-		SetNextTickTime(NodeMemory, Duration);
-		TimerDelegate_RateOfFire = FTimerDelegate::CreateUObject(this, &UBOOMBTTask_BurstGeometryFire::Fire, AICharacter );
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_RateOfFire, TimerDelegate_RateOfFire, AICharacter->CombatProperties.RateOfFiringInputSeconds, true);
+		TimerDelegate_RateOfFire = FTimerDelegate::CreateUObject(this, &UBOOMBTTask_BurstGeometryFire::Fire, AICharacter);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_RateOfFire, TimerDelegate_RateOfFire, AICharacter->BurstGeometryProperties.RateOfFiringInputSeconds, true);
+
 		return EBTNodeResult::InProgress;
 	}
 
@@ -37,18 +48,33 @@ EBTNodeResult::Type UBOOMBTTask_BurstGeometryFire::ExecuteTask(UBehaviorTreeComp
 
 FString UBOOMBTTask_BurstGeometryFire::GetStaticDescription() const
 {
-	return FString("TestingBurstFireGeometry");
+	return FString("BurstGeometryFire");
 }
 
 void UBOOMBTTask_BurstGeometryFire::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	FBTTaskMemory* TaskMemory = GetSpecialNodeMemory<FBTTaskMemory>(NodeMemory);
+	AAIController* AIController = OwnerComp.GetAIOwner();
+
+	ABOOMCharacter* AICharacter = Cast<ABOOMCharacter>(AIController->GetCharacter());
+	if (AICharacter)
+	{
+		AICharacter->BurstGeometryProperties.CurrentBurstAngle -= AICharacter->BurstGeometryProperties.BurstCorrectionAngularVelocity * DeltaSeconds * DirectionModifier;
+		if (DirectionModifier == 1)
+		{
+			AICharacter->BurstGeometryProperties.CurrentBurstAngle = FMath::Clamp(AICharacter->BurstGeometryProperties.CurrentBurstAngle, 0.f, 100.f);
+		}
+		else
+		{
+			AICharacter->BurstGeometryProperties.CurrentBurstAngle = FMath::Clamp(AICharacter->BurstGeometryProperties.CurrentBurstAngle, -100.f, 0.f);
+		}
+	}
+
+	FBTBurstGeometryFireTaskMemory* TaskMemory = GetSpecialNodeMemory<FBTBurstGeometryFireTaskMemory>(NodeMemory);
 	if (TaskMemory)
 	{
-		if (TaskMemory->NextTickRemainingTime <= 0)
+		TaskDurationSeconds += DeltaSeconds;
+		if (TaskDurationSeconds >= AICharacter->BurstGeometryProperties.BurstDurationSeconds)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("BurstGeometrySuccess"))
-
 			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		}
 	}
@@ -59,7 +85,11 @@ void UBOOMBTTask_BurstGeometryFire::OnTaskFinished(UBehaviorTreeComponent& Owner
 	GetWorld()->GetTimerManager().ClearTimer(TimerHandle_RateOfFire);
 }
 
-/*Read up on how the node memory works.*/
+uint16 UBOOMBTTask_BurstGeometryFire::GetInstanceMemorySize() const
+{
+	return sizeof(FBTBurstGeometryFireTaskMemory);
+}
+
 void UBOOMBTTask_BurstGeometryFire::Fire(ABOOMCharacter* AICharacter)
 {
 	if (AICharacter)

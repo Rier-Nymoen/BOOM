@@ -100,23 +100,6 @@ void ABOOMWeapon::BeginPlay()
 void ABOOMWeapon::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	if (Character)
-	{
-		APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
-		if (PlayerController)
-		{
-			if (TargetRotation == FRotator::ZeroRotator)
-			{
-				//dont apply recoil
-			}
-			else
-			{
-
-
-			}
-		}
-	}
 }
 
 void ABOOMWeapon::Fire()
@@ -173,17 +156,11 @@ void ABOOMWeapon::Fire()
 			FirstShotRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
 		}
 		
-
 		if (RecoilPattern.IsValidIndex(RecoilIndex))
 		{
 			TargetRotation += RecoilPattern[RecoilIndex];
 			RecoilIndex++;
 			RecoilIndex = RecoilIndex % RecoilPattern.Num();
-			//PlayerController->AddPitchInput(-RecoilPattern[RecoilIndex].Pitch);
-			/*
-				The tick based recoil - framerate problem is annoying to deal with.
-				*/
-
 		}
 		else
 		{
@@ -191,9 +168,6 @@ void ABOOMWeapon::Fire()
 		}
 
 	}
-
-
-	
 }
 
 bool ABOOMWeapon::IsIntendingToRefire()
@@ -241,6 +215,13 @@ void ABOOMWeapon::FireHitscan()
 	{
 		StartTrace = GetOwner()->GetActorLocation();
 		FRotator StartRotation = GetOwner()->GetActorRotation();
+
+		AAIController* AIController = Cast<AAIController>(Character->GetController());
+		if (AIController)
+		{
+			StartRotation += FRotator(0, Character->BurstGeometryProperties.CurrentBurstAngle, 0);
+		}
+
 		FVector ShotDirection = CalculateBulletSpreadDir(StartRotation);
 
 		EndTrace = StartTrace + (ShotDirection * HitscanRange);
@@ -255,7 +236,6 @@ void ABOOMWeapon::FireHitscan()
 			EndTrace = StartTrace  + EndRotation.Vector() * HitscanRange;
 		}
 	}
-
 
 	FHitResult HitResult;
 	FCollisionQueryParams TraceParams;
@@ -301,7 +281,6 @@ void ABOOMWeapon::FireHitscan()
 				const FGameplayEffectSpecHandle DamageEffectSpec = TargetAbilitySystemComponent->MakeOutgoingSpec(DamageEffect, 0.F, EffectContext);
 
 				AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*DamageEffectSpec.Data, TargetAbilitySystemComponent);
-
 			}
 		}
 	}

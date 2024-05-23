@@ -25,27 +25,36 @@ class USoundBase;
 class UAbilitySystemComponent;
 
 USTRUCT(BlueprintType)
-struct FCombatProperties
+struct FBurstGeometryProperties
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
 	float RateOfFiringInputSeconds;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
 	float TargetTrackingAccuracy;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
 	float TargetLeadingAccuracy;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
 	float BurstDurationSeconds;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
 	float TimeBetweenBursts;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
 	float TargetTrackingImprovementAngularVelocity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float InitialBurstAngle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float CurrentBurstAngle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI | Behavior")
+	float BurstCorrectionAngularVelocity;
 };
 
 USTRUCT(BlueprintType)
@@ -298,7 +307,7 @@ public:
 	bool IsAlive();
 
 	UPROPERTY(EditAnywhere)
-	FCombatProperties CombatProperties;
+	FBurstGeometryProperties BurstGeometryProperties;
 
 protected:
 
@@ -360,5 +369,5 @@ protected:
 	struct FGameplayTagContainer GameplayTags;
 
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
-
+	
 };

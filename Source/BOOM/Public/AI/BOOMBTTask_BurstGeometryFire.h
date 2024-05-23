@@ -9,6 +9,12 @@
 /**
  * 
  */
+struct FBTBurstGeometryFireTaskMemory : public FBTTaskMemory
+{
+public:
+
+	float TaskDurationSeconds;
+};
 
 
 UCLASS()
@@ -27,11 +33,16 @@ protected:
 
 	virtual void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult);
 
+	uint16 GetInstanceMemorySize() const override;
 
 	//if each unit has their own instance of this... it should be fine.
 	FTimerHandle TimerHandle_RateOfFire;
 
 	FTimerDelegate TimerDelegate_RateOfFire;
-	
+
+	float TaskDurationSeconds;
+
+	int DirectionModifier;
+
 	void Fire(class ABOOMCharacter* AICharacter);
 };
