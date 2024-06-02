@@ -1,4 +1,4 @@
-// Project BOOM
+	// Project BOOM
 
 
 #include "AI/BOOMAIController.h"
@@ -44,6 +44,14 @@ void ABOOMAIController::OnPossess(APawn* InPawn)
 
 void ABOOMAIController::OnTargetPerceptionForgotten(AActor* ForgottenActor)
 {
+	if (IsValid(Blackboard.Get()) && IsValid(BehaviorTree.Get()))
+	{
+		AActor* TargetActor = Cast<AActor>(Blackboard->GetValueAsObject(TargetActorKeyName));
+		if (ForgottenActor == TargetActor)
+		{
+			Blackboard->SetValueAsVector(LastKnownPositionKeyName, TargetActor->GetActorLocation());
+		}
+	}
 }
 
 void ABOOMAIController::SetGenericTeamId(const FGenericTeamId& NewTeamID)

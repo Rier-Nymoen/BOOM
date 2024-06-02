@@ -23,6 +23,8 @@ class UCameraComponent;
 class UAnimMontage;
 class USoundBase;
 class UAbilitySystemComponent;
+class UBOOMHealthComponent;
+class ABOOMWeapon;
 
 USTRUCT(BlueprintType)
 struct FBurstGeometryProperties
@@ -145,15 +147,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = DataTable)
 	class UDataTable* WeaponTable;
 
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-	void StartFire();
+	//UFUNCTION(BlueprintCallable, Category = Weapon)
+	//void StartFire();
 
 	//Temporary solution to have AI only worry about when to fire, not when to stop, when using non-automatic weapons.
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void SingleFire();
 	
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-	void StopFire();
+	//UFUNCTION(BlueprintCallable, Category = Weapon)
+	//void StopFire();
 
 	bool bReleasedJumpInput;
 	
@@ -183,8 +185,8 @@ protected:
 	UFUNCTION()
 	void Reload();
 
-	UFUNCTION()
-	virtual void Fire();
+	//UFUNCTION()
+	//virtual void Fire();
 
 	void Interact(const FInputActionValue& Value);
 
@@ -300,8 +302,12 @@ public:
 	UFUNCTION()
 	bool HasEmptyWeaponSlots();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	float GetHealth();
+
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealthPercentage();
 
 	UFUNCTION(BlueprintCallable)
 	bool IsAlive();
@@ -309,10 +315,16 @@ public:
 	UPROPERTY(EditAnywhere)
 	FBurstGeometryProperties BurstGeometryProperties;
 
+	UFUNCTION(BlueprintCallable)
+	UBOOMHealthComponent* GetHealthComponent() const { return HealthComponent; }
+
+	UFUNCTION(BlueprintCallable)
+	ABOOMWeapon* GetCurrentWeapon() const { return Weapons.IsValidIndex(CurrentWeaponSlot) ? Weapons[CurrentWeaponSlot] : nullptr; }
+
 protected:
 
 	UPROPERTY()
-	class UBOOMHealthComponent* HealthComponent;
+	UBOOMHealthComponent* HealthComponent;
 	//experimenting, remove its specifier potentialy
 	UPROPERTY(BlueprintAssignable)
 	FOnDeath OnDeath;

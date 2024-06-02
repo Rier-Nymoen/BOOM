@@ -21,6 +21,8 @@ EBTNodeResult::Type UBOOMBTTask_BurstGeometryFire::ExecuteTask(UBehaviorTreeComp
 	ABOOMCharacter* AICharacter = Cast<ABOOMCharacter>(AIController->GetCharacter());
 	if (AICharacter)
 	{
+
+		//Need to add height variation to the bursts.
 		bool bIsClockwise = FMath::RandBool();
 
 		if (bIsClockwise)
@@ -37,7 +39,7 @@ EBTNodeResult::Type UBOOMBTTask_BurstGeometryFire::ExecuteTask(UBehaviorTreeComp
 		float Duration = AICharacter->BurstGeometryProperties.BurstDurationSeconds;
 		bNotifyTick = true;
 		TimerDelegate_RateOfFire = FTimerDelegate::CreateUObject(this, &UBOOMBTTask_BurstGeometryFire::Fire, AICharacter);
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_RateOfFire, TimerDelegate_RateOfFire, AICharacter->BurstGeometryProperties.RateOfFiringInputSeconds, true);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_RateOfFire, TimerDelegate_RateOfFire, AICharacter->BurstGeometryProperties.RateOfFiringInputSeconds, true, 0.0f);
 
 		return EBTNodeResult::InProgress;
 	}

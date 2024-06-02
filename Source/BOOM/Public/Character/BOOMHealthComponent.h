@@ -30,20 +30,27 @@ protected:
 	virtual void BeginPlay() override;
 	UPROPERTY()
 	class UAbilitySystemComponent* AbilitySystemComponent;
-	//figure out health and shield interactions
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+
+	UPROPERTY()
 	const class UBOOMAttributeSetBase* AttributeSetBase;
 	
-
 public:	
+
+	//@TODO: add functionality for shields and other health related concepts.
+
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	virtual void InitializeComponentWithOwningActor(class UAbilitySystemComponent* InAbilitySystemComponent);
 
-	//UFUNCTION()
 	void HandleHealthChanged(const FOnAttributeChangeData& Data);
 
-private:
-		
+	UFUNCTION(BlueprintCallable)
+	float GetMaxHealth() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealth() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealthPercentage() const;		
 };

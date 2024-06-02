@@ -83,6 +83,7 @@ ABOOMWeapon::ABOOMWeapon()
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
 
 	FiringSource = EFiringSource::Camera;
+	bIsPendingFiring = false;
 
 }
 
@@ -104,7 +105,6 @@ void ABOOMWeapon::Tick(float DeltaSeconds)
 
 void ABOOMWeapon::Fire()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Weapon Fired"))
 	if (Character == nullptr || Character->GetController() == nullptr)
 	{
 		return;
@@ -172,7 +172,7 @@ void ABOOMWeapon::Fire()
 
 bool ABOOMWeapon::IsIntendingToRefire()
 {
-	if (GetCharacter()->bIsPendingFiring && HasAmmo())
+	if (bIsPendingFiring && HasAmmo())
 	{
 		return true;
 	}
@@ -243,7 +243,7 @@ void ABOOMWeapon::FireHitscan()
 	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_Visibility, TraceParams);
 	if (bVisualizeHitscanTraces)
 	{
-		DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor(FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F), FMath::FRandRange(0.0F, 255.0F)), true, 0.4);
+		DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor(0,120,160, CurrentAmmo/MagazineSize), false, FireRateSeconds);
 	}
 	
 	if (bHit)
@@ -270,7 +270,6 @@ void ABOOMWeapon::FireHitscan()
 		check(GetInstigator())
 		if (AbilitySystemComponent)
 		{
-
 			if (DamageEffect)
 			{
 				FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
@@ -415,11 +414,18 @@ void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* TargetCharacter)
 /*reworking input for firing weapons*/
 void ABOOMWeapon::HandleFireInput()
 {
+	bIsPendingFiring = true;
+	CurrentState->HandleFireInput();
+}
+
+void ABOOMWeapon::HandleSingleFireInput()
+{
 	CurrentState->HandleFireInput();
 }
 
 void ABOOMWeapon::HandleStopFireInput()
 {
+	bIsPendingFiring = false;
 	CurrentState->HandleStopFiringInput();
 }
 
@@ -569,22 +575,29 @@ void ABOOMWeapon::Zoom()
 
 void ABOOMWeapon::ZoomOut()
 {
-	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
-	if (PlayerController)
+	if (Character)
 	{
-		ZoomMode = EZoom::Not_Zoomed;
-		PlayerController->PlayerCameraManager->SetFOV(90);
+		APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+		if (PlayerController)
+		{
+			ZoomMode = EZoom::Not_Zoomed;
+			PlayerController->PlayerCameraManager->SetFOV(90);
+		}
 	}
 }
 
 void ABOOMWeapon::ZoomIn()
 {
-	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
-	if (PlayerController)
+	if (Character)
 	{
-		ZoomMode = EZoom::Zoomed;
-		PlayerController->PlayerCameraManager->SetFOV(45);
+		APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+		if (PlayerController)
+		{
+			ZoomMode = EZoom::Zoomed;
+			PlayerController->PlayerCameraManager->SetFOV(45);
+		}
 	}
+
 }
 
 void ABOOMWeapon::Cooldown()

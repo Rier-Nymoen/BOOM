@@ -49,6 +49,15 @@ void UBOOMHealthComponent::InitializeComponentWithOwningActor(UAbilitySystemComp
 	AbilitySystemComponent = InAbilitySystemComponent;
 
 	AttributeSetBase = AbilitySystemComponent->GetSet<UBOOMAttributeSetBase>();
+	if (AttributeSetBase == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Attribute Set is nulltpr"))
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Attribute Set is not null"))
+
+	}
 
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &UBOOMHealthComponent::HandleHealthChanged);
 }
@@ -58,6 +67,28 @@ void UBOOMHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& Dat
 	UE_LOG(LogTemp, Warning, TEXT("Broadcasting OnHealthChanged inside UBOOMHealthComponent::HandleHealthChanged()."), *GetName());
 	OnHealthChanged.Broadcast(Data.OldValue, Data.NewValue);
 }
+
+float UBOOMHealthComponent::GetMaxHealth() const
+{
+	return AttributeSetBase ? AttributeSetBase->GetMaxHealth() : 0.0f;
+}
+
+float UBOOMHealthComponent::GetHealth() const
+{
+	return AttributeSetBase ? AttributeSetBase->GetHealth() : 0.0f;
+}
+
+float UBOOMHealthComponent::GetHealthPercentage() const
+{
+	if (AttributeSetBase)
+	{
+		float MaxHealth = AttributeSetBase->GetMaxHealth();
+		return MaxHealth > 0.f ? AttributeSetBase->GetHealth() / MaxHealth : 0.0f;
+	}
+	return 0.0f;
+}
+
+
 
 
 

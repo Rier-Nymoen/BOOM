@@ -114,10 +114,12 @@ public:
 	
 	UFUNCTION()
 	virtual void HandleFireInput();
+
+	UFUNCTION()
+	virtual void HandleSingleFireInput();
 	
 	UFUNCTION()
 	virtual void HandleStopFireInput();
-
 
 protected:
 	//Value should be a multiple of MagazineSize. Maximum Ammo Reserves.
@@ -152,20 +154,30 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UMaterialInstance* ImpactDecal;
 
+	bool bIsPendingFiring;
+
 
 public:
+
+	UFUNCTION(BlueprintCallable)
 	int GetMaxAmmoReserves() const  { return MaxAmmoReserves; }
 
+	UFUNCTION(BlueprintCallable)
 	int GetCurrentAmmoReserves() const { return CurrentAmmoReserves; }
 
+	UFUNCTION(BlueprintCallable)
 	int GetMagazineSize() const { return MagazineSize; }
 
+	UFUNCTION(BlueprintCallable)
 	int GetCurrentAmmo() const { return CurrentAmmo; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetHitscanRange() const { return HitscanRange; }
 
 	UFUNCTION()
 	virtual void AddAmmo(int Amount);
 	
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	virtual bool HasAmmo();
 
 	virtual void HandleEquipping();
@@ -325,11 +337,12 @@ protected:
 	float DebugInterpSpeedRecoil;
 
 	UPROPERTY(EditAnywhere, Category = Debug)
-	
 	float DebugInterpSpeedRecovery;
 
 	FRotator FirstShotRotation;
 
 	//UPROPERTY(EditDefaultsOnly, Category = Effects)
 	//class UNiagraSystem* BulletTraceFX;
+
+
 };

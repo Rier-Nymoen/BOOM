@@ -74,8 +74,10 @@ ABOOMCharacter::ABOOMCharacter()
 	AttributeSetBase = CreateDefaultSubobject<UBOOMAttributeSetBase>("AttributeSetBase"); /*There is a known bug (not on my end) with child blueprints and attribute sets*/
 	AttributeSetBase->InitHealth(100.F);
 	AttributeSetBase->InitMaxHealth(100.F);
-	AttributeSetBase->InitShieldStrength(100.F);
-	AttributeSetBase->InitMaxShieldStrength(100.F);
+	AttributeSetBase->InitShieldStrength(100.0f);
+	AttributeSetBase->InitMaxShieldStrength(100.0f);
+	AbilitySystemComponent->AddSpawnedAttribute(AttributeSetBase);
+
 
 	//Can always get handles to delegates if needed.
 
@@ -207,10 +209,10 @@ void ABOOMCharacter::Reload()
 	}
 }
 
-void ABOOMCharacter::Fire()
-{
-
-}
+//void ABOOMCharacter::Fire()
+//{
+//
+//}
 
 void ABOOMCharacter::SingleFire()
 {
@@ -221,21 +223,21 @@ void ABOOMCharacter::SingleFire()
 
 	if (Weapons[CurrentWeaponSlot] != nullptr)
 	{
-		Weapons[CurrentWeaponSlot]->HandleFireInput();
+		Weapons[CurrentWeaponSlot]->HandleSingleFireInput();
 	}
 }
 
-void ABOOMCharacter::StopFire()
-{
-	bIsPendingFiring = false;
-	if (Weapons.IsValidIndex(CurrentWeaponSlot))
-	{
-		if (Weapons[CurrentWeaponSlot] != nullptr)
-		{
-			Weapons[CurrentWeaponSlot]->HandleStopFireInput();
-		}
-	}
-}
+//void ABOOMCharacter::StopFire()
+//{
+//	bIsPendingFiring = false;
+//	if (Weapons.IsValidIndex(CurrentWeaponSlot))
+//	{
+//		if (Weapons[CurrentWeaponSlot] != nullptr)
+//		{
+//			Weapons[CurrentWeaponSlot]->HandleStopFireInput();
+//		}
+//	}
+//}
 
 void ABOOMCharacter::DropCurrentWeapon()
 {
@@ -605,16 +607,17 @@ void ABOOMCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) c
 
 float ABOOMCharacter::GetHealth()
 {
-	if (IsValid(AttributeSetBase))
-	{
-		return AttributeSetBase->GetHealth();
-	}
-	
-	return 0.0F;
+	return HealthComponent->GetHealth();
+}
+
+float ABOOMCharacter::GetHealthPercentage()
+{
+	return HealthComponent->GetHealthPercentage();
 }
 
 bool ABOOMCharacter::IsAlive()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Is alive health check: %f"), GetHealth());
 	return GetHealth() > 0.0F;
 }
 
@@ -724,19 +727,19 @@ void ABOOMCharacter::StopJumping()
 }
 
 //void ABOOMCharacter::StartFire(const FInputActionValue& Value)
-void ABOOMCharacter::StartFire()
-{
-	bIsPendingFiring = true;
-	if (HasNoWeapons())
-	{
-		return;
-	}
-
-	if (Weapons[CurrentWeaponSlot] != nullptr)
-	{
-		Weapons[CurrentWeaponSlot]->HandleFireInput();
-	}
-}
+//void ABOOMCharacter::StartFire()
+//{
+//	bIsPendingFiring = true;
+//	if (HasNoWeapons())
+//	{
+//		return;
+//	}
+//
+//	if (Weapons[CurrentWeaponSlot] != nullptr)
+//	{
+//		Weapons[CurrentWeaponSlot]->HandleFireInput();
+//	}
+//}
 
 void ABOOMCharacter::Interact(const FInputActionValue& Value)
 {
@@ -781,7 +784,7 @@ FGenericTeamId ABOOMCharacter::GetGenericTeamId() const
 		UE_LOG(LogTemp, Warning, TEXT("Team ID got successfully: %s"), *GetNameSafe(this));
 		return 	TeamInterface->GetGenericTeamId();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Team id failed in: %s"), *GetNameSafe(this));
+	UE_LOG(LogTemp, Warning, TEXT("Team ID failed in: %s"), *GetNameSafe(this));
 	return FGenericTeamId::NoTeam;
 }
 
