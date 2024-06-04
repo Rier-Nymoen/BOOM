@@ -338,6 +338,7 @@ void ABOOMWeapon::HandleReloadInput()
 {
 	if (CurrentState != nullptr)
 	{
+		bIsPendingFiring = false;
 		CurrentState->HandleReloadInput();
 	}
 }
@@ -633,6 +634,9 @@ void ABOOMWeapon::OnEquip()
 		{
 			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ABOOMWeapon::HandleFireInput);
 			EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMWeapon::HandleStopFireInput);
+			EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMWeapon::HandleReloadInput);
+			EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Started, this, &ABOOMWeapon::Zoom);
+
 		}
 
 	}

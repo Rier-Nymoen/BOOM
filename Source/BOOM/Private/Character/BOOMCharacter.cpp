@@ -62,7 +62,6 @@ ABOOMCharacter::ABOOMCharacter()
 	bGenerateOverlapEventsDuringLevelStreaming = true;
 	CurrentWeaponSlot = 0;
 	MaxWeaponsEquipped = 2;
-	bIsPendingFiring = false;
 
 	bIsFocalLengthScalingEnabled = false;
 
@@ -132,7 +131,6 @@ void ABOOMCharacter::BeginPlay()
 		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
 	}
 	SpawnWeapons();
-
 }
 
 void ABOOMCharacter::Tick(float DeltaSeconds)
@@ -162,7 +160,6 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABOOMCharacter::StopJumping);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABOOMCharacter::CaptureJumpInputRelease);
 
-
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ABOOMCharacter::StartCrouch);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ABOOMCharacter::EndCrouch); 
 
@@ -178,41 +175,9 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		//Weapon Pickup
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ABOOMCharacter::Interact);
 
-		//` Weapon
-		//@TODO - Possibly let weapons bind their own firing input responses
-		// 
-	
-		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Started, this, &ABOOMCharacter::Zoom);
-
-		//Reload Weapon
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMCharacter::Reload);
-
 		EnhancedInputComponent->BindAction(GrenadeThrowAction, ETriggerEvent::Started, this, &ABOOMCharacter::ThrowGrenade);
-
 	}
 }
-
-void ABOOMCharacter::Reload()
-{
-	bIsPendingFiring = false;
-	if (HasNoWeapons())
-	{
-		return;
-	}
-	if (Weapons.IsValidIndex(CurrentWeaponSlot))
-	{
-		Weapon = Weapons[CurrentWeaponSlot];
-	}
-	if (Weapon != nullptr)
-	{
-		Weapon->HandleReloadInput();
-	}
-}
-
-//void ABOOMCharacter::Fire()
-//{
-//
-//}
 
 void ABOOMCharacter::SingleFire()
 {
@@ -401,7 +366,6 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 
 		if (GetMesh1P())
 		{
-			//TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
 			TargetWeapon->GetMeshWeapon1P()->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
 		}
 		if (TargetWeapon->GetMeshWeapon3P() && GetMesh())
@@ -581,14 +545,6 @@ void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
 	}
 }
 
-void ABOOMCharacter::Zoom()
-{
-	if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
-	{
-		Weapons[CurrentWeaponSlot]->Zoom();
-	}
-}
-
 void ABOOMCharacter::HandleHitReaction()
 {
 	if (HitReactionMontage)
@@ -726,21 +682,6 @@ void ABOOMCharacter::StopJumping()
 		BOOMCharacterMovementComponent->bBOOMPressedJump = false;
 	}
 }
-
-//void ABOOMCharacter::StartFire(const FInputActionValue& Value)
-//void ABOOMCharacter::StartFire()
-//{
-//	bIsPendingFiring = true;
-//	if (HasNoWeapons())
-//	{
-//		return;
-//	}
-//
-//	if (Weapons[CurrentWeaponSlot] != nullptr)
-//	{
-//		Weapons[CurrentWeaponSlot]->HandleFireInput();
-//	}
-//}
 
 void ABOOMCharacter::Interact(const FInputActionValue& Value)
 {

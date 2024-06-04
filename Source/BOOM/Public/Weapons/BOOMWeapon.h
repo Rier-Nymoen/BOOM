@@ -156,8 +156,8 @@ protected:
 
 	bool bIsPendingFiring;
 
-
 public:
+	bool IsPendingFiring() const { return bIsPendingFiring; }
 
 	UFUNCTION(BlueprintCallable)
 	int GetMaxAmmoReserves() const  { return MaxAmmoReserves; }
@@ -277,6 +277,13 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* StopFireAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ReloadAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ZoomAction;
+
 
 	//Maps heat level to bullet spread angle
 

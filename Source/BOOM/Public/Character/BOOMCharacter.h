@@ -147,16 +147,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = DataTable)
 	class UDataTable* WeaponTable;
 
-	//UFUNCTION(BlueprintCallable, Category = Weapon)
-	//void StartFire();
-
 	//Temporary solution to have AI only worry about when to fire, not when to stop, when using non-automatic weapons.
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void SingleFire();
 	
-	//UFUNCTION(BlueprintCallable, Category = Weapon)
-	//void StopFire();
-
 	bool bReleasedJumpInput;
 	
 protected:
@@ -182,9 +176,6 @@ protected:
 
 	virtual void StopJumping() override;
 
-	UFUNCTION()
-	void Reload();
-
 	//UFUNCTION()
 	//virtual void Fire();
 
@@ -209,21 +200,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* WeaponSwapAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* FireAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* StopFireAction;
-
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* ReloadAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* ZoomAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* CrouchAction;
@@ -242,8 +221,6 @@ public:
 
 	UFUNCTION()
 	void DropCurrentWeapon();
-
-	bool bIsPendingFiring;
 
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
@@ -305,7 +282,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetHealth();
 
-
 	UFUNCTION(BlueprintCallable)
 	float GetHealthPercentage();
 
@@ -360,9 +336,6 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	bool bIsDead;
 
-	UFUNCTION()
-	void Zoom();
-	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Input)
 	bool bIsFocalLengthScalingEnabled;
 
