@@ -30,7 +30,6 @@
 // Sets default values
 ABOOMWeapon::ABOOMWeapon()
 {
-	//dont forget to turn off
 	PrimaryActorTick.bCanEverTick = true;
 
 	Weapon3P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh3P");
@@ -40,7 +39,6 @@ ABOOMWeapon::ABOOMWeapon()
 	Weapon1P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh1P");
 	Weapon1P->SetupAttachment(Weapon3P);
 	Weapon1P->bOnlyOwnerSee = true;
-
 
 	BOOMPickUp = CreateDefaultSubobject<UBOOMPickUpComponent>("PickUpComponent");
 	BOOMPickUp->SetupAttachment(Weapon3P);
@@ -87,7 +85,6 @@ ABOOMWeapon::ABOOMWeapon()
 
 	FiringSource = EFiringSource::Camera;
 	bIsPendingFiring = false;
-
 }
 
 // Called when the game starts or when spawned
@@ -128,11 +125,6 @@ void ABOOMWeapon::Fire()
 
 	AddAmmo(-AmmoCost);
 
-	if (Character && Character->GetPlayerHUD()) //it was possible for the character to be set to null when collision settings allowed for self inflcited damage and dies.
-	{
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-	}			
-
 	CurrentHeat += HeatToHeatIncreaseCurve.GetRichCurve()->Eval(CurrentHeat);
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_WeaponCooldown, this, &ABOOMWeapon::Cooldown, WeaponCoolingStartSeconds, true);
 
@@ -169,7 +161,6 @@ void ABOOMWeapon::Fire()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("INVALID RECOIL INDEX: %d"), RecoilIndex);
 		}
-
 	}
 }
 
@@ -353,11 +344,7 @@ void ABOOMWeapon::ReloadWeapon()
 		CurrentAmmoReserves -= FMath::Min(BulletDifference, CurrentAmmoReserves);
 
 		check(Character)
-		if (Character->GetPlayerHUD())
-		{
-			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
-			Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-		}
+
 	}
 	GotoState(ActiveState);
 }
@@ -367,11 +354,6 @@ void ABOOMWeapon::FeedReloadWeapon()
 	CurrentAmmo++;
 	CurrentAmmoReserves--;
 	check(Character)
-	if (Character->GetPlayerHUD())
-	{
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(CurrentAmmoReserves);
-		Character->GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(CurrentAmmo);
-	}
 }
 
 //When the weapon is added to your equipment
@@ -412,7 +394,6 @@ void ABOOMWeapon::OnInteractionRangeExited(ABOOMCharacter* TargetCharacter)
 	if (TargetCharacter->GetPlayerHUD())
 	{
 		TargetCharacter->GetPlayerHUD()->GetPickUpPromptElement()->SetVisibility(ESlateVisibility::Hidden);
-
 	}
 }
 /*reworking input for firing weapons*/
@@ -462,14 +443,12 @@ void ABOOMWeapon::HandleUnequipping()
 
 void ABOOMWeapon::GotoState(UBOOMWeaponState* NewState)
 {
-
 	if (NewState == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Attempted to assign an invalid or null state."));
 		return;
 	}
 	UBOOMWeaponState* PreviousState = CurrentState;
-
 
 	if (CurrentState != nullptr)
 	{
@@ -528,11 +507,9 @@ void ABOOMWeapon::HandleBeingDropped()
 	FDetachmentTransformRules DetRules(EDetachmentRule::KeepWorld, true);
 	DetachFromActor(DetRules);
 
-
 	Weapon3P->SetSimulatePhysics(true);
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepWorld, false);
 	BOOMPickUp->AttachToComponent(Weapon3P, AttachmentRules);
-
 
 	if (Character)
 	{
@@ -547,8 +524,6 @@ void ABOOMWeapon::HandleBeingDropped()
 	SetOwner(nullptr);
 
 	GotoState(UnequippingState);
-
-		
 }
 
 void ABOOMWeapon::DisableCollision()
@@ -601,7 +576,6 @@ void ABOOMWeapon::ZoomIn()
 			PlayerController->PlayerCameraManager->SetFOV(45);
 		}
 	}
-
 }
 
 void ABOOMWeapon::Cooldown()
@@ -613,7 +587,6 @@ void ABOOMWeapon::Cooldown()
 	{
 		GetWorldTimerManager().ClearTimer(TimerHandle_WeaponCooldown);
 	}
-	
 }
 
 //This is technically "wielding" the weapon.
@@ -636,9 +609,7 @@ void ABOOMWeapon::OnEquip()
 			EnhancedInputComponent->BindAction(StopFireAction, ETriggerEvent::Completed, this, &ABOOMWeapon::HandleStopFireInput);
 			EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMWeapon::HandleReloadInput);
 			EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Started, this, &ABOOMWeapon::Zoom);
-
 		}
-
 	}
 }
 
@@ -655,13 +626,11 @@ void ABOOMWeapon::OnUnequip()
 		PlayerController->PlayerCameraManager->StopAllInstancesOfCameraShake(FiringCameraShakeClass, true);
 		if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
 		{
-
 			EnhancedInputComponent->ClearActionBindings();
 			DisableInput(Cast<APlayerController>(PlayerController));
 		}
 	}
 }
-
 
 FVector ABOOMWeapon::CalculateBulletSpreadDir(FRotator StartRot) //This is circular spread. The idea  to use Quaternions to define the rotations was from Epic's Lyra project.
 {	
@@ -695,9 +664,7 @@ FVector ABOOMWeapon::CalculateBulletSpreadDir(FRotator StartRot) //This is circu
 	So if we treat the vector (1,0,0) as the starting axis of rotation of the quaternion, then rotating the vector by this quaternion should yield an angle of axis matching the operations we took.
 	*/
 
-
 	FVector FinalVector = FinalQuat.RotateVector(FVector(1, 0, 0));
-
 
 	return FinalVector;
 }

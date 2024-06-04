@@ -14,6 +14,4 @@ class BOOM_API UBOOMUserWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-	virtual void NativeConstruct() override;
-
 };

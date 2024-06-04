@@ -71,6 +71,7 @@ public:
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponSwap);
 
 UCLASS(config = Game)
 class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IGameplayCueInterface, public IGameplayTagAssetInterface
@@ -304,6 +305,9 @@ protected:
 	//experimenting, remove its specifier potentialy
 	UPROPERTY(BlueprintAssignable)
 	FOnDeath OnDeath;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnWeaponSwap OnWeaponSwap;
 
 	UFUNCTION()
 	void HandleDeath();

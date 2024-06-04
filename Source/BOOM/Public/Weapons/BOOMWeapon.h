@@ -76,6 +76,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = Name)
 	FName Name = FName(TEXT("Default Weapon Name"));
 
+	FName GetName() const { return Name; }
+
 	/*Character holding weapon*/
 	ABOOMCharacter* Character;
 
@@ -158,6 +160,8 @@ protected:
 
 public:
 	bool IsPendingFiring() const { return bIsPendingFiring; }
+	
+	void SetIsPendingFiring(bool InBoolean) { bIsPendingFiring = InBoolean;}
 
 	UFUNCTION(BlueprintCallable)
 	int GetMaxAmmoReserves() const  { return MaxAmmoReserves; }
@@ -258,7 +262,6 @@ public:
 	virtual void Cooldown();
 	
 	void InterpRecoil();
-
 
 	FTimerHandle TimerHandle_WeaponCooldown;
 
