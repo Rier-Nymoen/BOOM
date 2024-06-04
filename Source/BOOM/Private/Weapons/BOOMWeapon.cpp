@@ -33,14 +33,17 @@ ABOOMWeapon::ABOOMWeapon()
 	//dont forget to turn off
 	PrimaryActorTick.bCanEverTick = true;
 
-	Weapon1P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh1P");
-	Weapon1P->bOnlyOwnerSee = true;
 	Weapon3P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh3P");
 	Weapon3P->bOwnerNoSee = true;
+	Weapon3P->SetupAttachment(RootComponent);
+
+	Weapon1P = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh1P");
+	Weapon1P->SetupAttachment(Weapon3P);
+	Weapon1P->bOnlyOwnerSee = true;
 
 
 	BOOMPickUp = CreateDefaultSubobject<UBOOMPickUpComponent>("PickUpComponent");
-	BOOMPickUp->SetupAttachment(Weapon1P);
+	BOOMPickUp->SetupAttachment(Weapon3P);
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 	ActiveState = CreateDefaultSubobject<UBOOMWeaponStateActive>("ActiveState");
@@ -525,17 +528,17 @@ void ABOOMWeapon::HandleBeingDropped()
 	DetachFromActor(DetRules);
 
 
-	Weapon1P->SetSimulatePhysics(true);
+	Weapon3P->SetSimulatePhysics(true);
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepWorld, false);
-	BOOMPickUp->AttachToComponent(Weapon1P, AttachmentRules);
+	BOOMPickUp->AttachToComponent(Weapon3P, AttachmentRules);
 
 
 	if (Character)
 	{
-		Weapon1P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Weapon3P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 		//@TODO: Need to have this affected by directional movement and rotation, for now this is okay.
-		Weapon1P->SetPhysicsLinearVelocity(Character->GetActorForwardVector() * Character->GetVelocity().Size(), true);
+		Weapon3P->SetPhysicsLinearVelocity(Character->GetActorForwardVector() * Character->GetVelocity().Size(), true);
 	}
 
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -549,8 +552,8 @@ void ABOOMWeapon::HandleBeingDropped()
 
 void ABOOMWeapon::DisableCollision()
 {
-	Weapon1P->SetSimulatePhysics(false);
-	Weapon1P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Weapon3P->SetSimulatePhysics(false);
+	Weapon3P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	BOOMPickUp->SetSimulatePhysics(false);
 	BOOMPickUp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

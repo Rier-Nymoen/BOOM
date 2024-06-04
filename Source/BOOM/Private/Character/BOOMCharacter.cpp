@@ -401,7 +401,8 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 
 		if (GetMesh1P())
 		{
-			TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+			//TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+			TargetWeapon->GetMeshWeapon1P()->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
 		}
 		if (TargetWeapon->GetMeshWeapon3P() && GetMesh())
 		{
@@ -433,7 +434,7 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 		DropCurrentWeapon();
 		TargetWeapon->GotoStateEquipping();
 		Weapons[CurrentWeaponSlot] = TargetWeapon;
-		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+		TargetWeapon->GetMeshWeapon1P()->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
 		if (TargetWeapon->GetMeshWeapon3P() && GetMesh())
 		{
 			TargetWeapon->GetMeshWeapon3P()->AttachToComponent(GetMesh(), AttachmentRules, SocketNameGripPoint3P);
@@ -661,7 +662,7 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 	{
 		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
 		
-		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameHolsterPoint);
+		Weapons[CurrentWeaponSlot]->GetMeshWeapon1P()->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameHolsterPoint);
 		
 		Weapons[CurrentWeaponSlot]->HandleUnequipping();
 
@@ -670,7 +671,7 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 
 		if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
 		{
-			Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+			Weapons[CurrentWeaponSlot]->GetMeshWeapon1P()->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameGripPoint);
 			Weapons[CurrentWeaponSlot]->HandleEquipping();
 			if (GetPlayerHUD())
 			{
