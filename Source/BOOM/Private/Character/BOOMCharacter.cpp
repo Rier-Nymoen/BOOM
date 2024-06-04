@@ -62,7 +62,6 @@ ABOOMCharacter::ABOOMCharacter()
 	bGenerateOverlapEventsDuringLevelStreaming = true;
 	CurrentWeaponSlot = 0;
 	MaxWeaponsEquipped = 2;
-	bIsPendingFiring = false;
 
 	bIsFocalLengthScalingEnabled = false;
 
@@ -74,8 +73,10 @@ ABOOMCharacter::ABOOMCharacter()
 	AttributeSetBase = CreateDefaultSubobject<UBOOMAttributeSetBase>("AttributeSetBase"); /*There is a known bug (not on my end) with child blueprints and attribute sets*/
 	AttributeSetBase->InitHealth(100.F);
 	AttributeSetBase->InitMaxHealth(100.F);
-	AttributeSetBase->InitShieldStrength(100.F);
-	AttributeSetBase->InitMaxShieldStrength(100.F);
+	AttributeSetBase->InitShieldStrength(100.0f);
+	AttributeSetBase->InitMaxShieldStrength(100.0f);
+	AbilitySystemComponent->AddSpawnedAttribute(AttributeSetBase);
+
 
 	//Can always get handles to delegates if needed.
 
@@ -108,12 +109,7 @@ void ABOOMCharacter::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AttributeSetBase is not set"))
 	}
-	
 
-	//HealthComponent->OnHealthChanged.AddDynamic(this, &ABOOMCharacter::HandleHealthChanged);
-	/*
-	Actors already overlapping will not cause a begin overlap event, therefore need to check size of overlapped actors on begin play.
-	*/
 	GetOverlappingActors(OverlappedActors);
 	Overlaps = OverlappedActors.Num();
 	
@@ -130,7 +126,6 @@ void ABOOMCharacter::BeginPlay()
 		GetWorld()->GetTimerManager().SetTimer(InteractionHandle, this, &ABOOMCharacter::CheckPlayerLook, 0.1F, true);
 	}
 	SpawnWeapons();
-
 }
 
 void ABOOMCharacter::Tick(float DeltaSeconds)
@@ -160,7 +155,6 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABOOMCharacter::StopJumping);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABOOMCharacter::CaptureJumpInputRelease);
 
-
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ABOOMCharacter::StartCrouch);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ABOOMCharacter::EndCrouch); 
 
@@ -176,40 +170,8 @@ void ABOOMCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		//Weapon Pickup
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ABOOMCharacter::Interact);
 
-		//` Weapon
-		//@TODO - Possibly let weapons bind their own firing input responses
-		// 
-	
-		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Started, this, &ABOOMCharacter::Zoom);
-
-		//Reload Weapon
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABOOMCharacter::Reload);
-
 		EnhancedInputComponent->BindAction(GrenadeThrowAction, ETriggerEvent::Started, this, &ABOOMCharacter::ThrowGrenade);
-
 	}
-}
-
-void ABOOMCharacter::Reload()
-{
-	bIsPendingFiring = false;
-	if (HasNoWeapons())
-	{
-		return;
-	}
-	if (Weapons.IsValidIndex(CurrentWeaponSlot))
-	{
-		Weapon = Weapons[CurrentWeaponSlot];
-	}
-	if (Weapon != nullptr)
-	{
-		Weapon->HandleReloadInput();
-	}
-}
-
-void ABOOMCharacter::Fire()
-{
-
 }
 
 void ABOOMCharacter::SingleFire()
@@ -221,21 +183,10 @@ void ABOOMCharacter::SingleFire()
 
 	if (Weapons[CurrentWeaponSlot] != nullptr)
 	{
-		Weapons[CurrentWeaponSlot]->HandleFireInput();
+		Weapons[CurrentWeaponSlot]->HandleSingleFireInput();
 	}
 }
 
-void ABOOMCharacter::StopFire()
-{
-	bIsPendingFiring = false;
-	if (Weapons.IsValidIndex(CurrentWeaponSlot))
-	{
-		if (Weapons[CurrentWeaponSlot] != nullptr)
-		{
-			Weapons[CurrentWeaponSlot]->HandleStopFireInput();
-		}
-	}
-}
 
 void ABOOMCharacter::DropCurrentWeapon()
 {
@@ -277,7 +228,6 @@ AActor* ABOOMCharacter::GetNearestInteractable()
 	}
 	return NearestActor;
 }
-
 
 void ABOOMCharacter::CheckPlayerLook()
 {
@@ -399,20 +349,12 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 
 		if (GetMesh1P())
 		{
-			TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+			TargetWeapon->GetMeshWeapon1P()->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
 		}
 		if (TargetWeapon->GetMeshWeapon3P() && GetMesh())
 		{
 			TargetWeapon->GetMeshWeapon3P()->AttachToComponent(GetMesh(), AttachmentRules, SocketNameGripPoint3P);
 		}
-
-		if (GetPlayerHUD())
-		{
-			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmo());
-			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmoReserves());
-		}
-
 	}
 	else if (HasEmptyWeaponSlots())
 	{
@@ -431,17 +373,10 @@ void ABOOMCharacter::EquipWeapon(ABOOMWeapon* TargetWeapon)
 		DropCurrentWeapon();
 		TargetWeapon->GotoStateEquipping();
 		Weapons[CurrentWeaponSlot] = TargetWeapon;
-		TargetWeapon->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+		TargetWeapon->GetMeshWeapon1P()->AttachToComponent(GetMesh1P(), AttachmentRules, SocketNameGripPoint);
 		if (TargetWeapon->GetMeshWeapon3P() && GetMesh())
 		{
 			TargetWeapon->GetMeshWeapon3P()->AttachToComponent(GetMesh(), AttachmentRules, SocketNameGripPoint3P);
-		}
-
-		if (GetPlayerHUD())
-		{
-			GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
-			GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmo());
-			GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmoReserves());
 		}
 	}
 	SetHasRifle(true);
@@ -578,14 +513,6 @@ void ABOOMCharacter::HandleHealthChanged(const FOnAttributeChangeData& Data)
 	}
 }
 
-void ABOOMCharacter::Zoom()
-{
-	if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
-	{
-		Weapons[CurrentWeaponSlot]->Zoom();
-	}
-}
-
 void ABOOMCharacter::HandleHitReaction()
 {
 	if (HitReactionMontage)
@@ -605,16 +532,17 @@ void ABOOMCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) c
 
 float ABOOMCharacter::GetHealth()
 {
-	if (IsValid(AttributeSetBase))
-	{
-		return AttributeSetBase->GetHealth();
-	}
-	
-	return 0.0F;
+	return HealthComponent->GetHealth();
+}
+
+float ABOOMCharacter::GetHealthPercentage()
+{
+	return HealthComponent->GetHealthPercentage();
 }
 
 bool ABOOMCharacter::IsAlive()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Is alive health check: %f"), GetHealth());
 	return GetHealth() > 0.0F;
 }
 
@@ -643,7 +571,6 @@ void ABOOMCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
-
 	}
 }
 
@@ -654,28 +581,37 @@ void ABOOMCharacter::SwapWeapon(const FInputActionValue& Value)
 		return;
 	}
 
-	if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
+	ABOOMWeapon* OldWeapon = nullptr;
+	ABOOMWeapon* NewWeapon = nullptr;
+
+	if (Weapons.IsValidIndex(CurrentWeaponSlot))
 	{
-		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
-		
-		Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameHolsterPoint);
-		
-		Weapons[CurrentWeaponSlot]->HandleUnequipping();
+		OldWeapon = Weapons[CurrentWeaponSlot];
+	}
+	int NextWeaponSlot = (CurrentWeaponSlot + 1) % MaxWeaponsEquipped;
 
-		CurrentWeaponSlot++;
-		CurrentWeaponSlot = (CurrentWeaponSlot % MaxWeaponsEquipped);
+	if (Weapons.IsValidIndex(NextWeaponSlot))
+	{
+		NewWeapon = Weapons[NextWeaponSlot];
+	}
 
-		if (Weapons.IsValidIndex(CurrentWeaponSlot) && Weapons[CurrentWeaponSlot] != nullptr)
-		{
-			Weapons[CurrentWeaponSlot]->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameGripPoint);
-			Weapons[CurrentWeaponSlot]->HandleEquipping();
-			if (GetPlayerHUD())
-			{
-				GetPlayerHUD()->GetWeaponInformationElement()->SetWeaponNameText(Weapons[CurrentWeaponSlot]->Name);
-				GetPlayerHUD()->GetWeaponInformationElement()->SetCurrentAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmo());
-				GetPlayerHUD()->GetWeaponInformationElement()->SetReserveAmmoText(Weapons[CurrentWeaponSlot]->GetCurrentAmmoReserves());
-			}
-		}
+	CurrentWeaponSlot = NextWeaponSlot;
+
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
+	if (OldWeapon)
+	{
+		OldWeapon->GetMeshWeapon1P()->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameHolsterPoint);
+		OldWeapon->HandleUnequipping();
+	}
+	if (NewWeapon)
+	{
+		//if (OldWeapon && OldWeapon->IsPendingFiring())
+		//{
+		//	//@TODO: Quick solution for weapons to remain firing after being swapped to and holding down the input (since weapons bind their own input). May be a better place to do this.
+		//	NewWeapon->SetIsPendingFiring(true); 
+		//}
+		NewWeapon->GetMeshWeapon1P()->AttachToComponent(this->GetMesh1P(), AttachmentRules, SocketNameGripPoint);
+		NewWeapon->HandleEquipping();
 	}
 }
 
@@ -723,21 +659,6 @@ void ABOOMCharacter::StopJumping()
 	}
 }
 
-//void ABOOMCharacter::StartFire(const FInputActionValue& Value)
-void ABOOMCharacter::StartFire()
-{
-	bIsPendingFiring = true;
-	if (HasNoWeapons())
-	{
-		return;
-	}
-
-	if (Weapons[CurrentWeaponSlot] != nullptr)
-	{
-		Weapons[CurrentWeaponSlot]->HandleFireInput();
-	}
-}
-
 void ABOOMCharacter::Interact(const FInputActionValue& Value)
 {
 	IInteractableInterface* InteractableObject;
@@ -758,8 +679,6 @@ void ABOOMCharacter::Interact(const FInputActionValue& Value)
 void ABOOMCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
-
 }
 
 void ABOOMCharacter::UnPossessed()
@@ -781,7 +700,7 @@ FGenericTeamId ABOOMCharacter::GetGenericTeamId() const
 		UE_LOG(LogTemp, Warning, TEXT("Team ID got successfully: %s"), *GetNameSafe(this));
 		return 	TeamInterface->GetGenericTeamId();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Team id failed in: %s"), *GetNameSafe(this));
+	UE_LOG(LogTemp, Warning, TEXT("Team ID failed in: %s"), *GetNameSafe(this));
 	return FGenericTeamId::NoTeam;
 }
 

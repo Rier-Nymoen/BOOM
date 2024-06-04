@@ -18,6 +18,10 @@ class BOOM_API UBOOMPlayerHUD : public UBOOMUserWidget
 	GENERATED_BODY()
 
 public:
+	virtual void NativeConstruct() override;
+
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
 	class UBOOMPickUpPrompt* GetPickUpPromptElement();
 
 	class UBOOMWeaponInformation* GetWeaponInformationElement();

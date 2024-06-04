@@ -3,7 +3,3 @@
 
 #include "UI/BOOMUserWidget.h"
 
-void UBOOMUserWidget::NativeConstruct()
-{
-	Super::NativeConstruct();
-}

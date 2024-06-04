@@ -76,6 +76,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = Name)
 	FName Name = FName(TEXT("Default Weapon Name"));
 
+	FName GetName() const { return Name; }
+
 	/*Character holding weapon*/
 	ABOOMCharacter* Character;
 
@@ -114,10 +116,12 @@ public:
 	
 	UFUNCTION()
 	virtual void HandleFireInput();
+
+	UFUNCTION()
+	virtual void HandleSingleFireInput();
 	
 	UFUNCTION()
 	virtual void HandleStopFireInput();
-
 
 protected:
 	//Value should be a multiple of MagazineSize. Maximum Ammo Reserves.
@@ -152,20 +156,32 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UMaterialInstance* ImpactDecal;
 
+	bool bIsPendingFiring;
 
 public:
+	bool IsPendingFiring() const { return bIsPendingFiring; }
+	
+	void SetIsPendingFiring(bool InBoolean) { bIsPendingFiring = InBoolean;}
+
+	UFUNCTION(BlueprintCallable)
 	int GetMaxAmmoReserves() const  { return MaxAmmoReserves; }
 
+	UFUNCTION(BlueprintCallable)
 	int GetCurrentAmmoReserves() const { return CurrentAmmoReserves; }
 
+	UFUNCTION(BlueprintCallable)
 	int GetMagazineSize() const { return MagazineSize; }
 
+	UFUNCTION(BlueprintCallable)
 	int GetCurrentAmmo() const { return CurrentAmmo; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetHitscanRange() const { return HitscanRange; }
 
 	UFUNCTION()
 	virtual void AddAmmo(int Amount);
 	
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	virtual bool HasAmmo();
 
 	virtual void HandleEquipping();
@@ -247,7 +263,6 @@ public:
 	
 	void InterpRecoil();
 
-
 	FTimerHandle TimerHandle_WeaponCooldown;
 
 	virtual void Zoom();
@@ -265,6 +280,13 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* StopFireAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ReloadAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ZoomAction;
+
 
 	//Maps heat level to bullet spread angle
 
@@ -325,11 +347,12 @@ protected:
 	float DebugInterpSpeedRecoil;
 
 	UPROPERTY(EditAnywhere, Category = Debug)
-	
 	float DebugInterpSpeedRecovery;
 
 	FRotator FirstShotRotation;
 
 	//UPROPERTY(EditDefaultsOnly, Category = Effects)
 	//class UNiagraSystem* BulletTraceFX;
+
+
 };

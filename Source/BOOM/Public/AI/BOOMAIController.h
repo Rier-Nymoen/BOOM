@@ -45,8 +45,13 @@ protected:
 	//virtual void OnTargetPerceptionUpdated(FActorPerceptionUpdateInfo& UpdateInfo);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FName InCombatName;
+	FName InCombatKeyName;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FName TargetActorKeyName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FName LastKnownPositionKeyName;
 
 public:
 	UFUNCTION(BlueprintCallable)

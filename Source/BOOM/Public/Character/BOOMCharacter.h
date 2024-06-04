@@ -23,6 +23,8 @@ class UCameraComponent;
 class UAnimMontage;
 class USoundBase;
 class UAbilitySystemComponent;
+class UBOOMHealthComponent;
+class ABOOMWeapon;
 
 USTRUCT(BlueprintType)
 struct FBurstGeometryProperties
@@ -69,6 +71,7 @@ public:
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponSwap);
 
 UCLASS(config = Game)
 class ABOOMCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IGameplayCueInterface, public IGameplayTagAssetInterface
@@ -145,16 +148,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = DataTable)
 	class UDataTable* WeaponTable;
 
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-	void StartFire();
-
 	//Temporary solution to have AI only worry about when to fire, not when to stop, when using non-automatic weapons.
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	void SingleFire();
 	
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-	void StopFire();
-
 	bool bReleasedJumpInput;
 	
 protected:
@@ -180,11 +177,8 @@ protected:
 
 	virtual void StopJumping() override;
 
-	UFUNCTION()
-	void Reload();
-
-	UFUNCTION()
-	virtual void Fire();
+	//UFUNCTION()
+	//virtual void Fire();
 
 	void Interact(const FInputActionValue& Value);
 
@@ -207,21 +201,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* WeaponSwapAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* FireAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* StopFireAction;
-
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* ReloadAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* ZoomAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* CrouchAction;
@@ -240,8 +222,6 @@ public:
 
 	UFUNCTION()
 	void DropCurrentWeapon();
-
-	bool bIsPendingFiring;
 
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
@@ -300,8 +280,11 @@ public:
 	UFUNCTION()
 	bool HasEmptyWeaponSlots();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	float GetHealth();
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealthPercentage();
 
 	UFUNCTION(BlueprintCallable)
 	bool IsAlive();
@@ -309,13 +292,22 @@ public:
 	UPROPERTY(EditAnywhere)
 	FBurstGeometryProperties BurstGeometryProperties;
 
+	UFUNCTION(BlueprintCallable)
+	UBOOMHealthComponent* GetHealthComponent() const { return HealthComponent; }
+
+	UFUNCTION(BlueprintCallable)
+	ABOOMWeapon* GetCurrentWeapon() const { return Weapons.IsValidIndex(CurrentWeaponSlot) ? Weapons[CurrentWeaponSlot] : nullptr; }
+
 protected:
 
 	UPROPERTY()
-	class UBOOMHealthComponent* HealthComponent;
+	UBOOMHealthComponent* HealthComponent;
 	//experimenting, remove its specifier potentialy
 	UPROPERTY(BlueprintAssignable)
 	FOnDeath OnDeath;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnWeaponSwap OnWeaponSwap;
 
 	UFUNCTION()
 	void HandleDeath();
@@ -348,9 +340,6 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	bool bIsDead;
 
-	UFUNCTION()
-	void Zoom();
-	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Input)
 	bool bIsFocalLengthScalingEnabled;
 

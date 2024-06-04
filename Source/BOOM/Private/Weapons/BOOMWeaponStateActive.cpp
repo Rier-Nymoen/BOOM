@@ -12,7 +12,7 @@ void UBOOMWeaponStateActive::EnterState()
 	ABOOMWeapon* Weapon = Cast<ABOOMWeapon>(GetOwner());
 	if (Weapon)
 	{
-		if (Weapon->GetCharacter() && Weapon->GetCharacter()->bIsPendingFiring && Weapon->HasAmmo() && Weapon->IsReadyToFire())
+		if (Weapon->GetCharacter() && Weapon->IsPendingFiring() && Weapon->HasAmmo() && Weapon->IsReadyToFire())
 		{
 			Weapon->GotoState(Weapon->FiringState);
 		}
